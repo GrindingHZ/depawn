@@ -1,4 +1,6 @@
+export * from './app-shell';
 export * from './button';
+export * from './data-table';
 export * from './card';
 export * from './dialog';
 export * from './empty-state';
