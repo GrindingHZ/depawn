@@ -8,5 +8,5 @@
     "outDir": "dist",
     "types": ["node"]
   },
-  "include": ["src", "vitest.config.ts"]
+  "include": ["src", "test", "vitest.config.ts", "vitest.integration.config.ts"]
 }

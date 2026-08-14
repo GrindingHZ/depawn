@@ -5,16 +5,23 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:unit": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate"
   },
   "devDependencies": {
+    "@nestjs/testing": "^11.1.29",
+    "@swc/core": "^1.15.47",
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/express": "^5.0.6",
     "@types/node": "^24.0.0",
+    "@types/supertest": "^7.2.1",
     "eslint": "^10.8.1",
     "prisma": "^6.19.3",
+    "supertest": "^7.2.2",
     "typescript": "^5.9.0",
+    "unplugin-swc": "^1.5.11",
     "vitest": "^3.2.0"
   },
   "dependencies": {
