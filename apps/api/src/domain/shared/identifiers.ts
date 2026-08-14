@@ -12,6 +12,8 @@ export type BorrowerNoteId = Brand<string, 'BorrowerNoteId'>;
 export type LiquidationId = Brand<string, 'LiquidationId'>;
 export type FundsHoldId = Brand<string, 'FundsHoldId'>;
 export type SessionId = Brand<string, 'SessionId'>;
+export type LedgerAccountId = Brand<string, 'LedgerAccountId'>;
+export type LedgerTransactionId = Brand<string, 'LedgerTransactionId'>;
 
 export function accountIdOf(value: string): AccountId {
   return value as AccountId;
@@ -59,4 +61,12 @@ export function fundsHoldIdOf(value: string): FundsHoldId {
 
 export function sessionIdOf(value: string): SessionId {
   return value as SessionId;
+}
+
+export function ledgerAccountIdOf(value: string): LedgerAccountId {
+  return value as LedgerAccountId;
+}
+
+export function ledgerTransactionIdOf(value: string): LedgerTransactionId {
+  return value as LedgerTransactionId;
 }

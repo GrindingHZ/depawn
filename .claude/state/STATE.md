@@ -2,7 +2,7 @@
 
 phase: P1
 slice: p1a-ledger-core
-stage: plan
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 2e2445d
 status: running
