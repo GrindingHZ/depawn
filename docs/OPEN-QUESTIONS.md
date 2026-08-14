@@ -72,3 +72,18 @@ lenders will not commit capital.
 requires a stable code on every error envelope but lists none for these cases
 **Needs:** whoever owns the API contract
 **Notes:** The docs list also omits codes for rate limiting; add one when a limiter exists.
+
+## Q-009: commit scope for the test support package
+**Blocks:** commit messages touching `packages/test-support`
+**Currently implemented:** the scope `test-support` is used, since the docs/12 scope list predates
+the package and lists no fitting scope; the commit hook accepts any lowercase scope
+**Needs:** whoever owns docs/12
+**Notes:** Either `test-support` joins the list or those commits fold under an existing scope.
+
+## Q-010: ledger transaction kind for hold releases
+**Blocks:** the `SETTLE_LIQUIDATION` entry shape in P6
+**Currently implemented:** `SettlementPort.releaseHold` writes kind `ORIGINATE_LOAN`, the only
+release in scope through P5; the port signature from docs/01 carries no kind parameter
+**Needs:** whoever owns docs/01 and docs/03
+**Notes:** When liquidation bidding reuses holds, either the port gains a kind, the adapter
+derives it from the distribution shape, or bids get their own port method.
