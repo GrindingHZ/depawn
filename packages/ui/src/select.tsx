@@ -3,7 +3,7 @@ import type { ReactElement, SelectHTMLAttributes } from 'react';
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   readonly label: string;
-  readonly errorMessage?: string;
+  readonly errorMessage?: string | undefined;
 }
 
 export function Select({ label, errorMessage, id, children, ...rest }: SelectProps): ReactElement {

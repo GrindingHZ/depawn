@@ -1,4 +1,5 @@
 import { logout } from '@depawn/contracts';
+import { AppShell, Button, EmptyState, Skeleton } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
@@ -21,19 +22,32 @@ function HomePage(): ReactElement | null {
   });
 
   if (currentAccount.isPending) {
-    return null;
+    return (
+      <main className="p-6">
+        <Skeleton lineCount={4} />
+      </main>
+    );
   }
   if (currentAccount.data === null || currentAccount.data === undefined) {
     return <Navigate to="/login" />;
   }
 
   return (
-    <main data-testid="authenticated-home">
-      <h1>Marketplace</h1>
-      <p data-testid="account-email">{currentAccount.data.email}</p>
-      <button type="button" onClick={() => logoutMutation.mutate()}>
-        Log out
-      </button>
-    </main>
+    <div data-testid="authenticated-home">
+      <AppShell
+        productName="depawn marketplace"
+        navigation={<span data-testid="account-email">{currentAccount.data.email}</span>}
+        actions={
+          <Button variant="secondary" onClick={() => logoutMutation.mutate()}>
+            Log out
+          </Button>
+        }
+      >
+        <EmptyState
+          title="Nothing to show yet"
+          description="Listings, offers, and loans arrive with the next build phases."
+        />
+      </AppShell>
+    </div>
   );
 }

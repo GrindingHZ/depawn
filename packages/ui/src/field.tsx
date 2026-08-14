@@ -3,7 +3,7 @@ import type { InputHTMLAttributes, ReactElement } from 'react';
 
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly label: string;
-  readonly errorMessage?: string;
+  readonly errorMessage?: string | undefined;
 }
 
 export function Field({ label, errorMessage, id, ...rest }: FieldProps): ReactElement {

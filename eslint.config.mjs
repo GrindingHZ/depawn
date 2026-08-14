@@ -23,6 +23,16 @@ export default tseslint.config(
     },
   },
   {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'writable',
+        require: 'readonly',
+      },
+    },
+  },
+  {
     files: ['**/*.spec.ts', '**/*.spec.tsx', '**/test/**'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
