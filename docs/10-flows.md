@@ -418,3 +418,41 @@ offer, reclaim hold, mark default, claim receipt, close an already-open liquidat
 
 A pause that can trap a borrower's collateral or a lender's principal is itself an attack surface.
 Each of the never-blocked paths gets its own test asserting it still works while paused.
+
+---
+
+## Flow 12: wallet deposit and withdrawal
+
+**Actors:** operations (deposit), member (withdrawal)
+**Precondition:** Phase 1 has no payment rail; the platform float is the counterparty
+
+### Steps
+
+1. `POST /me/deposits` with `{ email?, amount }`, operations role only.
+   > **─── transaction boundary ───**
+   > Resolve the target account (the named email, or the caller when omitted; see Q-011).
+   > `SettlementPort.transfer(platformFloat, target, amount)` writes the `DEPOSIT` ledger
+   > transaction. The response carries the settlement reference.
+
+2. `POST /me/withdrawals` with `{ amount }`.
+   > **─── transaction boundary ───**
+   > Lock the caller's available account, check the balance, and
+   > `SettlementPort.transfer(caller, platformFloat, amount)` writes the `WITHDRAW` transaction.
+
+Both writes sit behind the idempotency interceptor: the key is claimed before the handler runs,
+a repeat replays the stored response, a concurrent duplicate gets 409, and a crashed claim stays
+pending until it expires rather than ever executing twice.
+
+### Failures
+
+| Condition | Result |
+|---|---|
+| Caller lacks the operations role on deposit | 403 `FORBIDDEN` |
+| Deposit target email unknown | 404 `NOT_FOUND` |
+| Withdrawal beyond the available balance | 422 `INSUFFICIENT_FUNDS` |
+| Same idempotency key, different payload | 409 `IDEMPOTENCY_KEY_REUSED` |
+
+### Phase 3
+
+Deposits and withdrawals become on and off ramp operations against the user's wallet; the float
+account disappears from the user path and the ledger records the mirror entries from the indexer.
