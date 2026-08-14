@@ -15,7 +15,7 @@ We are a pawnbroker running a loan book on modern rails. We are not a trustless 
 
 **Phase 1 is Web2. Phase 3 is Web3. The domain layer must be identical in both.**
 
-Money movement, custody, identity, and time reach the domain only through **ports** — interfaces
+Money movement, custody, identity, and time reach the domain only through **ports**: interfaces
 defined in the domain layer with no knowledge of Postgres, Prisma, HTTP, or Sui. Phase 1 supplies a
 Postgres adapter. Phase 3 supplies a Sui adapter. Nothing in `src/domain/` changes.
 
@@ -35,7 +35,7 @@ Read in this order. Each is normative, not advisory.
 | `docs/04-api-contract.md` | Endpoints, DTOs, error model, idempotency, pagination |
 | `docs/05-frontend.md` | Three apps, routing, state, component conventions |
 | `docs/06-testing.md` | Test pyramid, port contract tests, Playwright, chain assertions |
-| `docs/07-phase-plan.md` | Phases P0–P11, exit criteria, build order |
+| `docs/07-phase-plan.md` | Phases P0 to P11, exit criteria, build order |
 | `docs/08-web3-migration.md` | The pivot: what changes, what does not |
 | `docs/09-conventions.md` | Naming, style, code review checklist, what not to do |
 | `docs/10-flows.md` | Every end-to-end flow, step by step, with failure modes |
@@ -86,13 +86,13 @@ comments, documentation, and UI copy alike.
 
 ## Working agreements
 
-**Vertical slices, not layers.** Finish one flow end to end — domain, persistence, API, UI, E2E test —
+**Vertical slices, not layers.** Finish one flow end to end (domain, persistence, API, UI, E2E test)
 before starting the next. Do not build "all the entities" then "all the endpoints". See
 `docs/07-phase-plan.md`.
 
 **One use case, one transaction.** Every write use case is a single atomic operation with a single
 database transaction. This is what makes each use case translatable to one on-chain transaction
-later. If a use case needs two transactions, the design is wrong — split the use case.
+later. If a use case needs two transactions, the design is wrong; split the use case.
 
 **Tests are part of the slice, not a later phase.** A slice is not done without unit tests on the
 domain, an integration test through HTTP, and a Playwright test if it has UI.
