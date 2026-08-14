@@ -1,4 +1,5 @@
 import { logout } from '@depawn/contracts';
+import { AppShell, Button, EmptyState, Skeleton } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
@@ -21,7 +22,11 @@ function HomePage(): ReactElement | null {
   });
 
   if (currentAccount.isPending) {
-    return null;
+    return (
+      <main className="p-6">
+        <Skeleton lineCount={4} />
+      </main>
+    );
   }
   if (currentAccount.data === null || currentAccount.data === undefined) {
     return <Navigate to="/login" />;
@@ -31,19 +36,30 @@ function HomePage(): ReactElement | null {
     currentAccount.data.roles.includes('COMPLIANCE');
   if (!isOperator) {
     return (
-      <main>
-        <p data-testid="access-denied">You do not have access to the admin console.</p>
+      <main className="p-6">
+        <p data-testid="access-denied" className="font-body text-sm text-ink-primary">
+          You do not have access to the admin console.
+        </p>
       </main>
     );
   }
 
   return (
-    <main data-testid="authenticated-home">
-      <h1>Admin</h1>
-      <p data-testid="account-email">{currentAccount.data.email}</p>
-      <button type="button" onClick={() => logoutMutation.mutate()}>
-        Log out
-      </button>
-    </main>
+    <div data-testid="authenticated-home">
+      <AppShell
+        productName="depawn admin"
+        navigation={<span data-testid="account-email">{currentAccount.data.email}</span>}
+        actions={
+          <Button variant="secondary" onClick={() => logoutMutation.mutate()}>
+            Log out
+          </Button>
+        }
+      >
+        <EmptyState
+          title="Nothing to show yet"
+          description="The loan book, reconciliation, and parameters arrive with later phases."
+        />
+      </AppShell>
+    </div>
   );
 }
