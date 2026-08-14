@@ -1,0 +1,50 @@
+╔═════════════════════════════════════════════════════════════════════════════════════════╗
+║  TARGET: Admin - RECOMMENDED DESIGN SYSTEM                                              ║
+╚═════════════════════════════════════════════════════════════════════════════════════════╝
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+├─── PATTERN ──────────────────────────────────────────────────────────────────────────────┤
+│  Name: Real-Time / Operations Landing                                                   │
+│     Conversion: For ops/security/iot products. Demo or sandbox link. Trust signals.     │
+│     CTA: Primary CTA in nav + After metrics                                             │
+│     Sections:                                                                           │
+│       1. 1. Hero (product + live preview or status), 2. Key metrics/indicators, 3. How it works, 4. CTA (Start trial / Contact)│
+├─── STYLE ────────────────────────────────────────────────────────────────────────────────┤
+│  Name: Data-Dense Dashboard                                                             │
+│     Mode Support: Light ✓ Full  Dark ✓ Full                                             │
+│     Keywords: Multiple charts/widgets, data tables, KPI cards, minimal padding, grid    │
+│     layout, space-efficient, maximum data visibility                                    │
+│     Best For: Business intelligence dashboards, financial analytics, enterprise         │
+│     reporting, operational dashboards, data warehousing                                 │
+│     Performance: ⚡ Excellent | Accessibility: ✓ WCAG AA                                 │
+├─── COLORS ───────────────────────────────────────────────────────────────────────────────┤
+│     [38;2;21;128;61m██[0m Primary:       #15803D    (--color-primary)                                      │
+│     [38;2;255;255;255m██[0m On Primary:    #FFFFFF    (--color-on-primary)                                   │
+│     [38;2;34;197;94m██[0m Secondary:     #22C55E    (--color-secondary)                                    │
+│     [38;2;217;119;6m██[0m Accent/CTA:    #D97706    (--color-accent)                                       │
+│     [38;2;240;253;244m██[0m Background:    #F0FDF4    (--color-background)                                   │
+│     [38;2;20;83;45m██[0m Foreground:    #14532D    (--color-foreground)                                   │
+│     [38;2;232;240;241m██[0m Muted:         #E8F0F1    (--color-muted)                                        │
+│     [38;2;187;247;208m██[0m Border:        #BBF7D0    (--color-border)                                       │
+│     [38;2;220;38;38m██[0m Destructive:   #DC2626    (--color-destructive)                                  │
+│     [38;2;21;128;61m██[0m Ring:          #15803D    (--color-ring)                                         │
+│     Notes: Discovery green + volunteer badge + data neutral                             │
+├─── TYPOGRAPHY ───────────────────────────────────────────────────────────────────────────┤
+│  Fira Code / Fira Sans                                                                  │
+│     Mood: dashboard, data, analytics, code, technical, precise                          │
+│     Best For: Dashboards, analytics, data visualization, admin panels                   │
+│     Google Fonts: https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap│
+│     CSS Import: @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@4...│
+├─── KEY EFFECTS ──────────────────────────────────────────────────────────────────────────┤
+│     Hover tooltips, chart zoom on click, row highlighting on hover, smooth filter       │
+│     animations, data loading spinners                                                   │
+├─── AVOID ────────────────────────────────────────────────────────────────────────────────┤
+│     Ornate design + No filtering                                                        │
+├─── PRE-DELIVERY CHECKLIST ───────────────────────────────────────────────────────────────┤
+│     [ ] No emojis as icons (use SVG: Heroicons/Lucide)                                  │
+│     [ ] cursor-pointer on all clickable elements                                        │
+│     [ ] Hover states with smooth transitions (150-300ms)                                │
+│     [ ] Light mode: text contrast 4.5:1 minimum                                         │
+│     [ ] Focus states visible for keyboard nav                                           │
+│     [ ] prefers-reduced-motion respected                                                │
+│     [ ] Responsive: 375px, 768px, 1024px, 1440px                                        │
+└─────────────────────────────────────────────────────────────────────────────────────────┘

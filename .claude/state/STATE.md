@@ -2,7 +2,7 @@
 
 phase: P0.5
 slice: p05-design-system
-stage: brainstorm
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 58fd2bc
 status: running
