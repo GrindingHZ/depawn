@@ -1,8 +1,8 @@
 # State
 
 phase: P1
-slice: p1a-ledger-core
-stage: execute
-task: 1
-slice-base: 2e2445d
+slice: p1b-wallet
+stage: brainstorm
+task: 0
+slice-base: pending
 status: running
