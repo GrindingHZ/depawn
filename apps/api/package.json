@@ -10,10 +10,11 @@
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "start": "tsx src/main.ts"
+    "start": "node -r @swc-node/register src/main.ts"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.1.29",
+    "@swc-node/register": "^1.12.1",
     "@swc/core": "^1.15.47",
     "@testcontainers/postgresql": "^12.1.0",
     "@types/cookie-parser": "^1.4.10",
