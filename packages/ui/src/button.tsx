@@ -5,7 +5,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 const classByVariant: Record<ButtonVariant, string> = {
   primary: 'bg-accent text-ink-inverse hover:bg-accent-hover',
   secondary: 'border border-edge bg-surface-raised text-ink-primary hover:bg-surface-sunken',
-  danger: 'bg-status-danger text-ink-inverse hover:bg-accent-hover',
+  danger: 'bg-status-danger text-ink-inverse hover:opacity-90',
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
