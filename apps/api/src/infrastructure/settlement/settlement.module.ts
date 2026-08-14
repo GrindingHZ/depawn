@@ -13,6 +13,6 @@ import { LedgerSettlementAdapter } from './ledger-settlement.adapter';
     { provide: ID_GENERATOR, useClass: UlidIdGeneratorAdapter },
     { provide: SETTLEMENT_PORT, useClass: LedgerSettlementAdapter },
   ],
-  exports: [SETTLEMENT_PORT, LedgerSettlementAdapter, LedgerAccountDirectory],
+  exports: [SETTLEMENT_PORT, LedgerSettlementAdapter, LedgerAccountDirectory, ID_GENERATOR],
 })
 export class SettlementModule {}
