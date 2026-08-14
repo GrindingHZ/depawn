@@ -168,6 +168,7 @@ model IdempotencyRecord {
   id           String   @id
   key          String
   accountId    String   @map("account_id")
+  requestHash  String   @default("") @map("request_hash")
   statusCode   Int      @map("status_code")
   responseBody Json     @map("response_body")
   expiresAt    DateTime @map("expires_at")
