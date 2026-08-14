@@ -1,11 +1,9 @@
-declare const contextBrand: unique symbol;
-
 /* Opaque marker for the transaction context. The Prisma adapter carries a
    transaction client behind it in Phase 1; the Sui adapter carries a
    transaction builder in Phase 3. Domain and application code never look
    inside, they only pass it through. */
 export interface UnitOfWorkContext {
-  readonly [contextBrand]?: never;
+  readonly driver: string;
 }
 
 export interface UnitOfWork {

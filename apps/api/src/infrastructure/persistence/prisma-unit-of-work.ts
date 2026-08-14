@@ -4,6 +4,8 @@ import type { UnitOfWork, UnitOfWorkContext } from '../../domain/ports/unit-of-w
 import { PrismaService } from './prisma.service';
 
 export class PrismaUnitOfWorkContext implements UnitOfWorkContext {
+  readonly driver = 'prisma';
+
   constructor(readonly transaction: Prisma.TransactionClient) {}
 }
 
