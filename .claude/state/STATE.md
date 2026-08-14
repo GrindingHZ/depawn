@@ -2,7 +2,7 @@
 
 phase: P1
 slice: p1b-wallet
-stage: brainstorm
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 5db4962
 status: running
