@@ -1,8 +1,8 @@
 # State
 
 phase: P0
-slice: p0-spine
+slice: p0b-domain-kernel
 stage: brainstorm
 task: 0
-slice-base: HEAD
+slice-base: pending
 status: running
