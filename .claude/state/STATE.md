@@ -1,8 +1,8 @@
 # State
 
-phase: P0.5
-slice: p05-design-system
-stage: execute
-task: 1
-slice-base: 58fd2bc
+phase: P1
+slice: p1a-ledger-core
+stage: plan
+task: 0
+slice-base: pending
 status: running
