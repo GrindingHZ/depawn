@@ -1,12 +1,21 @@
 import { ApiError, fetchBalance, fetchLedgerEntries, withdraw } from '@depawn/contracts';
 import type { LedgerEntryResponse } from '@depawn/contracts';
-import { AppShell, Button, Card, DataTable, Field, Money, Skeleton } from '@depawn/ui';
+import {
+  AppShell,
+  Button,
+  Card,
+  DataTable,
+  Field,
+  Money,
+  Skeleton,
+  toMinorUnits,
+} from '@depawn/ui';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { currentAccountKeys, useCurrentAccount } from '../current-account';
-import { toMinorUnits } from '../money-input';
+
 import { walletKeys } from '../wallet-keys';
 
 export const Route = createFileRoute('/wallet')({

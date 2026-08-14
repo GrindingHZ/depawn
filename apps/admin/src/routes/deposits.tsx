@@ -1,11 +1,10 @@
 import { ApiError, deposit } from '@depawn/contracts';
-import { AppShell, Button, Card, Field, Skeleton } from '@depawn/ui';
+import { AppShell, Button, Card, Field, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useMutation } from '@tanstack/react-query';
 import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
-import { toMinorUnits } from '../money-input';
 
 export const Route = createFileRoute('/deposits')({
   component: DepositsPage,
@@ -71,7 +70,13 @@ function DepositCard(): ReactElement {
 
   const depositMutation = useMutation({
     mutationFn: (minorUnits: string) =>
-      deposit({ email, amount: { minorUnits, currency: 'AUD' } }, { idempotencyKey }),
+      deposit(
+        {
+          ...(email.trim() === '' ? {} : { email: email.trim() }),
+          amount: { minorUnits, currency: 'AUD' },
+        },
+        { idempotencyKey },
+      ),
     onSuccess: (response) => {
       setLastReference(response.settlementRef.reference);
       setAmountInput('');
