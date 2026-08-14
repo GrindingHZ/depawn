@@ -15,13 +15,15 @@
     "test:unit": "turbo run test:unit",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
-    "check": "turbo run typecheck lint && prettier --check . && bash scripts/check-boundaries.sh && bash scripts/check-prose.sh . && bash scripts/check-design-tokens.sh ."
+    "check": "turbo run typecheck lint && prettier --check . && bash scripts/check-boundaries.sh && bash scripts/check-prose.sh . && bash scripts/check-design-tokens.sh .",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "dependency-cruiser": "^18.2.0",
     "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "turbo": "^2.5.0",
     "typescript": "^5.9.0",
