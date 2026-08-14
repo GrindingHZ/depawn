@@ -24,6 +24,11 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
+      const body = exception.getResponse();
+      if (typeof body === 'object' && body !== null && 'error' in body) {
+        response.status(status).json(body);
+        return;
+      }
       const envelope: ErrorEnvelope = {
         error: { code: codeByStatus[status] ?? 'FAULT', message: exception.message },
       };

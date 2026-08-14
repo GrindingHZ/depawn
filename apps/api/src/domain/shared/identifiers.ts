@@ -11,6 +11,7 @@ export type LenderNoteId = Brand<string, 'LenderNoteId'>;
 export type BorrowerNoteId = Brand<string, 'BorrowerNoteId'>;
 export type LiquidationId = Brand<string, 'LiquidationId'>;
 export type FundsHoldId = Brand<string, 'FundsHoldId'>;
+export type SessionId = Brand<string, 'SessionId'>;
 
 export function accountIdOf(value: string): AccountId {
   return value as AccountId;
@@ -54,4 +55,8 @@ export function liquidationIdOf(value: string): LiquidationId {
 
 export function fundsHoldIdOf(value: string): FundsHoldId {
   return value as FundsHoldId;
+}
+
+export function sessionIdOf(value: string): SessionId {
+  return value as SessionId;
 }

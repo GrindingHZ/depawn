@@ -7,6 +7,6 @@
 - [ ] feat(api): add ulid id generator and argon2 password hasher adapters
 - [ ] feat(db): add version column to account
 - [ ] feat(accounts): persist accounts through a prisma repository
-- [ ] feat(accounts): register login logout and me endpoints with session cookie
+- [ ] feat(accounts): add session cookie auth endpoints
 - [ ] feat(accounts): guard routes by role with a current account decorator
 - [ ] test(accounts): cover auth flows through http against postgres

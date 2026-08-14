@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import cookieParser from 'cookie-parser';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { AppModule } from '../src/app.module';
@@ -49,6 +50,7 @@ export async function createTestApplication(): Promise<TestApplication> {
     .compile();
 
   const app = moduleRef.createNestApplication();
+  app.use(cookieParser());
   app.setGlobalPrefix('api/v1');
   await app.init();
 
