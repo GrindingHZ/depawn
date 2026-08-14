@@ -1,4 +1,4 @@
-# 06 — Testing
+# 06: Testing
 
 ## What we are actually protecting against
 
@@ -37,7 +37,7 @@ export default defineConfig({
 Separate project configs for `unit` and `integration` so `pnpm test:unit` stays under two seconds and
 runs on every save.
 
-## Layer 1 — Domain unit tests
+## Layer 1: domain unit tests
 
 No database, no NestJS container, no mocks of things you own. Construct an entity, call a method,
 assert the result.
@@ -80,7 +80,7 @@ const cases: TransitionCase[] = [
 
 When a state is added and the table is not updated, the exhaustiveness check fails at compile time.
 
-## Layer 2 — Property tests on the ledger
+## Layer 2: property tests on the ledger
 
 `fast-check`. These are cheap and they catch the bugs that hand-written cases never do.
 
@@ -102,7 +102,7 @@ test.prop([arbitraryLoan(), arbitraryInstant()])('amount due never decreases wit
 });
 ```
 
-## Layer 3 — Port contract tests
+## Layer 3: port contract tests
 
 This is the highest-leverage idea in the whole test suite, so read this section twice.
 
@@ -129,14 +129,14 @@ export function describeSettlementPortContract(
 // Phase 1
 describeSettlementPortContract('ledger', createLedgerSubject);
 
-// Phase 3 — same file, one line added
+// Phase 3: same file, one line added
 describeSettlementPortContract('sui', createSuiLocalnetSubject);
 ```
 
 When the Sui adapter passes the suite the Phase 1 adapter passes, the migration is provably
 behaviour-preserving at the seam. Do the same for `CustodyPort`.
 
-## Layer 4 — Integration tests
+## Layer 4: integration tests
 
 Real Postgres via Testcontainers. Real NestJS application. HTTP through Supertest. No mocks except
 the clock, which is a `FixedClockAdapter` you advance explicitly.
@@ -238,7 +238,7 @@ it('rejects a default claim during the grace period', async () => {
 it('rejects a liquidation before the statutory holding period elapses', async () => { ... });
 ```
 
-## Layer 5 — API flow tests
+## Layer 5: API flow tests
 
 A separate suite that runs the entire lifecycle as a single scripted scenario against a running
 server, in order, asserting at each step. This is the test that proves the flows in `docs/10-flows.md`
@@ -284,7 +284,7 @@ surplus, default and liquidation at a loss, cancellation, and offer withdrawal.
 Keep an equivalent `.http` file collection in `apps/api/http/` for manual poking. It is not a
 substitute for the suite but it is how you will actually debug.
 
-## Layer 6 — Playwright
+## Layer 6: Playwright
 
 Three Playwright projects, one per app, sharing a fixture package.
 
@@ -359,7 +359,7 @@ controllers and adapters is a vanity metric; coverage of the interest calculator
 
 ---
 
-## Phase 3 additions — testing against the chain
+## Phase 3 additions: testing against the chain
 
 ### Move unit tests
 
@@ -457,7 +457,7 @@ it('reports drift when the projection disagrees with the chain', async () => {
 
 Use a headless keypair injected into the page context rather than a browser extension. Expose a test
 wallet adapter behind `VITE_TEST_WALLET=1` that signs with a fixture key from the app's own code. The
-alternative — driving a real extension — is slow and flaky, and it tests the extension rather than
+alternative, driving a real extension, is slow and flaky, and it tests the extension rather than
 your application.
 
 Assert the digest appears in the UI and links to the explorer:

@@ -1,4 +1,4 @@
-# 04 — API Contract
+# 04: API contract
 
 ## Conventions
 
@@ -18,7 +18,7 @@ Phase 1: session cookie, HTTP-only, SameSite strict. Argon2id password hashing. 
 `MEMBER`, `VAULT_STAFF`, `OPERATIONS`, `COMPLIANCE`.
 
 The three frontends authenticate against the same endpoint and differ by which roles they accept.
-`MEMBER` covers borrowing and lending — there is no borrower role or lender role.
+`MEMBER` covers borrowing and lending; there is no borrower role or lender role.
 
 Phase 3 replaces the login exchange with a wallet signature challenge. The session mechanism is
 unchanged. That is why `IdentityPort.resolveAccount` exists.
@@ -55,8 +55,8 @@ may change freely. `details` is optional and typed per code.
 | 401 | Not authenticated |
 | 403 | Authenticated but wrong role or not the resource owner |
 | 404 | Not found, or found but not visible to this account |
-| 409 | State conflict — the resource is not in a state that permits this |
-| 422 | Business rule violation — well-formed but rejected by policy |
+| 409 | State conflict: the resource is not in a state that permits this |
+| 422 | Business rule violation: well-formed but rejected by policy |
 | 429 | Rate limited |
 | 500 | Fault |
 
@@ -78,7 +78,7 @@ POST   /me/deposits                      OPERATIONS only in Phase 1
 POST   /me/withdrawals
 ```
 
-### Custody — vault console
+### Custody: vault console
 
 ```
 POST   /vaults/:vaultId/intakes                  begin an intake
@@ -94,7 +94,7 @@ GET    /vaults/:vaultId/exposure
 immutable and its hash is committed. The endpoint is separate from `seal` so a supervisor can review
 between the two.
 
-### Custody — member
+### Custody: member
 
 ```
 GET    /me/receipts
@@ -102,7 +102,7 @@ GET    /receipts/:id
 POST   /receipts/:id/redemption-requests          burn and request physical release
 ```
 
-### Custody — release at the counter
+### Custody: release at the counter
 
 ```
 GET    /redemption-requests?vaultId=&status=

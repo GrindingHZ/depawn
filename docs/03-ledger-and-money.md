@@ -1,4 +1,4 @@
-# 03 — Ledger and Money
+# 03: Ledger and money
 
 ## Why a double-entry ledger and not a balance column
 
@@ -97,7 +97,7 @@ GROUP BY account_id, currency;
 ```
 
 If this becomes slow, add a materialised balance table maintained by trigger and a nightly job that
-recomputes it from entries and alerts on drift. Do not remove the derivation — it is the thing that
+recomputes it from entries and alerts on drift. Do not remove the derivation; it is the thing that
 proves the cache is right.
 
 ## Transaction kinds and their entry shapes
@@ -114,21 +114,21 @@ DEBIT   PLATFORM_FLOAT        amount
 CREDIT  USER_AVAILABLE        amount
 ```
 
-### `HOLD_FUNDS` — a lender places an offer
+### `HOLD_FUNDS`: a lender places an offer
 
 ```
 DEBIT   USER_AVAILABLE        principal
 CREDIT  USER_HELD             principal
 ```
 
-### `REFUND_HOLD` — offer withdrawn, expired, or superseded and reclaimed
+### `REFUND_HOLD`: offer withdrawn, expired, or superseded and reclaimed
 
 ```
 DEBIT   USER_HELD             principal
 CREDIT  USER_AVAILABLE        principal
 ```
 
-### `ORIGINATE_LOAN` — the offer wins
+### `ORIGINATE_LOAN`: the offer wins
 
 ```
 DEBIT   lender USER_HELD              principal
@@ -201,7 +201,7 @@ export class LedgerSettlementAdapter implements SettlementPort {
 
 The concurrency detail that matters: reading the balance and writing the entry must be serialisable
 against the same account. Take a row lock on the `LedgerAccount` row before reading the balance, or
-use `SERIALIZABLE` isolation for this path and retry on conflict. Test it — see the concurrency
+use `SERIALIZABLE` isolation for this path and retry on conflict. Test it; see the concurrency
 section of `docs/06-testing.md`.
 
 ## How this maps to Phase 3

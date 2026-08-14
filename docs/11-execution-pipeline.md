@@ -1,4 +1,4 @@
-# 11 — Execution Pipeline
+# 11: Execution pipeline
 
 The build runs unattended. No human writes code, reviews a diff by hand, or approves a step. This
 document defines the loop, the gates that keep it honest, and the configuration that lets it run
@@ -39,7 +39,7 @@ fresh session. If a stage produced no file, the stage did not happen.
       verify.md
 ```
 
-## Stage 0 — Load state
+## Stage 0: load state
 
 Read, in this order: `CLAUDE.md`, every file in `docs/`, `.claude/state/STATE.md`, and the current
 slice folder if one exists. Then read `git log --oneline -20` to see what actually landed.
@@ -47,7 +47,7 @@ slice folder if one exists. Then read `git log --oneline -20` to see what actual
 Resume rule: if `STATE.md` names a slice and a stage, resume at that stage. Do not restart the slice.
 Do not re-plan work that is already committed.
 
-## Stage 1 — Brainstorm
+## Stage 1: brainstorm
 
 Write `.claude/work/<slice>/brainstorm.md`. Not prose musing. It answers five questions:
 
@@ -62,7 +62,7 @@ Write `.claude/work/<slice>/brainstorm.md`. Not prose musing. It answers five qu
 Cap this at one page. A long brainstorm is a sign the slice is too big; split it and update
 `STATE.md`.
 
-## Stage 2 — Plan
+## Stage 2: plan
 
 Write `.claude/work/<slice>/plan.md` as an ordered checklist of tasks. Each task is:
 
@@ -90,7 +90,7 @@ the implementation commit.
 
 A plan with more than twelve tasks is too big. Split the slice.
 
-## Stage 2.5 — Design pass
+## Stage 2.5: design pass
 
 Runs only for slices that touch UI. Skipped silently otherwise.
 
@@ -114,7 +114,7 @@ outside P0.5. Their appearance in a slice is a blocking review finding.
 If a screen needs a value no token provides, the fix is a separate commit adding the token with a
 one-line justification, not an inline value.
 
-## Stage 3 — Execute
+## Stage 3: execute
 
 Work the checklist top to bottom. For each task:
 
@@ -129,7 +129,7 @@ failure of this stage regardless of whether the code works.
 
 Never run `git add -A` from the repository root. Stage the specific paths the task touched.
 
-## Stage 4 — Review
+## Stage 4: review
 
 Spawn a fresh subagent as the reviewer. The reviewer has not seen the implementation conversation,
 which is the point. Self-review inside the same context finds almost nothing.
@@ -139,10 +139,10 @@ and `docs/02-domain-model.md`, then writes `.claude/work/<slice>/review.md`:
 
 ```markdown
 ## Blocking
-- src/domain/lending/loan.ts:42 — imports PrismaService, breaks the domain boundary rule
+- src/domain/lending/loan.ts:42 imports PrismaService, breaking the domain boundary rule
 
 ## Non-blocking
-- src/modules/lending/http/loan.controller.ts:18 — response mapper could move to a mapper file
+- src/modules/lending/http/loan.controller.ts:18 has a response mapper that could move to a mapper file
 
 ## Verdict
 BLOCKED
@@ -159,7 +159,7 @@ banned skill query; and the visual baseline diff, if it changed, has its own com
 re-run the review with a fresh subagent. Non-blocking findings are appended to `plan.md` as new
 tasks only if they are cheap; otherwise they are dropped. Do not gold-plate.
 
-## Stage 5 — Verify
+## Stage 5: verify
 
 Run in this order and stop at the first failure:
 
@@ -185,7 +185,7 @@ Playwright specifics:
 
 Any failure sends the loop back to Stage 3.
 
-## Stage 6 — Iterate, with a bound
+## Stage 6: iterate, with a bound
 
 The execute, review, verify cycle repeats until every gate is green. It is bounded so the loop can
 never wedge:
@@ -207,7 +207,7 @@ Next: verify the harness database driver before retrying
 - A slice finishes with blocked tasks. It does not stop the pipeline. The blocker file is what the
   human reads later.
 
-## Stage 7 — Close the slice
+## Stage 7: close the slice
 
 1. Every plan task is `[x]` or `[blocked]`.
 2. All four verify commands are green, excluding tests for blocked tasks, which are skipped with a

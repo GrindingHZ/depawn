@@ -1,4 +1,4 @@
-# 07 — Phase Plan
+# 07: Phase plan
 
 ## Build order: vertical slices, after a horizontal spine
 
@@ -26,7 +26,7 @@ once the spine exists.
 
 ---
 
-## P0 — Spine
+## P0: spine
 
 **Goal:** an authenticated user can log in to all three apps, see an empty page, and one trivial
 end-to-end path works.
@@ -49,7 +49,7 @@ the boundary lint rule fails a deliberate domain-imports-Prisma commit.
 
 ---
 
-## P0.5 — Design system
+## P0.5: design system
 
 **Goal:** one frozen token set and a primitive library, before any product UI exists.
 
@@ -71,7 +71,7 @@ Full detail in `docs/13-design-system.md`, including why the generator runs once
 This phase produces no product behaviour and is not optional. Skipping it means every UI slice makes
 its own colour decisions and the three apps stop looking like one product by roughly slice nine.
 
-## P1 — Wallet and ledger
+## P1: wallet and ledger
 
 **Goal:** money exists and moves correctly, with nothing to spend it on yet.
 
@@ -92,7 +92,7 @@ a marketplace bug will turn out to be a ledger bug.
 
 ---
 
-## P2 — Custody and the vault console
+## P2: custody and the vault console
 
 **Goal:** an item can be taken in, appraised, sealed, and turned into a receipt.
 
@@ -110,7 +110,7 @@ deserialise round trip.
 
 ---
 
-## P3 — Listings and offers
+## P3: listings and offers
 
 **Goal:** a borrower lists a receipt and lenders compete on rate.
 
@@ -127,7 +127,7 @@ tries to place a second offer with them.
 
 ---
 
-## P4 — Origination
+## P4: origination
 
 **Goal:** the single most important transaction in the product.
 
@@ -146,7 +146,7 @@ This is the slice to over-test. Everything downstream assumes it is correct.
 
 ---
 
-## P5 — Servicing and repayment
+## P5: servicing and repayment
 
 **Goal:** loans accrue, get repaid, and items get redeemed.
 
@@ -162,7 +162,7 @@ cannot be redeemed while encumbered; double repayment under concurrency produces
 
 ---
 
-## P6 — Default and liquidation
+## P6: default and liquidation
 
 **Goal:** the unhappy path is as complete as the happy one.
 
@@ -179,7 +179,7 @@ proceeds always sum exactly.
 
 ---
 
-## P7 — Operations, reconciliation, audit
+## P7: operations, reconciliation, audit
 
 **Goal:** the product is defensible to an operator, an auditor, and a lender.
 
@@ -191,11 +191,11 @@ proceeds always sum exactly.
 - Outbox drain worker with retry and a dead-letter table
 
 **Exit criteria:** pausing blocks origination and does not block repayment, redemption, reclaim, or
-default claim — each asserted separately; a deliberately corrupted receipt row shows up as drift.
+default claim, each asserted separately; a deliberately corrupted receipt row shows up as drift.
 
 ---
 
-## P8 — Demo hardening
+## P8: demo hardening
 
 **Goal:** it can be shown to someone without a script of apologies.
 
@@ -214,7 +214,7 @@ the full Playwright cross-app test passes; the demo runbook executes without dev
 
 ---
 
-## P9 — Chain readiness
+## P9: chain readiness
 
 **Goal:** prove the seam holds before writing any Move.
 
@@ -227,11 +227,11 @@ the full Playwright cross-app test passes; the demo runbook executes without dev
 - Move fixtures for interest and waterfall into a shared JSON file that TypeScript tests read
 
 **Exit criteria:** flipping the driver to `chain` produces a clean, obvious failure at the port
-boundary and nowhere else. If it fails somewhere in a use case, the seam leaked — fix it here.
+boundary and nowhere else. If it fails somewhere in a use case, the seam leaked; fix it here.
 
 ---
 
-## P10 — Move contracts
+## P10: Move contracts
 
 **Goal:** the same rules, enforced by the chain.
 
@@ -249,7 +249,7 @@ fixture.
 
 ---
 
-## P11 — Cutover
+## P11: cutover
 
 **Goal:** run on chain without a big-bang risk.
 

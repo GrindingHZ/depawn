@@ -1,4 +1,4 @@
-# 01 — Architecture
+# 01: Architecture
 
 ## The shape
 
@@ -70,7 +70,7 @@ from a value movement, it is returned in API responses, and the UI renders it as
 the chain arrives, the UI starts rendering an explorer link and nothing else changes.
 
 `Distribution[]` is the waterfall: an ordered list of `{ accountId, amount }`. Passing the whole
-distribution to `releaseHold` in one call is deliberate — it forces the entire payout to be one
+distribution to `releaseHold` in one call is deliberate: it forces the entire payout to be one
 atomic settlement, which is what a PTB will be.
 
 ### CustodyPort
@@ -112,8 +112,8 @@ export interface ClockPort {
 ```
 
 Never call `new Date()` or `Date.now()` anywhere outside the clock adapter. Every maturity check,
-expiry check, and accrual calculation takes time as an argument. This is not only for testability —
-Move has no ambient timestamp either, it has `&Clock` passed in as an argument. Writing the domain
+expiry check, and accrual calculation takes time as an argument. This is not only for testability.
+Move has no ambient timestamp either; it has `&Clock` passed in as an argument. Writing the domain
 this way from day one means the Move translation is mechanical.
 
 ### UnitOfWork
@@ -255,7 +255,7 @@ export interface ListingRepository {
 ```
 
 `findByIdForUpdate` issues `SELECT ... FOR UPDATE`. Use it in every use case that mutates. Optimistic
-concurrency via a `version` column is also required — see `docs/06-testing.md` for the concurrency
+concurrency via a `version` column is also required; see `docs/06-testing.md` for the concurrency
 tests that prove it works.
 
 `search` returns a read-model type, not the aggregate. Do not hydrate aggregates for list views.

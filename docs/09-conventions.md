@@ -1,4 +1,4 @@
-# 09 — Conventions
+# 09: Conventions
 
 The goal is code a person can read at 4pm on a Friday and understand without asking anyone. Every rule
 here exists to serve that.
@@ -10,8 +10,8 @@ here exists to serve that.
 Never introduce a synonym. A codebase where the same concept has three names is a codebase where
 nobody is sure whether two things are the same thing.
 
-**No abbreviations.** `principalAmount` not `princAmt`. `annualPercentageRateBasisPoints` not `apr`
-— yes it is long, and it is long in a way that prevents someone passing a percentage where basis
+**No abbreviations.** `principalAmount` not `princAmt`. `annualPercentageRateBasisPoints` not `apr`.
+Yes it is long, and it is long in a way that prevents someone passing a percentage where basis
 points are expected. Accepted exceptions, and the list is closed: `id`, `url`, `http`, `api`, `db`
 in infrastructure filenames only.
 
@@ -58,20 +58,20 @@ method: `execute`.
 **Comments explain why. Code explains what.**
 
 ```ts
-// Bad — restates the code
+// Bad: restates the code
 // Check if the loan has matured
 if (loan.maturesAt.isBefore(now)) { ... }
 
-// Bad — narrates the obvious
+// Bad: narrates the obvious
 // Loop through the offers
 for (const offer of offers) { ... }
 
-// Good — explains a decision that is not visible in the code
+// Good: explains a decision that is not visible in the code
 // Truncating division rounds interest in the borrower's favour, which is the
 // direction consumer credit rules require. Do not switch to rounding half-up.
 return Money.of(numerator / denominator, principal.currency);
 
-// Good — explains a constraint from outside the code
+// Good: explains a constraint from outside the code
 // Bounded to a single hold release because the Phase 3 equivalent is one PTB
 // and iterating over every losing offer would exceed gas limits.
 ```
@@ -80,7 +80,7 @@ If a comment describes what a block does, delete the comment and extract a well-
 instead. The function name is a comment the compiler checks.
 
 No commented-out code. No `TODO` without an issue reference. No file-header banners. No JSDoc that
-restates the type signature — the types are already there.
+restates the type signature; the types are already there.
 
 ## Classes versus functions
 
@@ -147,7 +147,7 @@ architecture decays within a month.
 - Enums as Postgres enums, generated into TypeScript by Prisma, and the domain has its own
   independent union type. The mapper translates. This is a small duplication that stops a schema
   change silently rewriting domain semantics.
-- Foreign keys always. Cascading deletes never — deletion of a financial record is an event, not a
+- Foreign keys always. Cascading deletes never; deletion of a financial record is an event, not a
   side effect.
 - Migrations are append-only. Never edit an applied migration.
 

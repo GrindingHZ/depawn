@@ -1,12 +1,12 @@
-# 08 — Web3 Migration
+# 08: Web3 migration
 
 Read this in Phase 0, not Phase 9. Its purpose is to tell you which Phase 1 decisions are load-bearing
 for the pivot, so you do not accidentally undo them.
 
 ## What does not change
 
-- `apps/api/src/domain/**` — entities, state machines, policies, events
-- The API contract in `packages/contracts` — same paths, same shapes, same error codes
+- `apps/api/src/domain/**`: entities, state machines, policies, events
+- The API contract in `packages/contracts`: same paths, same shapes, same error codes
 - Every screen in all three applications, structurally
 - The Playwright suites, apart from wallet authentication setup
 - The ledger, which becomes the internal mirror of chain activity and the basis of reconciliation
@@ -70,7 +70,7 @@ Key type decisions, each of which has a Phase 1 counterpart already in place:
 
 ## Authorisation translates to capabilities
 
-Phase 1 checks `request.user.role === 'VAULT_STAFF'`. Phase 3 has no `msg.sender` role registry — it
+Phase 1 checks `request.user.role === 'VAULT_STAFF'`. Phase 3 has no `msg.sender` role registry; it
 has objects.
 
 ```move
@@ -88,7 +88,7 @@ rather than scattered `if` checks. One guard becomes one capability parameter.
 Rule M8 exists because of a Phase 3 gas limit, and it is the clearest example of why you encode Phase
 3 constraints in Phase 1.
 
-Accepting an offer on a listing with two hundred offers cannot loop and refund all of them — the
+Accepting an offer on a listing with two hundred offers cannot loop and refund all of them; the
 transaction would exceed gas limits and fail. So losing offers become `SUPERSEDED` and lenders reclaim
 their own funds.
 
@@ -195,6 +195,6 @@ Keep the ledger driver working the entire time. The ability to fall back is wort
   The `PENDING_CONFIRMATION` UI state exists for this. Design it in Phase 1.
 - **Upgrades.** Keep the `UpgradeCap` in a multisig. Do not make the package immutable on day one; you
   will have bugs.
-- **Pause must never trap.** Pausing blocks entrances — new listings, offers, originations. It must
+- **Pause must never trap.** Pausing blocks entrances: new listings, offers, originations. It must
   never block repayment, redemption, reclaim, or default claim. A pause that traps collateral is
   itself an attack surface.

@@ -1,4 +1,4 @@
-# 10 — Flows
+# 10: Flows
 
 Each flow states its actors, preconditions, the atomic step boundaries, the events emitted, the
 failure modes, and what the step becomes in Phase 3. The transaction boundary markers are load-bearing:
@@ -6,7 +6,7 @@ failure modes, and what the step becomes in Phase 3. The transaction boundary ma
 
 ---
 
-## Flow 1 — Intake and receipt issuance
+## Flow 1: intake and receipt issuance
 
 **Actors:** borrower (in person), vault operator, appraiser
 **Precondition:** borrower has passed KYC and holds an account
@@ -58,7 +58,7 @@ the `Config` object.
 
 ---
 
-## Flow 2 — Listing
+## Flow 2: listing
 
 **Actor:** borrower
 **Precondition:** holds a receipt in `IN_VAULT`
@@ -67,7 +67,7 @@ the `Config` object.
 
 1. `POST /listings` with `receiptId`, `requestedPrincipal`, `maxAnnualPercentageRateBasisPoints`,
    `requestedDurationMs`, `expiresAt`. Created as `DRAFT`. Server validates the requested principal
-   against the LTV cap for the item's category and rejects immediately if it exceeds it — better to
+   against the LTV cap for the item's category and rejects immediately if it exceeds it; better to
    fail here than to let the borrower publish something no lender can legally fund.
 
 2. `POST /listings/:id/publish`.
@@ -78,7 +78,7 @@ the `Config` object.
 3. Cancellation: `POST /listings/:id/cancel`.
    > **─── transaction boundary ───**
    > Assert the listing is `ACTIVE` and has no `ACCEPTED` offer. Set `CANCELLED`. Return the receipt
-   > to the borrower. Mark every `PENDING` offer `SUPERSEDED` — do **not** refund; lenders reclaim.
+   > to the borrower. Mark every `PENDING` offer `SUPERSEDED`. Do **not** refund; lenders reclaim.
 
 ### Failures
 
@@ -97,7 +97,7 @@ than by a status column.
 
 ---
 
-## Flow 3 — Placing an offer
+## Flow 3: placing an offer
 
 **Actor:** lender
 **Precondition:** listing is `ACTIVE`, lender has sufficient available balance
@@ -112,12 +112,12 @@ than by a status column.
    > **─── transaction boundary ───**
    > Assert listing `ACTIVE` and not expired. Assert rate `<= maxAnnualPercentageRateBasisPoints` on
    > the listing and `<= maxAnnualPercentageRateBasisPoints` in protocol parameters. Assert LTV.
-   > `SettlementPort.hold(principal)` — this debits `USER_AVAILABLE`, credits `USER_HELD`. Create the
+   > `SettlementPort.hold(principal)`, which debits `USER_AVAILABLE` and credits `USER_HELD`. Create the
    > offer as `PENDING` with `fundsHoldId`. Emit `OfferPlaced`.
 
 3. Withdrawal: `POST /listings/:id/offers/:offerId/withdraw`.
    > **─── transaction boundary ───**
-   > Assert the caller is the lender. Assert `now >= createdAt + minimumOfferLifetimeMs` — this stops
+   > Assert the caller is the lender. Assert `now >= createdAt + minimumOfferLifetimeMs`; this stops
    > a lender baiting a borrower and yanking the offer mid-acceptance. Set `WITHDRAWN`.
    > `SettlementPort.refundHold`. Emit `OfferWithdrawn`.
 
@@ -133,8 +133,8 @@ than by a status column.
 
 ### Design note
 
-Funds are held **at offer time**, not at acceptance. The alternative — signed intents funded on
-acceptance — is more capital-efficient and is what most NFT lending protocols do. We reject it because
+Funds are held **at offer time**, not at acceptance. The alternative, signed intents funded on
+acceptance, is more capital-efficient and is what most NFT lending protocols do. We reject it because
 our borrower is a person standing at a counter who needs cash today, and an offer that can evaporate
 at the moment of acceptance turns into an error message instead of money. Take the capital cost.
 
@@ -145,7 +145,7 @@ The hold becomes a `Coin<USDC>` moved into an `Offer` stored as a dynamic object
 
 ---
 
-## Flow 4 — Origination
+## Flow 4: origination
 
 **Actor:** borrower
 **Precondition:** listing `ACTIVE`, target offer `PENDING` and unexpired
@@ -156,7 +156,7 @@ This is the most important operation in the product. Everything about it is one 
 
 `POST /listings/:id/offers/:offerId/accept`
 
-> **─── transaction boundary — everything below is one transaction ───**
+> **─── transaction boundary: everything below is one transaction ───**
 >
 > 1. Lock the listing row `FOR UPDATE`. Assert `ACTIVE`, not expired, caller is the borrower.
 > 2. Assert the offer is `PENDING` and not expired.
@@ -182,8 +182,8 @@ This is the most important operation in the product. Everything about it is one 
 Step 11 marks losing offers superseded without returning their funds. Lenders reclaim via
 `POST /me/offers/:id/reclaim`.
 
-Why: a listing with two hundred offers cannot refund them all inside one on-chain transaction — gas
-limits. If Phase 1 refunded eagerly and Phase 3 could not, users would experience a behavioural
+Why: a listing with two hundred offers cannot refund them all inside one on-chain transaction; gas
+limits forbid it. If Phase 1 refunded eagerly and Phase 3 could not, users would experience a behavioural
 regression at exactly the moment you are asking them to trust a new system. Build it as pull now.
 
 The cost is a UX obligation: a persistent, unmissable banner in the marketplace app whenever an
@@ -208,7 +208,7 @@ fields until their lenders reclaim.
 
 ---
 
-## Flow 5 — Servicing and repayment
+## Flow 5: servicing and repayment
 
 **Actor:** borrower
 **Precondition:** loan `ACTIVE`
@@ -222,7 +222,7 @@ fields until their lenders reclaim.
 2. `POST /loans/:id/repay` with the quoted total and `quotedAt`.
    > **─── transaction boundary ───**
    > Lock the loan row. Assert `ACTIVE`. Recompute the amount due at `now`. If it differs from the
-   > quote, reject with `PAYOFF_QUOTE_STALE` and return the new figure — never silently charge a
+   > quote, reject with `PAYOFF_QUOTE_STALE` and return the new figure; never silently charge a
    > different amount. Resolve the current `LenderNote` holder. `SettlementPort.transfer(borrower →
    > noteHolder, total)`. Set the loan `REPAID`. `CustodyPort.releaseEncumbrance(receiptId)`. Return
    > the receipt to the borrower, `IN_VAULT`. Emit `LoanRepaid`.
@@ -246,7 +246,7 @@ object is destructured and deleted.
 
 ---
 
-## Flow 6 — Redemption
+## Flow 6: redemption
 
 **Actors:** borrower, vault operator
 **Precondition:** receipt `IN_VAULT`, held by the borrower, not encumbered
@@ -287,7 +287,7 @@ failure.
 
 ---
 
-## Flow 7 — Default and claim
+## Flow 7: default and claim
 
 **Actor:** lender note holder
 **Precondition:** loan `ACTIVE`, `now > graceEndsAt`
@@ -318,7 +318,7 @@ Note that step 1 must remain available while the system is paused (rule S2).
 
 ---
 
-## Flow 8 — Liquidation
+## Flow 8: liquidation
 
 **Actors:** operations, bidders
 **Precondition:** loan `DEFAULTED`, `now >= defaultedAt + statutoryHoldingPeriodMs`
@@ -334,7 +334,7 @@ Note that step 1 must remain available while the system is paused (rule S2).
 3. `POST /liquidations/:id/bids`.
    > **─── transaction boundary ───**
    > Assert `BIDDING`, not closed, bid `>= reservePrice` and above the current high bid.
-   > `SettlementPort.hold(bidAmount)`. Previous high bidder's hold becomes reclaimable — pull, again.
+   > `SettlementPort.hold(bidAmount)`. Previous high bidder's hold becomes reclaimable; pull, again.
 
 4. `POST /liquidations/:id/close`.
    > **─── transaction boundary ───**
@@ -370,7 +370,7 @@ nothing), and exactly equal (boundary). Each asserts distributions sum exactly t
 
 ---
 
-## Flow 9 — Reclaiming a superseded hold
+## Flow 9: reclaiming a superseded hold
 
 **Actor:** lender
 
@@ -383,7 +383,7 @@ Small flow, and the one most likely to be forgotten. Test the double-reclaim cas
 
 ---
 
-## Flow 10 — Reconciliation
+## Flow 10: reconciliation
 
 **Actor:** operations, plus a scheduled job
 
@@ -404,7 +404,7 @@ in Phase 1 with two columns. It is not a Phase 3 feature.
 
 ---
 
-## Flow 11 — Pause
+## Flow 11: pause
 
 **Actor:** operations
 

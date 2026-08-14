@@ -1,4 +1,4 @@
-# 02 — Domain Model
+# 02: Domain model
 
 ## Value objects
 
@@ -28,7 +28,7 @@ Rules: operations across different currencies throw. `minorUnits` is `bigint`. T
 ### Instant
 
 A wrapper over epoch milliseconds as `bigint`. Exists so that time arithmetic is explicit and so the
-Move translation is direct — Sui's `Clock` gives you `timestamp_ms`.
+Move translation is direct: Sui's `Clock` gives you `timestamp_ms`.
 
 ```ts
 export class Instant {
@@ -162,7 +162,7 @@ export function rankOffers(offers: Offer[], listing: Listing): RankedOffer[];
 ```
 
 Rank primarily by effective total cost to the borrower over the requested duration, then by earliest
-submission. Do **not** rank by principal — see rule M4 and the winner's-curse discussion.
+submission. Do **not** rank by principal; see rule M4 and the winner's-curse discussion.
 
 ### Loan
 
@@ -204,7 +204,7 @@ class LenderNote {
 }
 ```
 
-Thin by design. `transferable` defaults to `false` behind the `notesTransferable` feature flag —
+Thin by design. `transferable` defaults to `false` behind the `notesTransferable` feature flag;
 see the securities-law note in `docs/00-product-overview.md`. Build the transfer endpoint, ship it
 disabled.
 
@@ -310,7 +310,7 @@ export type DomainEvent =
 ```
 
 Every event name matches a Move `struct` name you will emit in Phase 3, character for character. This
-is not cosmetic — it means the Phase 3 indexer can map `${packageId}::marketplace::LoanOriginated`
+is not cosmetic: it means the Phase 3 indexer can map `${packageId}::marketplace::LoanOriginated`
 straight onto the existing handler.
 
 Events carry ids and amounts, never whole entities. A consumer that needs more reads it.

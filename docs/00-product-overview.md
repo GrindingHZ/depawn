@@ -1,4 +1,4 @@
-# 00 — Product Overview
+# 00: Product overview
 
 ## The business
 
@@ -52,7 +52,7 @@ copy. Do not introduce synonyms.
 | **Settlement** | Any movement of value, recorded with a settlement reference |
 | **Settlement reference** | The proof a settlement occurred. A ledger transaction id in Phase 1, a chain digest in Phase 3 |
 
-Words we deliberately do **not** use: *escrow* (too vague — say *hold*), *NFT*, *token*, *wallet*
+Words we deliberately do **not** use: *escrow* (too vague; say *hold*), *NFT*, *token*, *wallet*
 (until Phase 3), *manager*, *handler* as a domain noun.
 
 ## Business rules

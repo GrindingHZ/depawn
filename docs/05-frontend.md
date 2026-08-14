@@ -1,4 +1,4 @@
-# 05 — Frontend
+# 05: Frontend
 
 ## Three applications, one shared package
 
@@ -20,8 +20,8 @@ authenticated shell. It is built in P0.5, before any product slice, per `docs/13
 ## Stack
 
 - Vite, React 19, TypeScript strict
-- TanStack Router — file-based routes, typed params, typed search params
-- TanStack Query — all server state
+- TanStack Router: file-based routes, typed params, typed search params
+- TanStack Query: all server state
 - React Hook Form + the Zod schemas from `packages/contracts`
 - Tailwind, extending the shared preset in `packages/ui/tailwind.preset.ts`
 
@@ -79,7 +79,7 @@ Two primitives, used everywhere, never bypassed.
 `Money` takes the `{ minorUnits: string, currency }` shape straight from the API and does its own
 `Intl.NumberFormat`. There is no place in the app where an amount is a JavaScript `number`.
 
-## Marketplace app — routes
+## Marketplace app routes
 
 ```
 /                              landing, live listings
@@ -106,12 +106,12 @@ above the cap client-side and let the server reject it too.
 
 **Payoff and repay.** Fetch the quote, show a countdown to `validUntil`, refetch on expiry. Submitting
 sends `quotedAt`. If the server returns `PAYOFF_QUOTE_STALE`, refetch and show the new figure rather
-than silently retrying — the amount changed and the user must see it.
+than silently retrying; the amount changed and the user must see it.
 
 **Reclaim funds.** A persistent banner when the account has superseded or expired holds. This is
 money the user cannot spend and does not know about. It should be impossible to miss.
 
-## Vault console — routes
+## Vault console routes
 
 ```
 /intake                        start a new intake
@@ -130,7 +130,7 @@ irreversible and must have a confirmation that states plainly what becomes immut
 Design for the environment: large touch targets, high contrast, works at 1366×768, keyboard-first,
 and every screen usable without a mouse.
 
-## Admin app — routes
+## Admin app routes
 
 ```
 /                              loan book overview
@@ -163,7 +163,7 @@ columns and add the third in Phase 3.
 ## Accessibility floor
 
 Not optional and not a later phase. Labels on every input, focus visible, a logical tab order,
-`aria-live` on the toast region, and colour never the sole carrier of status — every badge has text.
+`aria-live` on the toast region, and colour never the sole carrier of status; every badge has text.
 Playwright runs `@axe-core/playwright` on each primary route and fails on serious violations.
 
 ## What Phase 3 changes in the frontend
@@ -178,4 +178,4 @@ Very little, which is the point.
 - A "confirming" state appears between submission and indexer catch-up. Design the status badges in
   Phase 1 with a `PENDING_CONFIRMATION` variant that Phase 1 never emits.
 
-The vault console and admin app change almost not at all — staff will keep using session auth.
+The vault console and admin app change almost not at all; staff will keep using session auth.
