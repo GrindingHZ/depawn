@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.turbo
+.claude
+.husky
+docs
+pnpm-lock.yaml
+packages/move
+*.md
