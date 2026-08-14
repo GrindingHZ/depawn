@@ -30,6 +30,12 @@ module.exports = {
       from: { path: '^apps/api/src/infrastructure' },
       to: { path: '^apps/api/src/modules' },
     },
+    {
+      name: 'http-skips-no-layers',
+      severity: 'error',
+      from: { path: '^apps/api/src/modules/[^/]+/http' },
+      to: { path: '^apps/api/src/infrastructure' },
+    },
   ],
   options: {
     doNotFollow: { path: 'node_modules' },

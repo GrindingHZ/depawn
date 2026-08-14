@@ -6,4 +6,5 @@
 - [x] chore(ci): add prettier and eslint with shared flat config
 - [x] chore(ci): enforce layer boundaries with dependency cruiser
 - [x] chore(ci): wire prose and design token checks into pnpm check
-- [ ] chore(ci): reject malformed commit messages with a commit hook
+- [x] chore(ci): reject malformed commit messages with a commit hook
+- [x] fix(ci): forbid http layer imports of infrastructure in boundary rules
