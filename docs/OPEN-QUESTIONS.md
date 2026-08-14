@@ -96,3 +96,13 @@ on the named account, defaulting to the caller's own account when the email is o
 **Notes:** docs/04 restricts the endpoint to operations while docs/05 gives the admin app a tool
 that funds other members; a literal reading of the `/me` path could only fund the operations
 account itself.
+
+## Q-012: receipt state after a default claim
+**Blocks:** the custody receipt transition table
+**Currently implemented:** `claimDefault` moves the receipt to `IN_VAULT` under the claimant per
+docs/10 flow 7, and `burnForLiquidation` is reachable from both `IN_VAULT` and `ENCUMBERED`
+**Needs:** whoever owns docs/02
+**Notes:** The docs/02 diagram keeps the claimed receipt `ENCUMBERED` with a holder change, while
+flow 7 says the claimant holds it `IN_VAULT`; the flow reading lets the claimant redeem through
+flow 6 without a special case. The diagram also shows liquidation burning only from `IN_VAULT`,
+but flow 8 can run before any lender claim.
