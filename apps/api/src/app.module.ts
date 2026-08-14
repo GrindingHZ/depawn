@@ -6,6 +6,7 @@ import { PersistenceModule } from './infrastructure/persistence/persistence.modu
 import { SettlementModule } from './infrastructure/settlement/settlement.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { HealthModule } from './modules/health/health.module';
+import { LedgerModule } from './modules/ledger/ledger.module';
 import { SharedHttpModule } from './modules/shared/shared-http.module';
 import { ApiExceptionFilter } from './modules/shared/http/api-exception.filter';
 import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.middleware';
@@ -17,6 +18,7 @@ import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.
     SettlementModule,
     SharedHttpModule,
     AccountsModule,
+    LedgerModule,
     HealthModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],

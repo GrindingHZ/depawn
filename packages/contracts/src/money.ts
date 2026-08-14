@@ -8,3 +8,8 @@ export const moneySchema = z.object({
 });
 
 export type MoneyDto = z.infer<typeof moneySchema>;
+
+export const positiveMoneySchema = z.object({
+  minorUnits: z.string().regex(/^[1-9]\d*$/),
+  currency: z.string().length(3),
+});

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { moneySchema } from './money';
+import { moneySchema, positiveMoneySchema } from './money';
 
 export const settlementRefSchema = z.object({
   kind: z.enum(['ledger', 'chain']),
@@ -47,13 +47,13 @@ export type LedgerEntriesResponse = z.infer<typeof ledgerEntriesResponseSchema>;
 
 export const depositRequestSchema = z.object({
   email: z.email().max(320).optional(),
-  amount: moneySchema,
+  amount: positiveMoneySchema,
 });
 
 export type DepositRequest = z.infer<typeof depositRequestSchema>;
 
 export const withdrawalRequestSchema = z.object({
-  amount: moneySchema,
+  amount: positiveMoneySchema,
 });
 
 export type WithdrawalRequest = z.infer<typeof withdrawalRequestSchema>;
