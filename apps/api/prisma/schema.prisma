@@ -6,3 +6,169 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  MEMBER
+  VAULT_STAFF
+  OPERATIONS
+  COMPLIANCE
+
+  @@map("role")
+}
+
+enum LedgerAccountOwnerType {
+  USER
+  PLATFORM
+  HOLD
+
+  @@map("ledger_account_owner_type")
+}
+
+enum LedgerAccountPurpose {
+  USER_AVAILABLE
+  USER_HELD
+  PLATFORM_FEE_REVENUE
+  PLATFORM_ROUNDING
+  PLATFORM_FLOAT
+
+  @@map("ledger_account_purpose")
+}
+
+enum LedgerTransactionKind {
+  DEPOSIT
+  HOLD_FUNDS
+  REFUND_HOLD
+  ORIGINATE_LOAN
+  REPAY_LOAN
+  SETTLE_LIQUIDATION
+  WITHDRAW
+
+  @@map("ledger_transaction_kind")
+}
+
+enum EntryDirection {
+  DEBIT
+  CREDIT
+
+  @@map("entry_direction")
+}
+
+model Account {
+  id           String    @id
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  roles        Role[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  sessions     Session[]
+
+  @@map("account")
+}
+
+model Session {
+  id        String   @id
+  accountId String   @map("account_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account   Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@map("session")
+}
+
+model LedgerAccount {
+  id        String                 @id
+  ownerType LedgerAccountOwnerType @map("owner_type")
+  ownerId   String?                @map("owner_id")
+  purpose   LedgerAccountPurpose
+  currency  String
+  createdAt DateTime               @default(now()) @map("created_at")
+  updatedAt DateTime               @updatedAt @map("updated_at")
+
+  entries   LedgerEntry[]
+
+  @@unique([ownerType, ownerId, purpose, currency])
+  @@map("ledger_account")
+}
+
+model LedgerTransaction {
+  id         String                @id
+  kind       LedgerTransactionKind
+  reference  String
+  occurredAt DateTime              @map("occurred_at")
+  createdAt  DateTime              @default(now()) @map("created_at")
+  updatedAt  DateTime              @updatedAt @map("updated_at")
+
+  entries    LedgerEntry[]
+
+  @@index([kind, reference])
+  @@map("ledger_transaction")
+}
+
+model LedgerEntry {
+  id            String            @id
+  transactionId String            @map("transaction_id")
+  accountId     String            @map("account_id")
+  direction     EntryDirection
+  minorUnits    BigInt            @map("minor_units")
+  currency      String
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id])
+  account       LedgerAccount     @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, id])
+  @@map("ledger_entry")
+}
+
+model OutboxEvent {
+  id          String    @id
+  type        String
+  payload     Json
+  occurredAt  DateTime  @map("occurred_at")
+  publishedAt DateTime? @map("published_at")
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([publishedAt])
+  @@map("outbox_event")
+}
+
+model IdempotencyRecord {
+  id           String   @id
+  key          String
+  accountId    String   @map("account_id")
+  statusCode   Int      @map("status_code")
+  responseBody Json     @map("response_body")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, accountId])
+  @@index([expiresAt])
+  @@map("idempotency_record")
+}
+
+model AuditLog {
+  id          String   @id
+  actorType   String   @map("actor_type")
+  actorId     String   @map("actor_id")
+  subjectType String   @map("subject_type")
+  subjectId   String   @map("subject_id")
+  action      String
+  before      Json?
+  after       Json?
+  occurredAt  DateTime @map("occurred_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([actorId])
+  @@index([subjectId])
+  @@map("audit_log")
+}
