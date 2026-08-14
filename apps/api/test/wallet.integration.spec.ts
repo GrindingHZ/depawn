@@ -155,6 +155,26 @@ describe('wallet', () => {
     expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'DEPOSIT' } })).toBe(1);
   });
 
+  it('moves money once when the same key races itself', async () => {
+    await registerAndLogin('member7@wallet.test');
+    const opsCookies = await loginAsOperations();
+    const key = randomUUID();
+    const body = { email: 'member7@wallet.test', amount: amount('5000') };
+
+    const send = (): Promise<request.Response> =>
+      server()
+        .post('/api/v1/me/deposits')
+        .set('Cookie', opsCookies)
+        .set('Idempotency-Key', key)
+        .send(body)
+        .then((response) => response);
+
+    const responses = await Promise.all([send(), send()]);
+    const statuses = responses.map((response) => response.status).sort();
+    expect(statuses).toEqual([201, 409]);
+    expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'DEPOSIT' } })).toBe(1);
+  });
+
   it('rejects the same key with a different payload', async () => {
     await registerAndLogin('member5@wallet.test');
     const opsCookies = await loginAsOperations();
