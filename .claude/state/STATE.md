@@ -2,7 +2,7 @@
 
 phase: P0
 slice: p0b-domain-kernel
-stage: brainstorm
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: b29a8ea
 status: running
