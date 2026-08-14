@@ -92,6 +92,44 @@ describe('test harness', () => {
     await expectLedgerBalances(harness.prisma).toSumToZero();
   });
 
+  it('detects an unbalanced ledger when the trigger is bypassed', async () => {
+    // Proves the matcher's failure branch stays real. The trigger normally
+    // makes unbalanced state unreachable, so it is disabled for this probe.
+    await harness.prisma.$executeRawUnsafe(
+      'ALTER TABLE ledger_entry DISABLE TRIGGER ledger_transaction_balanced',
+    );
+    try {
+      await harness.prisma.ledgerAccount.create({
+        data: {
+          id: 'LAX',
+          ownerType: 'USER',
+          ownerId: 'UX',
+          purpose: 'USER_AVAILABLE',
+          currency: 'AUD',
+        },
+      });
+      await harness.prisma.ledgerTransaction.create({
+        data: { id: 'LTX', kind: 'DEPOSIT', reference: 'bypass', occurredAt: new Date(0) },
+      });
+      await harness.prisma.ledgerEntry.create({
+        data: {
+          id: 'LEX',
+          transactionId: 'LTX',
+          accountId: 'LAX',
+          direction: 'CREDIT',
+          minorUnits: 1n,
+          currency: 'AUD',
+        },
+      });
+      await expect(expectLedgerBalances(harness.prisma).toSumToZero()).rejects.toThrow();
+    } finally {
+      await harness.prisma.$executeRawUnsafe(
+        'ALTER TABLE ledger_entry ENABLE TRIGGER ledger_transaction_balanced',
+      );
+      await harness.truncateAllTables();
+    }
+  });
+
   it('controls time through the fixed clock', () => {
     const before = harness.clock.now();
     harness.clock.advanceBy(86_400_000n);

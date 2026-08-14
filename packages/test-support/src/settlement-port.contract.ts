@@ -118,6 +118,29 @@ export function describeSettlementPortContract(
       expect(await subject.availableBalanceOf(lender)).toBe(0n);
     });
 
+    it('releases a hold exactly once even if called twice', async () => {
+      const lender = await subject.createAccountWithBalance(2000n);
+      const borrower = await subject.createAccountWithBalance(0n);
+      const hold = await subject.runInUnitOfWork((context) =>
+        subject.port.hold(
+          { accountId: lender, amount: Money.of(2000n, aud), reference: 'contract-release-once' },
+          context,
+        ),
+      );
+      const distribution = [{ accountId: borrower, amount: Money.of(2000n, aud) }];
+
+      const first = await subject.runInUnitOfWork((context) =>
+        subject.port.releaseHold(hold, distribution, context),
+      );
+      const second = await subject.runInUnitOfWork((context) =>
+        subject.port.releaseHold(hold, distribution, context),
+      );
+
+      expect(second.reference).toBe(first.reference);
+      expect(await subject.availableBalanceOf(borrower)).toBe(2000n);
+      expect(await subject.heldBalanceOf(lender)).toBe(0n);
+    });
+
     it('rejects a release whose distribution does not sum to the held amount', async () => {
       const lender = await subject.createAccountWithBalance(1000n);
       const borrower = await subject.createAccountWithBalance(0n);
