@@ -1,8 +1,8 @@
 # State
 
 phase: P0
-slice: p0c-api-db
-stage: execute
-task: 1
-slice-base: 8a0f33c
+slice: p0d-auth
+stage: brainstorm
+task: 0
+slice-base: pending
 status: running
