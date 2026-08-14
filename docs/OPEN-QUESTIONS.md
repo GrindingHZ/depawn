@@ -64,3 +64,11 @@ a delivery-dispute flow.
 **Needs:** founder
 **Notes:** Too short and a lender can bait a borrower then withdraw mid-acceptance. Too long and
 lenders will not commit capital.
+
+## Q-008: error codes missing from the contract table
+**Blocks:** validation responses, duplicate registration, generic faults
+**Currently implemented:** `VALIDATION_FAILED` (400), `EMAIL_ALREADY_REGISTERED` (409), and
+`FAULT` (500) added to `packages/contracts/src/error-codes.ts`, since `docs/04-api-contract.md`
+requires a stable code on every error envelope but lists none for these cases
+**Needs:** whoever owns the API contract
+**Notes:** The docs list also omits codes for rate limiting; add one when a limiter exists.
