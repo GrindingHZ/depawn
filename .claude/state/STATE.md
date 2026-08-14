@@ -1,8 +1,8 @@
 # State
 
-phase: P0
-slice: p0e-apps-e2e
-stage: execute
-task: 1
-slice-base: 0666c47
+phase: P0.5
+slice: p05-design-system
+stage: brainstorm
+task: 0
+slice-base: pending
 status: running
