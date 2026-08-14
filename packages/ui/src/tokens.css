@@ -1,0 +1,50 @@
+/* The frozen design token set, reconciled once in P0.5 from the archived
+   generator outputs (see .claude/work/p05-design-system/generated/). This is
+   the only file in the repository allowed to hold a raw design value. Do not
+   regenerate; docs/13-design-system.md owns the freeze rule. */
+:root {
+  --color-surface-base: #f8fafc;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #e2e8f0;
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #cbd5e1;
+
+  --color-accent-default: #15803d;
+  --color-accent-hover: #166534;
+
+  --color-status-neutral: #64748b;
+  --color-status-active: #0369a1;
+  --color-status-success: #15803d;
+  --color-status-warning: #b45309;
+  --color-status-danger: #b91c1c;
+
+  --font-heading: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --density-row-height: 2.5rem;
+}
+
+/* The vault console runs on a fixed terminal: larger touch targets, tighter
+   horizontal rhythm, darker secondary text for a lit room. Density overrides
+   only; the palette never forks (docs/13-design-system.md). */
+[data-surface='terminal'] {
+  --density-row-height: 3rem;
+  --space-4: 0.75rem;
+  --color-text-secondary: #334155;
+}

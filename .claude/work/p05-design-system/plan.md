@@ -3,7 +3,7 @@
 ## Tasks
 
 - [ ] chore(ui): archive generated design directions for the three surfaces
-- [ ] feat(ui): create ui package with frozen design tokens and tailwind preset
+- [ ] feat(ui): add frozen design tokens and tailwind preset
 - [ ] feat(ui): add button field select checkbox and card primitives
 - [ ] feat(ui): add money rate and status badge primitives
 - [ ] feat(ui): add dialog toast skeleton empty state and stepper primitives
