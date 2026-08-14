@@ -2,7 +2,7 @@
 
 phase: P0
 slice: p0c-api-db
-stage: brainstorm
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 8a0f33c
 status: running
