@@ -13,6 +13,7 @@
     "start": "node -r @swc-node/register src/main.ts"
   },
   "devDependencies": {
+    "@depawn/test-support": "workspace:*",
     "@nestjs/testing": "^11.1.29",
     "@swc-node/register": "^1.12.1",
     "@swc/core": "^1.15.47",

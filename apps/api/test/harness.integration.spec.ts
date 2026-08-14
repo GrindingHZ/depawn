@@ -42,7 +42,7 @@ describe('test harness', () => {
     await expectLedgerBalances(harness.prisma).toSumToZero();
   });
 
-  it('sums a balanced ledger to zero and rejects an unbalanced one', async () => {
+  it('sums a balanced ledger to zero and the trigger rejects an unbalanced insert', async () => {
     await harness.prisma.ledgerAccount.createMany({
       data: [
         { id: 'LA1', ownerType: 'USER', ownerId: 'U1', purpose: 'USER_AVAILABLE', currency: 'AUD' },
@@ -74,17 +74,22 @@ describe('test harness', () => {
     });
     await expectLedgerBalances(harness.prisma).toSumToZero();
 
-    await harness.prisma.ledgerEntry.create({
-      data: {
-        id: 'LE3',
-        transactionId: 'LT1',
-        accountId: 'LA2',
-        direction: 'CREDIT',
-        minorUnits: 1n,
-        currency: 'AUD',
-      },
-    });
-    await expect(expectLedgerBalances(harness.prisma).toSumToZero()).rejects.toThrow();
+    // The deferred constraint trigger is the database layer of the balance
+    // invariant: an unbalanced entry cannot even be committed, so the matcher
+    // can never observe an unbalanced ledger.
+    await expect(
+      harness.prisma.ledgerEntry.create({
+        data: {
+          id: 'LE3',
+          transactionId: 'LT1',
+          accountId: 'LA2',
+          direction: 'CREDIT',
+          minorUnits: 1n,
+          currency: 'AUD',
+        },
+      }),
+    ).rejects.toThrow();
+    await expectLedgerBalances(harness.prisma).toSumToZero();
   });
 
   it('controls time through the fixed clock', () => {
