@@ -1,7 +1,7 @@
 import { logout } from '@depawn/contracts';
 import { AppShell, Button, EmptyState, Skeleton } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Link, Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
 import { currentAccountKeys, useCurrentAccount } from '../current-account';
 
@@ -48,7 +48,14 @@ function HomePage(): ReactElement | null {
     <div data-testid="authenticated-home">
       <AppShell
         productName="depawn admin"
-        navigation={<span data-testid="account-email">{currentAccount.data.email}</span>}
+        navigation={
+          <>
+            <Link to="/deposits" className="font-body text-sm text-ink-secondary">
+              Deposits
+            </Link>
+            <span data-testid="account-email">{currentAccount.data.email}</span>
+          </>
+        }
         actions={
           <Button variant="secondary" onClick={() => logoutMutation.mutate()}>
             Log out
