@@ -9,7 +9,7 @@ export function expectLedgerBalances(prisma: PrismaService): { toSumToZero(): Pr
     async toSumToZero(): Promise<void> {
       const rows = await prisma.$queryRaw<{ currency: string; balance: bigint }[]>`
         SELECT currency,
-               COALESCE(SUM(CASE WHEN direction = 'CREDIT' THEN minor_units ELSE -minor_units END), 0) AS balance
+               COALESCE(SUM(CASE WHEN direction = 'CREDIT' THEN minor_units ELSE -minor_units END), 0)::bigint AS balance
         FROM ledger_entry
         GROUP BY currency
       `;

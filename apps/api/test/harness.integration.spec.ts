@@ -42,6 +42,51 @@ describe('test harness', () => {
     await expectLedgerBalances(harness.prisma).toSumToZero();
   });
 
+  it('sums a balanced ledger to zero and rejects an unbalanced one', async () => {
+    await harness.prisma.ledgerAccount.createMany({
+      data: [
+        { id: 'LA1', ownerType: 'USER', ownerId: 'U1', purpose: 'USER_AVAILABLE', currency: 'AUD' },
+        { id: 'LA2', ownerType: 'USER', ownerId: 'U1', purpose: 'USER_HELD', currency: 'AUD' },
+      ],
+    });
+    await harness.prisma.ledgerTransaction.create({
+      data: { id: 'LT1', kind: 'HOLD_FUNDS', reference: 'probe', occurredAt: new Date(0) },
+    });
+    await harness.prisma.ledgerEntry.createMany({
+      data: [
+        {
+          id: 'LE1',
+          transactionId: 'LT1',
+          accountId: 'LA1',
+          direction: 'DEBIT',
+          minorUnits: 2500n,
+          currency: 'AUD',
+        },
+        {
+          id: 'LE2',
+          transactionId: 'LT1',
+          accountId: 'LA2',
+          direction: 'CREDIT',
+          minorUnits: 2500n,
+          currency: 'AUD',
+        },
+      ],
+    });
+    await expectLedgerBalances(harness.prisma).toSumToZero();
+
+    await harness.prisma.ledgerEntry.create({
+      data: {
+        id: 'LE3',
+        transactionId: 'LT1',
+        accountId: 'LA2',
+        direction: 'CREDIT',
+        minorUnits: 1n,
+        currency: 'AUD',
+      },
+    });
+    await expect(expectLedgerBalances(harness.prisma).toSumToZero()).rejects.toThrow();
+  });
+
   it('controls time through the fixed clock', () => {
     const before = harness.clock.now();
     harness.clock.advanceBy(86_400_000n);

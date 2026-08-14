@@ -39,7 +39,9 @@ export async function createTestApplication(): Promise<TestApplication> {
   applyMigrations(databaseUrl);
   process.env.DATABASE_URL = databaseUrl;
 
-  const clock = new FixedClockAdapter(Instant.fromEpochMilliseconds(BigInt(Date.now())));
+  // 2026-01-01T00:00:00Z. A constant start keeps time-dependent tests
+  // reproducible across runs.
+  const clock = new FixedClockAdapter(Instant.fromEpochMilliseconds(1_767_225_600_000n));
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(CLOCK_PORT)
