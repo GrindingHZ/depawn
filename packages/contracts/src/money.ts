@@ -9,7 +9,9 @@ export const moneySchema = z.object({
 
 export type MoneyDto = z.infer<typeof moneySchema>;
 
+/* Phase 1 is single currency (docs/00-product-overview.md non-goals); the
+   model carries currency everywhere so widening later is a schema change. */
 export const positiveMoneySchema = z.object({
   minorUnits: z.string().regex(/^[1-9]\d*$/),
-  currency: z.string().length(3),
+  currency: z.literal('AUD'),
 });
