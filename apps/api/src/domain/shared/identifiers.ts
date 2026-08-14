@@ -14,6 +14,8 @@ export type FundsHoldId = Brand<string, 'FundsHoldId'>;
 export type SessionId = Brand<string, 'SessionId'>;
 export type LedgerAccountId = Brand<string, 'LedgerAccountId'>;
 export type LedgerTransactionId = Brand<string, 'LedgerTransactionId'>;
+export type IntakeId = Brand<string, 'IntakeId'>;
+export type AppraisalId = Brand<string, 'AppraisalId'>;
 
 export function accountIdOf(value: string): AccountId {
   return value as AccountId;
@@ -69,4 +71,12 @@ export function ledgerAccountIdOf(value: string): LedgerAccountId {
 
 export function ledgerTransactionIdOf(value: string): LedgerTransactionId {
   return value as LedgerTransactionId;
+}
+
+export function intakeIdOf(value: string): IntakeId {
+  return value as IntakeId;
+}
+
+export function appraisalIdOf(value: string): AppraisalId {
+  return value as AppraisalId;
 }

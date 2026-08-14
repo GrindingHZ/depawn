@@ -2,7 +2,7 @@
 
 phase: P2
 slice: p2a-custody-domain
-stage: brainstorm
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 41b4487
 status: running
