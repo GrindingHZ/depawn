@@ -10,6 +10,17 @@ const codeByStatus: Record<number, string> = {
   404: 'NOT_FOUND',
 };
 
+function isErrorEnvelope(body: unknown): body is ErrorEnvelope {
+  if (typeof body !== 'object' || body === null || !('error' in body)) {
+    return false;
+  }
+  const errorValue = body.error;
+  if (typeof errorValue !== 'object' || errorValue === null || !('code' in errorValue)) {
+    return false;
+  }
+  return typeof errorValue.code === 'string';
+}
+
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ApiExceptionFilter.name);
@@ -25,7 +36,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const body = exception.getResponse();
-      if (typeof body === 'object' && body !== null && 'error' in body) {
+      if (isErrorEnvelope(body)) {
         response.status(status).json(body);
         return;
       }
