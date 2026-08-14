@@ -5,9 +5,11 @@ export interface RateProps {
 }
 
 export function formatRate(basisPoints: number): string {
-  const whole = Math.trunc(basisPoints / 100);
-  const fraction = Math.abs(basisPoints % 100);
-  return `${whole}.${fraction.toString().padStart(2, '0')}% p.a.`;
+  const sign = basisPoints < 0 ? '-' : '';
+  const magnitude = Math.abs(basisPoints);
+  const whole = Math.trunc(magnitude / 100);
+  const fraction = magnitude % 100;
+  return `${sign}${whole}.${fraction.toString().padStart(2, '0')}% p.a.`;
 }
 
 export function Rate({ basisPoints }: RateProps): ReactElement {

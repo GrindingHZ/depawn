@@ -9,6 +9,11 @@ describe('Rate', () => {
     expect(formatRate(5)).toBe('0.05% p.a.');
   });
 
+  it('keeps the sign for small negative rates', () => {
+    expect(formatRate(-50)).toBe('-0.50% p.a.');
+    expect(formatRate(-1800)).toBe('-18.00% p.a.');
+  });
+
   it('renders from basis points', () => {
     render(<Rate basisPoints={1800} />);
     expect(screen.getByText('18.00% p.a.')).toBeTruthy();
