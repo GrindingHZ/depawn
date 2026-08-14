@@ -170,8 +170,17 @@ describe('wallet', () => {
         .then((response) => response);
 
     const responses = await Promise.all([send(), send()]);
+    // Two legal outcomes: the loser hits the pending claim (409), or arrives
+    // after completion and replays the stored 201. Either way the money moved
+    // exactly once.
     const statuses = responses.map((response) => response.status).sort();
-    expect(statuses).toEqual([201, 409]);
+    expect([
+      [201, 409],
+      [201, 201],
+    ]).toContainEqual(statuses);
+    if (statuses[1] === 201) {
+      expect(responses[1]?.body).toEqual(responses[0]?.body);
+    }
     expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'DEPOSIT' } })).toBe(1);
   });
 
