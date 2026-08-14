@@ -127,6 +127,29 @@ model LedgerEntry {
   @@map("ledger_entry")
 }
 
+enum FundsHoldStatus {
+  HELD
+  RELEASED
+  REFUNDED
+
+  @@map("funds_hold_status")
+}
+
+model FundsHold {
+  id                   String          @id
+  accountId            String          @map("account_id")
+  minorUnits           BigInt          @map("minor_units")
+  currency             String
+  status               FundsHoldStatus
+  holdTransactionId    String          @map("hold_transaction_id")
+  settledTransactionId String?         @map("settled_transaction_id")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  @@index([accountId, status])
+  @@map("funds_hold")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String
