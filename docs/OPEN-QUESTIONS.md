@@ -87,3 +87,12 @@ release in scope through P5; the port signature from docs/01 carries no kind par
 **Needs:** whoever owns docs/01 and docs/03
 **Notes:** When liquidation bidding reuses holds, either the port gains a kind, the adapter
 derives it from the distribution shape, or bids get their own port method.
+
+## Q-011: whose account does POST /me/deposits credit
+**Blocks:** the wallet slice and the admin deposit tool
+**Currently implemented:** the operations caller posts `{ email, amount }` and the deposit lands
+on the named account, defaulting to the caller's own account when the email is omitted
+**Needs:** whoever owns docs/04
+**Notes:** docs/04 restricts the endpoint to operations while docs/05 gives the admin app a tool
+that funds other members; a literal reading of the `/me` path could only fund the operations
+account itself.
