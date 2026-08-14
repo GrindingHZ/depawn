@@ -15,36 +15,54 @@ import type { Distribution, SettlementRef } from './settlement-ref';
 /* Every event name matches the Move struct emitted in Phase 3, character for
    character, so the indexer maps chain events onto the same handlers. */
 export type DomainEvent =
-  | { type: 'ReceiptIssued'; receiptId: ReceiptId; vaultId: VaultId; appraisedValue: Money }
-  | { type: 'ListingPublished'; listingId: ListingId; borrowerAccountId: AccountId }
   | {
-      type: 'OfferPlaced';
-      listingId: ListingId;
-      offerId: OfferId;
-      principal: Money;
-      rateBasisPoints: number;
+      readonly type: 'ReceiptIssued';
+      readonly receiptId: ReceiptId;
+      readonly vaultId: VaultId;
+      readonly appraisedValue: Money;
     }
-  | { type: 'OfferWithdrawn'; offerId: OfferId }
   | {
-      type: 'LoanOriginated';
-      loanId: LoanId;
-      listingId: ListingId;
-      offerId: OfferId;
-      settlementRef: SettlementRef;
+      readonly type: 'ListingPublished';
+      readonly listingId: ListingId;
+      readonly borrowerAccountId: AccountId;
     }
-  | { type: 'LoanRepaid'; loanId: LoanId; amountPaid: Money; settlementRef: SettlementRef }
-  | { type: 'LoanDefaulted'; loanId: LoanId; defaultedAt: Instant }
   | {
-      type: 'ReceiptClaimedByLender';
-      loanId: LoanId;
-      receiptId: ReceiptId;
-      claimantAccountId: AccountId;
+      readonly type: 'OfferPlaced';
+      readonly listingId: ListingId;
+      readonly offerId: OfferId;
+      readonly principal: Money;
+      readonly rateBasisPoints: number;
     }
-  | { type: 'RedemptionRequested'; receiptId: ReceiptId; requestedBy: AccountId }
-  | { type: 'ItemReleased'; receiptId: ReceiptId; releasedBy: StaffId }
+  | { readonly type: 'OfferWithdrawn'; readonly offerId: OfferId }
   | {
-      type: 'LiquidationSettled';
-      liquidationId: LiquidationId;
-      proceeds: Money;
-      distributions: Distribution[];
+      readonly type: 'LoanOriginated';
+      readonly loanId: LoanId;
+      readonly listingId: ListingId;
+      readonly offerId: OfferId;
+      readonly settlementRef: SettlementRef;
+    }
+  | {
+      readonly type: 'LoanRepaid';
+      readonly loanId: LoanId;
+      readonly amountPaid: Money;
+      readonly settlementRef: SettlementRef;
+    }
+  | { readonly type: 'LoanDefaulted'; readonly loanId: LoanId; readonly defaultedAt: Instant }
+  | {
+      readonly type: 'ReceiptClaimedByLender';
+      readonly loanId: LoanId;
+      readonly receiptId: ReceiptId;
+      readonly claimantAccountId: AccountId;
+    }
+  | {
+      readonly type: 'RedemptionRequested';
+      readonly receiptId: ReceiptId;
+      readonly requestedBy: AccountId;
+    }
+  | { readonly type: 'ItemReleased'; readonly receiptId: ReceiptId; readonly releasedBy: StaffId }
+  | {
+      readonly type: 'LiquidationSettled';
+      readonly liquidationId: LiquidationId;
+      readonly proceeds: Money;
+      readonly distributions: readonly Distribution[];
     };
