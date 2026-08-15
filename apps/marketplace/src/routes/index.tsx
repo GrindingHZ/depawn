@@ -38,6 +38,9 @@ function HomePage(): ReactElement | null {
         productName="depawn marketplace"
         navigation={
           <>
+            <Link to="/borrow/receipts" className="font-body text-sm text-ink-secondary">
+              My receipts
+            </Link>
             <Link to="/wallet" className="font-body text-sm text-ink-secondary">
               Wallet
             </Link>

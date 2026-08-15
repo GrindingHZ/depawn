@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as BorrowReceiptsRouteImport } from './routes/borrow.receipts'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const WalletRoute = WalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BorrowReceiptsRoute = BorrowReceiptsRouteImport.update({
+  id: '/borrow/receipts',
+  path: '/borrow/receipts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/receipts': typeof BorrowReceiptsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/receipts': typeof BorrowReceiptsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/receipts': typeof BorrowReceiptsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/gallery' | '/login' | '/wallet'
+  fullPaths: '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/gallery' | '/login' | '/wallet'
-  id: '__root__' | '/' | '/gallery' | '/login' | '/wallet'
+  to: '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
+  id: '__root__' | '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   LoginRoute: typeof LoginRoute
   WalletRoute: typeof WalletRoute
+  BorrowReceiptsRoute: typeof BorrowReceiptsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/borrow/receipts': {
+      id: '/borrow/receipts'
+      path: '/borrow/receipts'
+      fullPath: '/borrow/receipts'
+      preLoaderRoute: typeof BorrowReceiptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   LoginRoute: LoginRoute,
   WalletRoute: WalletRoute,
+  BorrowReceiptsRoute: BorrowReceiptsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
