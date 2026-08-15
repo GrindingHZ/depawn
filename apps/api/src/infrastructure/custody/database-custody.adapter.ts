@@ -74,6 +74,20 @@ export class DatabaseCustodyAdapter implements CustodyPort {
     await this.receipts.save(encumbered.value, context);
   }
 
+  async claimReceipt(
+    receiptId: ReceiptId,
+    claimant: AccountId,
+    context: UnitOfWorkContext,
+  ): Promise<SettlementRef> {
+    const receipt = await this.load(receiptId, context);
+    const claimed = receipt.claimDefault(claimant);
+    if (!claimed.ok) {
+      throw claimed.error;
+    }
+    await this.receipts.save(claimed.value, context);
+    return this.custodyReference();
+  }
+
   async releaseEncumbrance(receiptId: ReceiptId, context: UnitOfWorkContext): Promise<void> {
     const receipt = await this.load(receiptId, context);
     const released = receipt.releaseEncumbrance();

@@ -35,6 +35,16 @@ export interface CustodyPort {
     unitOfWork: UnitOfWorkContext,
   ): Promise<void>;
   releaseEncumbrance(receiptId: ReceiptId, unitOfWork: UnitOfWorkContext): Promise<void>;
+  /* Moves encumbered collateral to the note holder who called the default.
+     Distinct from transferReceipt, which is refused while a loan is live:
+     this is the one transfer that is allowed precisely because one is. The
+     receipt lands IN_VAULT under the claimant so they can redeem it through
+     flow 6 with no special case. */
+  claimReceipt(
+    receiptId: ReceiptId,
+    claimant: AccountId,
+    unitOfWork: UnitOfWorkContext,
+  ): Promise<SettlementRef>;
   burnReceipt(
     receiptId: ReceiptId,
     reason: BurnReason,

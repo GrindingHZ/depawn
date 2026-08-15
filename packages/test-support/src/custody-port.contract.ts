@@ -105,6 +105,35 @@ export function describeCustodyPortContract(
       ).rejects.toThrow();
     });
 
+    it('claims an encumbered receipt to the note holder', async () => {
+      const receipt = await issue();
+      const claimant = accountIdOf('CONTRACT-CLAIMANT');
+      await subject.runInUnitOfWork((context) =>
+        subject.port.encumberReceipt(receipt.id, loanIdOf('CONTRACT-LOAN-6'), context),
+      );
+
+      const reference = await subject.runInUnitOfWork((context) =>
+        subject.port.claimReceipt(receipt.id, claimant, context),
+      );
+      expect(reference.reference).toBeTruthy();
+
+      // The claimant holds it in the vault, so redeeming it afterwards is
+      // the ordinary flow rather than a special case.
+      const claimed = await subject.receiptById(receipt.id);
+      expect(claimed?.holderAccountId).toBe(claimant);
+      expect(claimed?.status).toBe('IN_VAULT');
+      expect(claimed?.encumberedByLoanId).toBeNull();
+    });
+
+    it('refuses a claim against collateral that is not encumbered', async () => {
+      const receipt = await issue();
+      await expect(
+        subject.runInUnitOfWork((context) =>
+          subject.port.claimReceipt(receipt.id, accountIdOf('CONTRACT-CLAIMANT-2'), context),
+        ),
+      ).rejects.toThrow();
+    });
+
     it('burning for redemption is terminal', async () => {
       const receipt = await issue();
       const reference = await subject.runInUnitOfWork((context) =>
