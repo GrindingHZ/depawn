@@ -316,6 +316,34 @@ model FundsHold {
   @@map("funds_hold")
 }
 
+enum RedemptionStatus {
+  REQUESTED
+  VERIFIED
+  RELEASED
+
+  @@map("redemption_status")
+}
+
+model RedemptionRequest {
+  id                    String           @id
+  receiptId             String           @map("receipt_id")
+  vaultId               String           @map("vault_id")
+  requestedByAccountId  String           @map("requested_by_account_id")
+  requestedAt           DateTime         @map("requested_at")
+  status                RedemptionStatus
+  verifiedAt            DateTime?        @map("verified_at")
+  verifiedByStaffId     String?          @map("verified_by_staff_id")
+  releasedAt            DateTime?        @map("released_at")
+  releasedByStaffId     String?          @map("released_by_staff_id")
+  sealNumberBroken      String?          @map("seal_number_broken")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+
+  @@index([vaultId, status])
+  @@index([requestedByAccountId])
+  @@map("redemption_request")
+}
+
 enum LoanStatus {
   ACTIVE
   REPAID
