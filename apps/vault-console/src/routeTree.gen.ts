@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExposureRouteImport } from './routes/exposure'
+import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IntakeIndexRouteImport } from './routes/intake.index'
 import { Route as IntakeIntakeIdRouteImport } from './routes/intake.$intakeId'
@@ -17,6 +19,16 @@ import { Route as IntakeIntakeIdRouteImport } from './routes/intake.$intakeId'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExposureRoute = ExposureRouteImport.update({
+  id: '/exposure',
+  path: '/exposure',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -37,12 +49,16 @@ const IntakeIntakeIdRoute = IntakeIntakeIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/exposure': typeof ExposureRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
   '/intake/': typeof IntakeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/exposure': typeof ExposureRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
   '/intake': typeof IntakeIndexRoute
@@ -50,20 +66,43 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/exposure': typeof ExposureRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
   '/intake/': typeof IntakeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/intake/$intakeId' | '/intake/'
+  fullPaths:
+    | '/'
+    | '/exposure'
+    | '/inventory'
+    | '/login'
+    | '/intake/$intakeId'
+    | '/intake/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/intake/$intakeId' | '/intake'
-  id: '__root__' | '/' | '/login' | '/intake/$intakeId' | '/intake/'
+  to:
+    | '/'
+    | '/exposure'
+    | '/inventory'
+    | '/login'
+    | '/intake/$intakeId'
+    | '/intake'
+  id:
+    | '__root__'
+    | '/'
+    | '/exposure'
+    | '/inventory'
+    | '/login'
+    | '/intake/$intakeId'
+    | '/intake/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExposureRoute: typeof ExposureRoute
+  InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   IntakeIntakeIdRoute: typeof IntakeIntakeIdRoute
   IntakeIndexRoute: typeof IntakeIndexRoute
@@ -76,6 +115,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exposure': {
+      id: '/exposure'
+      path: '/exposure'
+      fullPath: '/exposure'
+      preLoaderRoute: typeof ExposureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -104,6 +157,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExposureRoute: ExposureRoute,
+  InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   IntakeIntakeIdRoute: IntakeIntakeIdRoute,
   IntakeIndexRoute: IntakeIndexRoute,

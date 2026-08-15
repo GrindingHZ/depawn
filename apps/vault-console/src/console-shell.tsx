@@ -21,9 +21,17 @@ export function ConsoleShell({ children }: { readonly children: ReactNode }): Re
       productName="depawn vault console"
       surface="terminal"
       navigation={
-        <Link to="/intake" className="font-body text-sm text-ink-secondary">
-          Intake
-        </Link>
+        <>
+          <Link to="/intake" className="font-body text-sm text-ink-secondary">
+            Intake
+          </Link>
+          <Link to="/inventory" className="font-body text-sm text-ink-secondary">
+            Inventory
+          </Link>
+          <Link to="/exposure" className="font-body text-sm text-ink-secondary">
+            Exposure
+          </Link>
+        </>
       }
       actions={
         <Button variant="secondary" onClick={() => logoutMutation.mutate()}>
