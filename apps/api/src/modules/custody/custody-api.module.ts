@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ACCOUNT_REPOSITORY } from '../../domain/accounts/account-repository';
+import { PROTOCOL_PARAMETERS } from '../../domain/marketplace/protocol-parameters';
+import type { ProtocolParameters } from '../../domain/marketplace/protocol-parameters';
 import { PrismaAccountRepository } from '../../infrastructure/persistence/repositories/prisma-account.repository';
-import { Money, currencyOf } from '../../domain/shared/money';
 import { AttachPhotoUseCase } from './application/attach-photo.use-case';
 import { BeginIntakeUseCase } from './application/begin-intake.use-case';
 import { IntakeDetailQuery } from './application/intake-detail.query';
@@ -31,8 +32,11 @@ import { VaultController } from './http/vault.controller';
     VaultExposureQuery,
     MemberReceiptsQuery,
     { provide: ACCOUNT_REPOSITORY, useClass: PrismaAccountRepository },
-    // Ten million minor units keeps the demo path single appraisal (Q-005).
-    { provide: DUAL_APPRAISAL_THRESHOLD, useValue: Money.of(10_000_000n, currencyOf('AUD')) },
+    {
+      provide: DUAL_APPRAISAL_THRESHOLD,
+      useFactory: (parameters: ProtocolParameters) => parameters.dualAppraisalThreshold,
+      inject: [PROTOCOL_PARAMETERS],
+    },
   ],
 })
 export class CustodyApiModule {}
