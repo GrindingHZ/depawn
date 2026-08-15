@@ -3,6 +3,7 @@ import type { Loan } from '../../../domain/lending/loan';
 import { LoanNotFound } from '../../../domain/lending/loan-not-found';
 import { LOAN_REPOSITORY } from '../../../domain/lending/loan-repository';
 import type { LoanRepository } from '../../../domain/lending/loan-repository';
+import { LoanNotActive } from '../../../domain/lending/loan-not-active';
 import { LoanNotDefaulted } from '../../../domain/lending/loan-not-defaulted';
 import { NotResourceOwner } from '../../../domain/marketplace/not-resource-owner';
 import { AUDIT_PORT } from '../../../domain/ports/audit.port';
@@ -49,7 +50,10 @@ export class ClaimReceiptUseCase {
           return failure(new NotResourceOwner());
         }
         if (!loan.allows('claimReceipt')) {
-          return failure(new LoanNotDefaulted());
+          // A loan that closed before the claim is a different answer from
+          // one that never defaulted: flow 7 names LOAN_NOT_ACTIVE for the
+          // borrower who repaid in time.
+          return failure(loan.status === 'ACTIVE' ? new LoanNotDefaulted() : new LoanNotActive());
         }
 
         await this.custody.claimReceipt(loan.receiptId, command.requestedBy, context);

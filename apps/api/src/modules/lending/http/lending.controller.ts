@@ -34,9 +34,10 @@ import { MarkDefaultUseCase } from '../application/mark-default.use-case';
 import { PayoffQuoteQuery } from '../application/payoff-quote.query';
 import { RepayLoanUseCase } from '../application/repay-loan.use-case';
 import { Instant } from '../../../domain/shared/instant';
+import { GracePeriodActive } from '../../../domain/lending/grace-period-active';
 import { PayoffQuoteStale } from '../../../domain/lending/payoff-quote-stale';
 import { RepaymentAmountInsufficient } from '../../../domain/lending/repayment-amount-insufficient';
-import { toLoanResponse, toPayoffQuoteResponse } from './lending-response.mapper';
+import { isoOf, toLoanResponse, toPayoffQuoteResponse } from './lending-response.mapper';
 
 @Controller()
 export class LendingController {
@@ -105,7 +106,17 @@ export class LendingController {
       requestedBy: account.id,
     });
     if (!result.ok) {
-      throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
+      // The deadline travels with the rejection so a lender told it is too
+      // early is also told until when.
+      const details =
+        result.error instanceof GracePeriodActive
+          ? { graceEndsAt: isoOf(result.error.graceEndsAt) }
+          : undefined;
+      throw new DomainErrorHttpException(
+        result.error,
+        domainErrorStatusFor(result.error.code),
+        details,
+      );
     }
     return this.loanResponseFor(result.value.id);
   }

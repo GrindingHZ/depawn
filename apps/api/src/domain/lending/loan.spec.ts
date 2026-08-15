@@ -197,6 +197,27 @@ describe('Loan default', () => {
     }
   });
 
+  it('refuses to reconstruct a defaulted loan with no instant', () => {
+    expect(() =>
+      Loan.restore({
+        id: loanIdOf('LOAN-1'),
+        receiptId: receiptIdOf('RCP-1'),
+        borrowerAccountId: accountIdOf('BORROWER-1'),
+        principal: Money.of(250_000n, aud),
+        annualPercentageRateBasisPoints: 1_800,
+        startedAt,
+        maturesAt: startedAt.plusMilliseconds(2_592_000_000n),
+        graceEndsAt: startedAt.plusMilliseconds(3_196_800_000n),
+        lenderNoteId: lenderNoteIdOf('LN-1'),
+        borrowerNoteId: borrowerNoteIdOf('BN-1'),
+        status: 'DEFAULTED',
+        originationSettlementRef: settlementRef,
+        defaultedAt: null,
+        version: 0,
+      }),
+    ).toThrow('defaultedAt must be set exactly when the loan has defaulted');
+  });
+
   it('carries the grace deadline on the rejection', () => {
     const loan = originate();
     const result = loan.markDefaulted(startedAt);
@@ -230,7 +251,8 @@ describe('allowedLoanTransitions', () => {
       borrowerNoteId: borrowerNoteIdOf('BN-1'),
       status: status as LoanStatus,
       originationSettlementRef: settlementRef,
-      defaultedAt: null,
+      // A liquidated loan was defaulted first, so both carry the instant.
+      defaultedAt: status === 'DEFAULTED' || status === 'LIQUIDATED' ? startedAt : null,
       version: 3,
     });
     for (const event of everyEvent) {

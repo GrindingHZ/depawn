@@ -87,6 +87,12 @@ export class Loan {
     if (fields.graceEndsAt.isBefore(fields.maturesAt)) {
       throw new Error('Grace cannot end before maturity');
     }
+    // A liquidated loan was defaulted first, so the instant survives the
+    // move; nothing else may carry one.
+    const hasDefaulted = fields.status === 'DEFAULTED' || fields.status === 'LIQUIDATED';
+    if (hasDefaulted !== (fields.defaultedAt !== null)) {
+      throw new Error('defaultedAt must be set exactly when the loan has defaulted');
+    }
   }
 
   get id(): LoanId {

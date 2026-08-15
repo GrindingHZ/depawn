@@ -104,7 +104,9 @@ docs/10 flow 7, and `burnForLiquidation` is reachable from both `IN_VAULT` and `
 **Needs:** whoever owns docs/02
 **Notes:** The docs/02 diagram keeps the claimed receipt `ENCUMBERED` with a holder change, while
 flow 7 says the claimant holds it `IN_VAULT`; the flow reading lets the claimant redeem through
-flow 6 without a special case. The diagram also shows liquidation burning only from `IN_VAULT`,
+flow 6 without a special case. P6a settles the argument with evidence: an integration test carries a
+lender from default through the claim into a redemption request, which only works because the
+receipt lands `IN_VAULT`. The diagram is the side that needs correcting. The diagram also shows liquidation burning only from `IN_VAULT`,
 but flow 8 can run before any lender claim.
 
 ## Q-013: pause check inside origination before P7
@@ -153,3 +155,13 @@ it belongs to, and there is no `/borrow/redemptions` route
 no life of its own away from its receipt, and a borrower looking for an item looks for the item, so
 the narrowest reading put the status where the receipt already is. A separate route is worth
 building if redemptions grow fields of their own, such as an appointment time.
+
+## Q-018: the code for claiming collateral on a loan that never defaulted
+**Blocks:** the claim receipt endpoint
+**Currently implemented:** LOAN_NOT_DEFAULTED, a new code registered alongside the others, while a
+loan that closed before the claim answers LOAN_NOT_ACTIVE as flow 7 names
+**Needs:** whoever owns docs/04
+**Notes:** The flow 7 failure table covers the loan repaid before the claim but not the loan that is
+still healthy and inside its term. Reusing LOAN_NOT_ACTIVE for a live loan would be false, so the
+narrowest reading added a code rather than stretching one. The canonical list in docs/04 does not
+carry it yet.
