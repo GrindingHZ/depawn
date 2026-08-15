@@ -85,13 +85,35 @@ describe('RedemptionRequest', () => {
     }
   });
 
-  it('refuses a second verification', () => {
+  it('refuses a second verification and says so accurately', () => {
     const verified = opened().verify(staffId, requestedAt);
     if (!verified.ok) {
       throw new Error('a fresh request must be verifiable');
     }
     const again = verified.value.verify(staffId, requestedAt);
     expect(again.ok).toBe(false);
+    if (!again.ok) {
+      // Staff act on this message at a counter, so it must never claim
+      // identity was unchecked on a request that was just checked.
+      expect(again.error.code).toBe('REDEMPTION_ALREADY_VERIFIED');
+      expect(again.error.message).not.toContain('has not been verified');
+    }
+  });
+
+  it('refuses verification after the item has gone', () => {
+    const verified = opened().verify(staffId, requestedAt);
+    if (!verified.ok) {
+      throw new Error('a fresh request must be verifiable');
+    }
+    const released = verified.value.release(staffId, 'SEAL-9', requestedAt);
+    if (!released.ok) {
+      throw new Error('a verified request must be releasable');
+    }
+    const again = released.value.verify(staffId, requestedAt);
+    expect(again.ok).toBe(false);
+    if (!again.ok) {
+      expect(again.error.code).toBe('REDEMPTION_ALREADY_RELEASED');
+    }
   });
 });
 

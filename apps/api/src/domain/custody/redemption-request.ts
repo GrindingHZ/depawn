@@ -9,6 +9,7 @@ import type { Instant } from '../shared/instant';
 import { failure, ok } from '../shared/result';
 import type { Result } from '../shared/result';
 import { RedemptionAlreadyReleased } from './redemption-already-released';
+import { RedemptionAlreadyVerified } from './redemption-already-verified';
 import { RedemptionNotVerified } from './redemption-not-verified';
 
 export type RedemptionStatus = 'REQUESTED' | 'VERIFIED' | 'RELEASED';
@@ -37,7 +38,8 @@ interface RedemptionRequestFields {
   readonly sealNumberBroken: string | null;
 }
 
-export type RedemptionRejected = RedemptionNotVerified | RedemptionAlreadyReleased;
+export type RedemptionRejected =
+  RedemptionNotVerified | RedemptionAlreadyVerified | RedemptionAlreadyReleased;
 
 export class RedemptionRequest {
   private constructor(private readonly fields: RedemptionRequestFields) {}
@@ -100,7 +102,11 @@ export class RedemptionRequest {
 
   verify(staffId: StaffId, at: Instant): Result<RedemptionRequest, RedemptionRejected> {
     if (!this.allows('verify')) {
-      return failure(this.rejection());
+      return failure(
+        this.fields.status === 'RELEASED'
+          ? new RedemptionAlreadyReleased()
+          : new RedemptionAlreadyVerified(),
+      );
     }
     return ok(
       new RedemptionRequest({
@@ -118,7 +124,11 @@ export class RedemptionRequest {
     at: Instant,
   ): Result<RedemptionRequest, RedemptionRejected> {
     if (!this.allows('release')) {
-      return failure(this.rejection());
+      return failure(
+        this.fields.status === 'RELEASED'
+          ? new RedemptionAlreadyReleased()
+          : new RedemptionNotVerified(),
+      );
     }
     return ok(
       new RedemptionRequest({
@@ -133,13 +143,5 @@ export class RedemptionRequest {
 
   allows(event: RedemptionEvent): boolean {
     return allowedRedemptionTransitions[this.fields.status].includes(event);
-  }
-
-  /* A released request is finished; anything else that cannot move is
-     waiting on the verification step. */
-  private rejection(): RedemptionRejected {
-    return this.fields.status === 'RELEASED'
-      ? new RedemptionAlreadyReleased()
-      : new RedemptionNotVerified();
   }
 }
