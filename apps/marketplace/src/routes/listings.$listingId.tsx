@@ -1,8 +1,8 @@
-import { ApiError, fetchListing, placeOffer } from '@depawn/contracts';
+import { ApiError, acceptOffer, fetchListing, placeOffer } from '@depawn/contracts';
 import type { ListingDetailResponse, RankedOfferResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Field, Money, Rate, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
@@ -31,12 +31,18 @@ function ListingDetailPage(): ReactElement | null {
 
   return (
     <MarketShell>
-      <ListingDetail listingId={listingId} />
+      <ListingDetail listingId={listingId} viewerAccountId={currentAccount.data.id} />
     </MarketShell>
   );
 }
 
-function ListingDetail({ listingId }: { readonly listingId: string }): ReactElement {
+function ListingDetail({
+  listingId,
+  viewerAccountId,
+}: {
+  readonly listingId: string;
+  readonly viewerAccountId: string;
+}): ReactElement {
   const detailQuery = useQuery({
     queryKey: marketKeys.detail(listingId),
     queryFn: () => fetchListing(listingId),
@@ -56,6 +62,9 @@ function ListingDetail({ listingId }: { readonly listingId: string }): ReactElem
   }
 
   const detail = detailQuery.data;
+  // A borrower funds no offer on their own collateral, so the two sides of
+  // this screen are mutually exclusive.
+  const isBorrower = detail.borrowerAccountId === viewerAccountId;
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <Card title="The item">
@@ -86,15 +95,62 @@ function ListingDetail({ listingId }: { readonly listingId: string }): ReactElem
           </div>
         </dl>
       </Card>
-      <OfferBookCard detail={detail} />
-      {detail.status === 'ACTIVE' ? <PlaceOfferCard detail={detail} /> : null}
+      <OfferBookCard detail={detail} isBorrower={isBorrower} />
+      {detail.status === 'ACTIVE' && !isBorrower ? <PlaceOfferCard detail={detail} /> : null}
     </div>
   );
 }
 
-function OfferBookCard({ detail }: { readonly detail: ListingDetailResponse }): ReactElement {
+function acceptMessageFor(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.code === 'LISTING_ALREADY_MATCHED') {
+      return 'This listing already took an offer. Refresh to see the loan.';
+    }
+    if (error.code === 'OFFER_NOT_PENDING' || error.code === 'OFFER_EXPIRED') {
+      return 'That offer is no longer available. Refresh the offer book.';
+    }
+    if (error.code === 'LOAN_TO_VALUE_EXCEEDED') {
+      return 'The principal is now above the lending ceiling for this item.';
+    }
+  }
+  return 'The offer could not be accepted.';
+}
+
+function OfferBookCard({
+  detail,
+  isBorrower,
+}: {
+  readonly detail: ListingDetailResponse;
+  readonly isBorrower: boolean;
+}): ReactElement {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [acceptError, setAcceptError] = useState<string | null>(null);
+  // Generated on mount and rotated per success (docs/05-frontend.md).
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+
+  const acceptMutation = useMutation({
+    mutationFn: (offerId: string) => acceptOffer(detail.id, offerId, { idempotencyKey }),
+    onSuccess: async () => {
+      setIdempotencyKey(crypto.randomUUID());
+      setAcceptError(null);
+      await queryClient.invalidateQueries({ queryKey: marketKeys.detail(detail.id) });
+      await queryClient.invalidateQueries({ queryKey: marketKeys.myListings });
+      await queryClient.invalidateQueries({ queryKey: marketKeys.myLoans('borrower') });
+      await queryClient.invalidateQueries({ queryKey: walletKeys.all });
+      await navigate({ to: '/borrow/loans' });
+    },
+    onError: (error) => setAcceptError(acceptMessageFor(error)),
+  });
+
+  const canAccept = isBorrower && detail.status === 'ACTIVE';
   return (
     <Card title="Offer book, cheapest first">
+      {acceptError === null ? null : (
+        <p role="alert" className="mb-3 font-body text-sm text-status-danger">
+          {acceptError}
+        </p>
+      )}
       <div data-testid="offer-book">
         <DataTable
           columns={[
@@ -115,6 +171,24 @@ function OfferBookCard({ detail }: { readonly detail: ListingDetailResponse }): 
               header: 'Total cost to borrower',
               render: (offer: RankedOfferResponse) => <Money value={offer.totalCostToBorrower} />,
             },
+            ...(canAccept
+              ? [
+                  {
+                    key: 'actions',
+                    header: '',
+                    render: (offer: RankedOfferResponse) =>
+                      offer.status === 'PENDING' ? (
+                        <Button
+                          data-testid={`accept-${offer.id}`}
+                          onClick={() => acceptMutation.mutate(offer.id)}
+                          disabled={acceptMutation.isPending}
+                        >
+                          Accept
+                        </Button>
+                      ) : null,
+                  },
+                ]
+              : []),
           ]}
           rows={[...detail.offerBook]}
           rowKey={(offer) => offer.id}
