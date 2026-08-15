@@ -1,8 +1,8 @@
 # State
 
 phase: P2
-slice: p2c-intake-api
-stage: execute
-task: 1
-slice-base: f29dd79
+slice: p2d-vault-ui
+stage: brainstorm
+task: 0
+slice-base: pending
 status: running
