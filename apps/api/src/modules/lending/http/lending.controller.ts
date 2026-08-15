@@ -21,6 +21,7 @@ import type { Account } from '../../../domain/accounts/account';
 import { LOAN_QUERIES } from '../../../domain/ports/loan-queries.port';
 import type { LoanQueries } from '../../../domain/ports/loan-queries.port';
 import { listingIdOf, loanIdOf, offerIdOf } from '../../../domain/shared/identifiers';
+import type { LoanId } from '../../../domain/shared/identifiers';
 import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { DomainErrorHttpException } from '../../shared/http/domain-error-http.exception';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
@@ -28,6 +29,8 @@ import { toMoney, toMoneyDto } from '../../shared/http/money.mapper';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { domainErrorStatusFor } from '../../shared/http/domain-error-status';
 import { AcceptOfferUseCase } from '../application/accept-offer.use-case';
+import { ClaimReceiptUseCase } from '../application/claim-receipt.use-case';
+import { MarkDefaultUseCase } from '../application/mark-default.use-case';
 import { PayoffQuoteQuery } from '../application/payoff-quote.query';
 import { RepayLoanUseCase } from '../application/repay-loan.use-case';
 import { Instant } from '../../../domain/shared/instant';
@@ -41,6 +44,8 @@ export class LendingController {
     private readonly acceptOffer: AcceptOfferUseCase,
     private readonly payoffQuote: PayoffQuoteQuery,
     private readonly repayLoan: RepayLoanUseCase,
+    private readonly markDefault: MarkDefaultUseCase,
+    private readonly claimReceipt: ClaimReceiptUseCase,
     @Inject(LOAN_QUERIES) private readonly loanQueries: LoanQueries,
   ) {}
 
@@ -59,11 +64,7 @@ export class LendingController {
     if (!result.ok) {
       throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
     }
-    const readModel = await this.loanQueries.findById(result.value.loan.id);
-    if (readModel === null) {
-      throw new Error(`Loan ${result.value.loan.id} vanished after origination`);
-    }
-    return toLoanResponse(readModel);
+    return this.loanResponseFor(result.value.loan.id);
   }
 
   @Get('me/loans')
@@ -91,6 +92,38 @@ export class LendingController {
       throw new NotFoundException();
     }
     return toLoanResponse(readModel);
+  }
+
+  @Post('loans/:loanId/default')
+  @UseInterceptors(IdempotencyInterceptor)
+  async markLoanDefaulted(
+    @Param('loanId') loanId: string,
+    @CurrentAccount() account: Account,
+  ): Promise<LoanResponse> {
+    const result = await this.markDefault.execute({
+      loanId: loanIdOf(loanId),
+      requestedBy: account.id,
+    });
+    if (!result.ok) {
+      throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
+    }
+    return this.loanResponseFor(result.value.id);
+  }
+
+  @Post('loans/:loanId/claim-receipt')
+  @UseInterceptors(IdempotencyInterceptor)
+  async claim(
+    @Param('loanId') loanId: string,
+    @CurrentAccount() account: Account,
+  ): Promise<LoanResponse> {
+    const result = await this.claimReceipt.execute({
+      loanId: loanIdOf(loanId),
+      requestedBy: account.id,
+    });
+    if (!result.ok) {
+      throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
+    }
+    return this.loanResponseFor(result.value.id);
   }
 
   @Get('loans/:loanId/payoff-quote')
@@ -133,16 +166,22 @@ export class LendingController {
       );
     }
 
-    const readModel = await this.loanQueries.findById(result.value.breakdown.loan.id);
-    if (readModel === null) {
-      throw new Error(`Loan ${result.value.breakdown.loan.id} vanished after repayment`);
-    }
     return {
-      loan: toLoanResponse(readModel),
+      loan: await this.loanResponseFor(result.value.breakdown.loan.id),
       principal: toMoneyDto(result.value.breakdown.principal),
       accruedInterest: toMoneyDto(result.value.breakdown.accruedInterest),
       total: toMoneyDto(result.value.breakdown.total),
       paidToAccountId: result.value.paidTo,
     };
+  }
+
+  /* Every write returns the loan as it now stands, read back through the
+     same query the read endpoints use so the two can never disagree. */
+  private async loanResponseFor(loanId: LoanId): Promise<LoanResponse> {
+    const readModel = await this.loanQueries.findById(loanId);
+    if (readModel === null) {
+      throw new Error(`Loan ${loanId} vanished after being written`);
+    }
+    return toLoanResponse(readModel);
   }
 }

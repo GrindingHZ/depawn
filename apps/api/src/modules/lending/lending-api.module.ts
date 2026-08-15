@@ -8,6 +8,8 @@ import { PrismaListingRepository } from '../../infrastructure/persistence/reposi
 import { PrismaLoanRepository } from '../../infrastructure/persistence/repositories/prisma-loan.repository';
 import { PrismaLoanQueries } from '../../infrastructure/persistence/queries/prisma-loan-queries';
 import { AcceptOfferUseCase } from './application/accept-offer.use-case';
+import { ClaimReceiptUseCase } from './application/claim-receipt.use-case';
+import { MarkDefaultUseCase } from './application/mark-default.use-case';
 import { PayoffQuoteQuery } from './application/payoff-quote.query';
 import { RepayLoanUseCase } from './application/repay-loan.use-case';
 import { LendingController } from './http/lending.controller';
@@ -18,6 +20,8 @@ import { LendingController } from './http/lending.controller';
     AcceptOfferUseCase,
     PayoffQuoteQuery,
     RepayLoanUseCase,
+    MarkDefaultUseCase,
+    ClaimReceiptUseCase,
     { provide: LISTING_REPOSITORY, useClass: PrismaListingRepository },
     { provide: CUSTODY_RECEIPT_REPOSITORY, useClass: PrismaCustodyReceiptRepository },
     { provide: LOAN_REPOSITORY, useClass: PrismaLoanRepository },

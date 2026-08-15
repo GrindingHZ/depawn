@@ -68,3 +68,23 @@ export function repayLoan(
     responseSchema: repaymentResponseSchema,
   });
 }
+
+export function markLoanDefaulted(loanId: string, options: RequestOptions): Promise<LoanResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/loans/${loanId}/default`,
+    body: {},
+    options,
+    responseSchema: loanResponseSchema,
+  });
+}
+
+export function claimReceipt(loanId: string, options: RequestOptions): Promise<LoanResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/loans/${loanId}/claim-receipt`,
+    body: {},
+    options,
+    responseSchema: loanResponseSchema,
+  });
+}
