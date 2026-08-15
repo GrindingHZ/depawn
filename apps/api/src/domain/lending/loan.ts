@@ -11,6 +11,7 @@ import { failure, ok } from '../shared/result';
 import type { Result } from '../shared/result';
 import type { SettlementRef } from '../shared/settlement-ref';
 import { calculateAccruedInterest } from './interest-calculator';
+import { GracePeriodActive } from './grace-period-active';
 import { LoanNotActive } from './loan-not-active';
 import { RepaymentAmountInsufficient } from './repayment-amount-insufficient';
 
@@ -41,6 +42,9 @@ interface LoanFields {
   readonly borrowerNoteId: BorrowerNoteId;
   readonly status: LoanStatus;
   readonly originationSettlementRef: SettlementRef;
+  /* Set when the loan is marked defaulted, because that instant starts the
+     statutory holding period the liquidation gate reads (rule L6). */
+  readonly defaultedAt: Instant | null;
   readonly version: number;
 }
 
@@ -52,6 +56,8 @@ export interface RepaymentBreakdown {
 }
 
 export type RepaymentRejected = LoanNotActive | RepaymentAmountInsufficient;
+
+export type DefaultRejected = LoanNotActive | GracePeriodActive;
 
 export interface OriginateLoanInput {
   readonly id: LoanId;
@@ -119,6 +125,9 @@ export class Loan {
   get originationSettlementRef(): SettlementRef {
     return this.fields.originationSettlementRef;
   }
+  get defaultedAt(): Instant | null {
+    return this.fields.defaultedAt;
+  }
   get version(): number {
     return this.fields.version;
   }
@@ -138,6 +147,7 @@ export class Loan {
       borrowerNoteId: input.borrowerNoteId,
       status: 'ACTIVE',
       originationSettlementRef: input.originationSettlementRef,
+      defaultedAt: null,
       version: 0,
     });
   }
@@ -186,6 +196,18 @@ export class Loan {
       accruedInterest,
       total,
     });
+  }
+
+  /* Grace is a real second chance, so the gate is strictly after it ends: a
+     loan is not in default on the last millisecond the borrower still has. */
+  markDefaulted(now: Instant): Result<Loan, DefaultRejected> {
+    if (!this.allows('markDefault')) {
+      return failure(new LoanNotActive());
+    }
+    if (!now.isAfter(this.fields.graceEndsAt)) {
+      return failure(new GracePeriodActive(this.fields.graceEndsAt));
+    }
+    return ok(new Loan({ ...this.fields, status: 'DEFAULTED', defaultedAt: now }));
   }
 
   allows(event: LoanEvent): boolean {
