@@ -19,12 +19,22 @@ export default defineConfig({
     {
       name: 'vault-console',
       testMatch: /vault-console\..*\.spec\.ts/,
+      testIgnore: /vault-console\.redemption\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
     },
     {
       name: 'admin',
       testMatch: /admin\..*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
+    },
+    /* Redeeming burns a receipt, which is the only thing in the suite that
+       lowers vault exposure. The intake spec reads that figure before and
+       after its own work, so the two must not overlap. */
+    {
+      name: 'vault-console-redemption',
+      testMatch: /vault-console\.redemption\.spec\.ts/,
+      dependencies: ['marketplace', 'vault-console', 'admin'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
     },
     /* One api process serves every project, so a spec that moves its clock
        would age out the listings and offers other specs are mid way through.
@@ -33,7 +43,7 @@ export default defineConfig({
     {
       name: 'marketplace-time-travel',
       testMatch: /marketplace\.repayment\.spec\.ts/,
-      dependencies: ['marketplace', 'vault-console', 'admin'],
+      dependencies: ['marketplace', 'vault-console', 'admin', 'vault-console-redemption'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
   ],
