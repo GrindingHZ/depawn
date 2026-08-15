@@ -7,7 +7,12 @@ import type {
 } from '../shared/identifiers';
 import type { Instant } from '../shared/instant';
 import type { Money } from '../shared/money';
+import { failure, ok } from '../shared/result';
+import type { Result } from '../shared/result';
 import type { SettlementRef } from '../shared/settlement-ref';
+import { calculateAccruedInterest } from './interest-calculator';
+import { LoanNotActive } from './loan-not-active';
+import { RepaymentAmountInsufficient } from './repayment-amount-insufficient';
 
 export type LoanStatus = 'ACTIVE' | 'REPAID' | 'DEFAULTED' | 'LIQUIDATED';
 
@@ -39,6 +44,15 @@ interface LoanFields {
   readonly version: number;
 }
 
+export interface RepaymentBreakdown {
+  readonly loan: Loan;
+  readonly principal: Money;
+  readonly accruedInterest: Money;
+  readonly total: Money;
+}
+
+export type RepaymentRejected = LoanNotActive | RepaymentAmountInsufficient;
+
 export interface OriginateLoanInput {
   readonly id: LoanId;
   readonly receiptId: ReceiptId;
@@ -53,11 +67,9 @@ export interface OriginateLoanInput {
   readonly originationSettlementRef: SettlementRef;
 }
 
-/* Repayment, default, and liquidation behaviour arrive with P5 and P6, which
-   own the interest calculator and the grace gate; P4 needs only origination
-   and the table those phases will guard against. The loan stores the lender
-   note id, never the lender account id: who is owed is whoever holds the
-   note (docs/02-domain-model.md). */
+/* Default and liquidation behaviour arrive with P6, which owns the grace
+   gate. The loan stores the lender note id, never the lender account id: who
+   is owed is whoever holds the note (docs/02-domain-model.md). */
 export class Loan {
   private constructor(private readonly fields: LoanFields) {
     if (fields.principal.isNegative() || fields.principal.isZero()) {
@@ -132,6 +144,44 @@ export class Loan {
 
   static restore(fields: LoanFields): Loan {
     return new Loan(fields);
+  }
+
+  calculateAccruedInterest(now: Instant): Money {
+    return calculateAccruedInterest(
+      this.fields.principal,
+      this.fields.annualPercentageRateBasisPoints,
+      this.fields.startedAt,
+      this.fields.maturesAt,
+      now,
+    );
+  }
+
+  calculateAmountDue(now: Instant): Money {
+    return this.fields.principal.plus(this.calculateAccruedInterest(now));
+  }
+
+  canBeRepaid(): boolean {
+    return this.allows('repay');
+  }
+
+  /* Repayment is all or nothing: a payment above the total is not change to
+     be given, it is a caller sending the wrong number, so only the exact
+     amount due settles the loan. */
+  recordRepayment(payment: Money, now: Instant): Result<RepaymentBreakdown, RepaymentRejected> {
+    if (!this.canBeRepaid()) {
+      return failure(new LoanNotActive());
+    }
+    const accruedInterest = this.calculateAccruedInterest(now);
+    const total = this.fields.principal.plus(accruedInterest);
+    if (payment.isLessThan(total)) {
+      return failure(new RepaymentAmountInsufficient(total));
+    }
+    return ok({
+      loan: new Loan({ ...this.fields, status: 'REPAID' }),
+      principal: this.fields.principal,
+      accruedInterest,
+      total,
+    });
   }
 
   allows(event: LoanEvent): boolean {
