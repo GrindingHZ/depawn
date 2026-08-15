@@ -128,7 +128,7 @@ describe('repayment', () => {
         requestedPrincipalMinorUnits: 250_000n,
         currency: 'AUD',
         maxAnnualPercentageRateBasisPoints: 2400,
-        requestedDurationMs: (30n * oneDay).toString(),
+        requestedDurationMs: 30n * oneDay,
         expiresAt: new Date(Number(harness.clock.now().epochMilliseconds) + 86_400_000),
         status: 'ACTIVE',
       },
