@@ -201,6 +201,63 @@ describe('default and claim', () => {
     expect(receipt?.status).toBe('ENCUMBERED');
   });
 
+  it('refuses a claim on a loan the borrower repaid in time', async () => {
+    const loan = await originate();
+    // The borrower holds only the disbursement, which is short of the
+    // payoff by the origination fee plus the interest.
+    const ops = await loginAs(`ops-repay-${randomUUID().slice(0, 8)}@default.test`, 'OPERATIONS');
+    await server()
+      .post('/api/v1/me/deposits')
+      .set('Cookie', ops.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ email: loan.borrower.email, amount: amount('50000') })
+      .expect(201);
+
+    const quote = await server()
+      .get(`/api/v1/loans/${loan.loanId}/payoff-quote`)
+      .set('Cookie', loan.borrower.cookies)
+      .expect(200);
+    await server()
+      .post(`/api/v1/loans/${loan.loanId}/repay`)
+      .set('Cookie', loan.borrower.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ amount: quote.body.total, quotedAt: quote.body.quotedAt })
+      .expect(201);
+
+    harness.clock.advanceBy(pastGrace());
+    await signInAgain(loan.lender);
+
+    // Flow 7 names this case: a lender arriving after the borrower already
+    // paid is told the loan is closed, not that it never defaulted.
+    const rejected = await server()
+      .post(`/api/v1/loans/${loan.loanId}/claim-receipt`)
+      .set('Cookie', loan.lender.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(409);
+    expect(rejected.body.error.code).toBe('LOAN_NOT_ACTIVE');
+
+    const receipt = await harness.prisma.custodyReceipt.findUnique({
+      where: { id: loan.receiptId },
+    });
+    expect(receipt?.holderAccountId).toBe(loan.borrower.accountId);
+    expect(receipt?.status).toBe('IN_VAULT');
+  });
+
+  it('names the deadline when a default comes too early', async () => {
+    const loan = await originate();
+    harness.clock.advanceBy(30n * oneDay + oneDay);
+    await signInAgain(loan.lender);
+
+    const rejected = await server()
+      .post(`/api/v1/loans/${loan.loanId}/default`)
+      .set('Cookie', loan.lender.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(422);
+    expect(rejected.body.error.details.graceEndsAt).toBeTruthy();
+  });
+
   it('carries a lender from default through claim to redemption', async () => {
     const loan = await originate();
     harness.clock.advanceBy(pastGrace());
