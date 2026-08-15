@@ -2,10 +2,10 @@
 
 ## Tasks
 
-- [ ] feat(vault-console): add the intake wizard against real endpoints
-- [ ] feat(vault-console): add inventory and exposure screens
-- [ ] feat(marketplace-ui): add borrower receipts screen
-- [ ] test(e2e): run intake to a receipt the borrower can see
+- [x] feat(vault-console): add the intake wizard against real endpoints
+- [x] feat(vault-console): add inventory and exposure screens
+- [x] feat(marketplace-ui): add borrower receipts screen
+- [x] test(e2e): run intake to a receipt the borrower can see
 
 ## Design pass
 
