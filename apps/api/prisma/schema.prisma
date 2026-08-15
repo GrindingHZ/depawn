@@ -127,6 +127,108 @@ model LedgerEntry {
   @@map("ledger_entry")
 }
 
+enum IntakeStatus {
+  DRAFT
+  SEALED
+
+  @@map("intake_status")
+}
+
+enum ReceiptStatus {
+  IN_VAULT
+  ENCUMBERED
+  RELEASED
+  LIQUIDATED
+
+  @@map("receipt_status")
+}
+
+enum ItemCategory {
+  BULLION
+
+  @@map("item_category")
+}
+
+model Vault {
+  id                String   @id
+  name              String
+  city              String
+  insuredLimitMinorUnits BigInt @map("insured_limit_minor_units")
+  currency          String
+  version           Int      @default(0)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  intakeRecords     IntakeRecord[]
+  custodyReceipts   CustodyReceipt[]
+
+  @@map("vault")
+}
+
+model IntakeRecord {
+  id                String       @id
+  vaultId           String       @map("vault_id")
+  borrowerAccountId String       @map("borrower_account_id")
+  itemCategory      ItemCategory @map("item_category")
+  itemDescription   String       @map("item_description")
+  serialNumbers     String[]     @map("serial_numbers")
+  sealNumber        String?      @map("seal_number")
+  evidence          Json
+  status            IntakeStatus
+  sealedHash        String?      @map("sealed_hash")
+  version           Int          @default(0)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  vault             Vault        @relation(fields: [vaultId], references: [id])
+  appraisals        Appraisal[]
+
+  @@index([vaultId, status])
+  @@map("intake_record")
+}
+
+model Appraisal {
+  id                   String   @id
+  intakeId             String   @map("intake_id")
+  appraiserId          String   @map("appraiser_id")
+  valueMinorUnits      BigInt   @map("value_minor_units")
+  currency             String
+  method               String
+  comparableReferences String   @map("comparable_references")
+  appraisedAt          DateTime @map("appraised_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  intakeRecord         IntakeRecord @relation(fields: [intakeId], references: [id])
+
+  @@index([intakeId])
+  @@map("appraisal")
+}
+
+model CustodyReceipt {
+  id                        String        @id
+  vaultId                   String        @map("vault_id")
+  holderAccountId           String        @map("holder_account_id")
+  intakeRecordHash          String        @map("intake_record_hash")
+  appraisedValueMinorUnits  BigInt        @map("appraised_value_minor_units")
+  currency                  String
+  appraisedAt               DateTime      @map("appraised_at")
+  appraiserId               String        @map("appraiser_id")
+  itemCategory              ItemCategory  @map("item_category")
+  insurancePolicyReference  String        @map("insurance_policy_reference")
+  status                    ReceiptStatus
+  encumberedByLoanId        String?       @map("encumbered_by_loan_id")
+  version                   Int           @default(0)
+  createdAt                 DateTime      @default(now()) @map("created_at")
+  updatedAt                 DateTime      @updatedAt @map("updated_at")
+
+  vault                     Vault         @relation(fields: [vaultId], references: [id])
+
+  @@index([vaultId, status])
+  @@index([holderAccountId, status])
+  @@map("custody_receipt")
+}
+
 enum FundsHoldStatus {
   HELD
   RELEASED
