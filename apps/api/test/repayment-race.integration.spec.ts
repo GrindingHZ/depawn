@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { accountIdOf, loanIdOf } from '../src/domain/shared/identifiers';
-import { Instant } from '../src/domain/shared/instant';
 import { Money, currencyOf } from '../src/domain/shared/money';
 import { RepayLoanUseCase } from '../src/modules/lending/application/repay-loan.use-case';
 import { createTestApplication } from './create-test-application';
