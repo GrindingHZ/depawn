@@ -2,7 +2,7 @@ import type { LoanResponse } from '@depawn/contracts';
 import { Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
-import { loanStatusTone } from './loan-status-tone';
+import { loanBadgeFor } from './loan-status-tone';
 
 function dayOf(iso: string): string {
   return iso.slice(0, 10);
@@ -75,9 +75,10 @@ export function LoansTable({
             {
               key: 'status',
               header: 'Status',
-              render: (loan: LoanResponse) => (
-                <StatusBadge tone={loanStatusTone(loan.status)} label={loan.status} />
-              ),
+              render: (loan: LoanResponse) => {
+                const badge = loanBadgeFor(loan, Date.now());
+                return <StatusBadge tone={badge.tone} label={badge.label} />;
+              },
             },
           ]}
           rows={[...query.data.items]}

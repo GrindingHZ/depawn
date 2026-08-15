@@ -115,3 +115,12 @@ P7 builds the pause switch and its never-block-exit tests
 **Notes:** Flow 4 step 4 asserts the system is not paused. The narrowest reading defers the
 assertion to the P7 slice that introduces the pause state, which must then add it to every
 blocked entry point listed in docs/10 in one pass.
+
+## Q-014: badge tone for an active loan past the end of grace
+**Blocks:** the loan status badge in the marketplace
+**Currently implemented:** any ACTIVE loan past maturity reads warning and is labelled
+PAST MATURITY, whether or not grace has ended
+**Needs:** whoever owns docs/DESIGN-BRIEF.md
+**Notes:** The brief gives warning to a loan that is past maturity and in grace, and danger to a
+loan that is DEFAULTED. A loan that has run past the end of grace while no note holder has marked
+it defaulted falls between the two cells, and calling it in grace on screen would be false.
