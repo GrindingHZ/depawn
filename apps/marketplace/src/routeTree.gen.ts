@@ -14,6 +14,8 @@ import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as BorrowReceiptsRouteImport } from './routes/borrow.receipts'
+import { Route as ListingsIndexRouteImport } from './routes/listings.index'
+import { Route as ListingsListingIdRouteImport } from './routes/listings.$listingId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +42,16 @@ const BorrowReceiptsRoute = BorrowReceiptsRouteImport.update({
   path: '/borrow/receipts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListingsIndexRoute = ListingsIndexRouteImport.update({
+  id: '/listings/',
+  path: '/listings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingsListingIdRoute = ListingsListingIdRouteImport.update({
+  id: '/listings/$listingId',
+  path: '/listings/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
+  '/listings/': typeof ListingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
+  '/listings': typeof ListingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,37 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
+  '/listings/': typeof ListingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
+  fullPaths:
+    | '/'
+    | '/gallery'
+    | '/login'
+    | '/wallet'
+    | '/borrow/receipts'
+    | '/listings/$listingId'
+    | '/listings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
-  id: '__root__' | '/' | '/gallery' | '/login' | '/wallet' | '/borrow/receipts'
+  to:
+    | '/'
+    | '/gallery'
+    | '/login'
+    | '/wallet'
+    | '/borrow/receipts'
+    | '/listings/$listingId'
+    | '/listings'
+  id:
+    | '__root__'
+    | '/'
+    | '/gallery'
+    | '/login'
+    | '/wallet'
+    | '/borrow/receipts'
+    | '/listings/$listingId'
+    | '/listings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +117,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   WalletRoute: typeof WalletRoute
   BorrowReceiptsRoute: typeof BorrowReceiptsRoute
+  ListingsListingIdRoute: typeof ListingsListingIdRoute
+  ListingsIndexRoute: typeof ListingsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BorrowReceiptsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listings/': {
+      id: '/listings/'
+      path: '/listings'
+      fullPath: '/listings/'
+      preLoaderRoute: typeof ListingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listings/$listingId': {
+      id: '/listings/$listingId'
+      path: '/listings/$listingId'
+      fullPath: '/listings/$listingId'
+      preLoaderRoute: typeof ListingsListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   WalletRoute: WalletRoute,
   BorrowReceiptsRoute: BorrowReceiptsRoute,
+  ListingsListingIdRoute: ListingsListingIdRoute,
+  ListingsIndexRoute: ListingsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
