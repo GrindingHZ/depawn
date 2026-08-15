@@ -13,6 +13,7 @@ export default defineConfig({
     {
       name: 'marketplace',
       testMatch: /marketplace\..*\.spec\.ts/,
+      testIgnore: /marketplace\.repayment\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
     {
@@ -24,6 +25,16 @@ export default defineConfig({
       name: 'admin',
       testMatch: /admin\..*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
+    },
+    /* One api process serves every project, so a spec that moves its clock
+       would age out the listings and offers other specs are mid way through.
+       Time travel therefore runs alone, after everything else, and puts the
+       clock back when it is done (Q-016). */
+    {
+      name: 'marketplace-time-travel',
+      testMatch: /marketplace\.repayment\.spec\.ts/,
+      dependencies: ['marketplace', 'vault-console', 'admin'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
   ],
   webServer: [

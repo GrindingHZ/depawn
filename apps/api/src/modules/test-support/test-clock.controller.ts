@@ -34,4 +34,16 @@ export class TestClockController {
     this.clock.advanceBy(BigInt(body.milliseconds));
     return { now: new Date(Number(this.clock.now().epochMilliseconds)).toISOString() };
   }
+
+  /* One process serves every spec, so a suite that moved the clock must put
+     it back or the next spec is born in the future. */
+  @Public()
+  @Post('reset')
+  reset(): AdvanceClockResponse {
+    if (!isAdvanceable(this.clock)) {
+      throw new NotFoundException();
+    }
+    this.clock.reset();
+    return { now: new Date(Number(this.clock.now().epochMilliseconds)).toISOString() };
+  }
 }

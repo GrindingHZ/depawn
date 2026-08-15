@@ -6,8 +6,12 @@ import { Instant } from '../../domain/shared/instant';
 export class FixedClockAdapter implements ClockPort {
   private current: Instant;
 
-  constructor(start: Instant) {
+  constructor(private readonly start: Instant) {
     this.current = start;
+  }
+
+  reset(): void {
+    this.current = this.start;
   }
 
   now(): Instant {

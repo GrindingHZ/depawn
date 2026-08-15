@@ -6,6 +6,7 @@ import type { ClockPort } from '../../domain/ports/clock.port';
    clock the integration harness injects. */
 export interface AdvanceableClock extends ClockPort {
   advanceBy(milliseconds: bigint): void;
+  reset(): void;
 }
 
 export function isAdvanceable(clock: ClockPort): clock is AdvanceableClock {

@@ -132,3 +132,14 @@ it defaulted falls between the two cells, and calling it in grace on screen woul
 **Notes:** docs/10 flow 5 requires a validUntil and a stale rejection but names no duration. The
 window trades how long a borrower has to act against how far the charged amount can drift from the
 figure on screen, which reads like an operations dial rather than a code constant.
+
+## Q-016: the test clock is shared by every Playwright project
+**Blocks:** any further spec that needs to move time
+**Currently implemented:** clock moving specs run in their own project that depends on the other
+three, so they start only once everything else has finished, and they reset the clock afterwards
+**Needs:** whoever owns docs/06
+**Notes:** docs/06 asks for a POST /test/clock/advance endpoint and separately forbids shared
+mutable fixtures between tests. One api process serves every project, so the offset is exactly such
+a fixture: advancing it ages out the listings and offers other specs are working with. Scoping the
+offset to a request header would make it per client, at the cost of threading an async local
+through the clock adapter.

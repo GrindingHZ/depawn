@@ -21,6 +21,12 @@ export class OffsetClockAdapter implements ClockPort {
     this.offsetMilliseconds += milliseconds;
   }
 
+  /* The offset outlives a single spec because the process is shared, so a
+     suite that travels in time has to put the clock back. */
+  reset(): void {
+    this.offsetMilliseconds = 0n;
+  }
+
   get offset(): bigint {
     return this.offsetMilliseconds;
   }
