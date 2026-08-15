@@ -10,6 +10,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:truncate": "tsx prisma/truncate.ts",
     "start": "node -r @swc-node/register src/main.ts"
   },
   "devDependencies": {
