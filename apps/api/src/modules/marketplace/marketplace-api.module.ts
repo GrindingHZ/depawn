@@ -6,6 +6,7 @@ import { PrismaMarketplaceQueries } from '../../infrastructure/persistence/queri
 import { CancelListingUseCase } from './application/cancel-listing.use-case';
 import { CreateListingUseCase } from './application/create-listing.use-case';
 import { ListingDetailQuery } from './application/listing-detail.query';
+import { MyListingsQuery } from './application/my-listings.query';
 import { PlaceOfferUseCase } from './application/place-offer.use-case';
 import { PublishListingUseCase } from './application/publish-listing.use-case';
 import { ReclaimHoldUseCase } from './application/reclaim-hold.use-case';
@@ -23,6 +24,7 @@ import { MemberMarketplaceController } from './http/member-marketplace.controlle
     WithdrawOfferUseCase,
     ReclaimHoldUseCase,
     ListingDetailQuery,
+    MyListingsQuery,
     { provide: LISTING_REPOSITORY, useClass: PrismaListingRepository },
     { provide: MARKETPLACE_QUERIES, useClass: PrismaMarketplaceQueries },
   ],
