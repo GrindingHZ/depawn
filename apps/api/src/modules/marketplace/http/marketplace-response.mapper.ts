@@ -63,25 +63,4 @@ export function toListingSummary(summary: ListingSummaryReadModel): ListingSumma
   };
 }
 
-const statusByCode: Record<string, number> = {
-  NOT_FOUND: 404,
-  FORBIDDEN: 403,
-  LISTING_NOT_ACTIVE: 409,
-  LISTING_NOT_DRAFT: 409,
-  LISTING_ALREADY_MATCHED: 409,
-  LISTING_EXPIRED: 409,
-  OFFER_NOT_PENDING: 409,
-  OFFER_EXPIRED: 409,
-  RECEIPT_ALREADY_LISTED: 409,
-  RECEIPT_NOT_IN_VAULT: 409,
-  RECEIPT_ENCUMBERED: 409,
-  LOAN_TO_VALUE_EXCEEDED: 422,
-  RATE_ABOVE_MAXIMUM: 422,
-  INSUFFICIENT_FUNDS: 422,
-  OFFER_WITHDRAWAL_TOO_EARLY: 422,
-  HOLD_NOT_RECLAIMABLE: 422,
-};
-
-export function marketplaceStatusFor(code: string): number {
-  return statusByCode[code] ?? 422;
-}
+export { domainErrorStatusFor as marketplaceStatusFor } from '../../shared/http/domain-error-status';

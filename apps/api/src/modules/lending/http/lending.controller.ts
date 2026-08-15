@@ -26,7 +26,7 @@ import { DomainErrorHttpException } from '../../shared/http/domain-error-http.ex
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
 import { toMoney, toMoneyDto } from '../../shared/http/money.mapper';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
-import { marketplaceStatusFor } from '../../marketplace/http/marketplace-response.mapper';
+import { domainErrorStatusFor } from '../../shared/http/domain-error-status';
 import { AcceptOfferUseCase } from '../application/accept-offer.use-case';
 import { PayoffQuoteQuery } from '../application/payoff-quote.query';
 import { RepayLoanUseCase } from '../application/repay-loan.use-case';
@@ -57,7 +57,7 @@ export class LendingController {
       requestedBy: account.id,
     });
     if (!result.ok) {
-      throw new DomainErrorHttpException(result.error, marketplaceStatusFor(result.error.code));
+      throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
     }
     const readModel = await this.loanQueries.findById(result.value.loan.id);
     if (readModel === null) {
@@ -128,7 +128,7 @@ export class LendingController {
           : undefined;
       throw new DomainErrorHttpException(
         result.error,
-        marketplaceStatusFor(result.error.code),
+        domainErrorStatusFor(result.error.code),
         details,
       );
     }

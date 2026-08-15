@@ -1,0 +1,28 @@
+/* One authority for the code to status mapping, so two controllers cannot
+   disagree about what a rejection means. 409 says refresh and try again, 422
+   says the request itself is wrong (docs/04-api-contract.md). */
+const statusByCode: Record<string, number> = {
+  NOT_FOUND: 404,
+  FORBIDDEN: 403,
+  LISTING_NOT_ACTIVE: 409,
+  LISTING_NOT_DRAFT: 409,
+  LISTING_ALREADY_MATCHED: 409,
+  LISTING_EXPIRED: 409,
+  OFFER_NOT_PENDING: 409,
+  OFFER_EXPIRED: 409,
+  RECEIPT_ALREADY_LISTED: 409,
+  RECEIPT_NOT_IN_VAULT: 409,
+  RECEIPT_ENCUMBERED: 409,
+  LOAN_NOT_ACTIVE: 409,
+  PAYOFF_QUOTE_STALE: 409,
+  LOAN_TO_VALUE_EXCEEDED: 422,
+  RATE_ABOVE_MAXIMUM: 422,
+  INSUFFICIENT_FUNDS: 422,
+  OFFER_WITHDRAWAL_TOO_EARLY: 422,
+  HOLD_NOT_RECLAIMABLE: 422,
+  REPAYMENT_AMOUNT_INSUFFICIENT: 422,
+};
+
+export function domainErrorStatusFor(code: string): number {
+  return statusByCode[code] ?? 422;
+}
