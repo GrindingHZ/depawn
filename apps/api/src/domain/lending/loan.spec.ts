@@ -70,6 +70,74 @@ describe('Loan.originate', () => {
   });
 });
 
+describe('Loan repayment', () => {
+  const oneDay = 24n * 60n * 60n * 1000n;
+
+  it('owes the principal alone at origination', () => {
+    const loan = originate();
+    expect(loan.calculateAmountDue(startedAt).equals(Money.of(250_000n, aud))).toBe(true);
+  });
+
+  it('owes principal plus accrued interest during the term', () => {
+    const loan = originate();
+    const tenDaysIn = startedAt.plusMilliseconds(10n * oneDay);
+    const due = loan.calculateAmountDue(tenDaysIn);
+    expect(due.isGreaterThan(Money.of(250_000n, aud))).toBe(true);
+    expect(
+      due.minus(loan.calculateAccruedInterest(tenDaysIn)).equals(Money.of(250_000n, aud)),
+    ).toBe(true);
+  });
+
+  it('stops growing after maturity', () => {
+    const loan = originate();
+    const atMaturity = loan.calculateAmountDue(loan.maturesAt);
+    const wellPast = loan.calculateAmountDue(loan.maturesAt.plusMilliseconds(90n * oneDay));
+    expect(wellPast.equals(atMaturity)).toBe(true);
+  });
+
+  it('settles on the exact amount due and reports the split', () => {
+    const loan = originate();
+    const tenDaysIn = startedAt.plusMilliseconds(10n * oneDay);
+    const due = loan.calculateAmountDue(tenDaysIn);
+
+    const result = loan.recordRepayment(due, tenDaysIn);
+    if (!result.ok) {
+      throw new Error('the exact amount due must settle the loan');
+    }
+    expect(result.value.loan.status).toBe('REPAID');
+    expect(result.value.total.equals(due)).toBe(true);
+    expect(result.value.principal.plus(result.value.accruedInterest).equals(due)).toBe(true);
+  });
+
+  it('rejects a payment one minor unit short', () => {
+    const loan = originate();
+    const tenDaysIn = startedAt.plusMilliseconds(10n * oneDay);
+    const due = loan.calculateAmountDue(tenDaysIn);
+
+    const result = loan.recordRepayment(due.minus(Money.of(1n, aud)), tenDaysIn);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('REPAYMENT_AMOUNT_INSUFFICIENT');
+    }
+  });
+
+  it('rejects a second repayment', () => {
+    const loan = originate();
+    const due = loan.calculateAmountDue(startedAt);
+    const first = loan.recordRepayment(due, startedAt);
+    if (!first.ok) {
+      throw new Error('the first repayment must settle');
+    }
+
+    const second = first.value.loan.recordRepayment(due, startedAt);
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.error.code).toBe('LOAN_NOT_ACTIVE');
+    }
+    expect(first.value.loan.canBeRepaid()).toBe(false);
+  });
+});
+
 describe('allowedLoanTransitions', () => {
   const everyEvent: readonly LoanEvent[] = ['repay', 'markDefault', 'liquidate', 'claimReceipt'];
   const expected: Record<LoanStatus, readonly LoanEvent[]> = {
