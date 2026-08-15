@@ -229,6 +229,70 @@ model CustodyReceipt {
   @@map("custody_receipt")
 }
 
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  MATCHED
+  CANCELLED
+  EXPIRED
+
+  @@map("listing_status")
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  WITHDRAWN
+  EXPIRED
+  SUPERSEDED
+
+  @@map("offer_status")
+}
+
+model Listing {
+  id                                 String        @id
+  borrowerAccountId                  String        @map("borrower_account_id")
+  receiptId                          String        @map("receipt_id")
+  requestedPrincipalMinorUnits       BigInt        @map("requested_principal_minor_units")
+  currency                           String
+  maxAnnualPercentageRateBasisPoints Int           @map("max_annual_percentage_rate_basis_points")
+  requestedDurationMs                BigInt        @map("requested_duration_ms")
+  expiresAt                          DateTime      @map("expires_at")
+  status                             ListingStatus
+  version                            Int           @default(0)
+  createdAt                          DateTime      @default(now()) @map("created_at")
+  updatedAt                          DateTime      @updatedAt @map("updated_at")
+
+  offers                             Offer[]
+
+  @@index([status, id])
+  @@index([borrowerAccountId])
+  @@index([receiptId])
+  @@map("listing")
+}
+
+model Offer {
+  id                              String      @id
+  listingId                       String      @map("listing_id")
+  lenderAccountId                 String      @map("lender_account_id")
+  principalMinorUnits             BigInt      @map("principal_minor_units")
+  currency                        String
+  annualPercentageRateBasisPoints Int         @map("annual_percentage_rate_basis_points")
+  durationMs                      BigInt      @map("duration_ms")
+  fundsHoldId                     String      @map("funds_hold_id")
+  expiresAt                       DateTime    @map("expires_at")
+  offeredAt                       DateTime    @map("offered_at")
+  status                          OfferStatus
+  createdAt                       DateTime    @default(now()) @map("created_at")
+  updatedAt                       DateTime    @updatedAt @map("updated_at")
+
+  listing                         Listing     @relation(fields: [listingId], references: [id])
+
+  @@index([listingId])
+  @@index([lenderAccountId, status])
+  @@map("offer")
+}
+
 enum FundsHoldStatus {
   HELD
   RELEASED
