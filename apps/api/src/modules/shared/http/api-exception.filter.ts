@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, HttpException, Logger } from '@nestjs/common';
 import type { ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
+import { CurrencyMismatchError } from '../../../domain/shared/money';
 import { DomainErrorHttpException } from './domain-error-http.exception';
 import type { ErrorEnvelope } from './domain-error-http.exception';
 
@@ -30,6 +31,18 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof DomainErrorHttpException) {
       response.status(exception.getStatus()).json(exception.getResponse());
+      return;
+    }
+
+    /* Money arithmetic across currencies throws rather than returning a
+       Result, because inside the domain it is a programming error. At the
+       edge it is a bad request, and docs/04-api-contract.md names the code
+       for it. */
+    if (exception instanceof CurrencyMismatchError) {
+      const envelope: ErrorEnvelope = {
+        error: { code: 'CURRENCY_MISMATCH', message: exception.message },
+      };
+      response.status(422).json(envelope);
       return;
     }
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { moneySchema } from './money';
+import { moneySchema, positiveMoneySchema } from './money';
 import { settlementRefSchema } from './wallet';
 
 export const loanStatusSchema = z.enum(['ACTIVE', 'REPAID', 'DEFAULTED', 'LIQUIDATED']);
@@ -46,7 +46,7 @@ export type PayoffQuoteResponse = z.infer<typeof payoffQuoteResponseSchema>;
 /* The quote travels back with the payment so the server can tell a stale
    figure from a current one (docs/04-api-contract.md). */
 export const repayLoanRequestSchema = z.object({
-  amount: moneySchema,
+  amount: positiveMoneySchema,
   quotedAt: z.iso.datetime(),
 });
 
