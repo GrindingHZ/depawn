@@ -235,6 +235,54 @@ describe('repayment', () => {
     expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'REPAY_LOAN' } })).toBe(1);
   });
 
+  it('settles once when a repayment is sent twice under one key', async () => {
+    const loan = await originate();
+    const quote = await server()
+      .get(`/api/v1/loans/${loan.loanId}/payoff-quote`)
+      .set('Cookie', loan.borrower.cookies)
+      .expect(200);
+
+    const key = randomUUID();
+    const send = (): Promise<request.Response> =>
+      server()
+        .post(`/api/v1/loans/${loan.loanId}/repay`)
+        .set('Cookie', loan.borrower.cookies)
+        .set('Idempotency-Key', key)
+        .send({ amount: quote.body.total, quotedAt: quote.body.quotedAt })
+        .then((response) => response);
+    const [first, second] = await Promise.all([send(), send()]);
+
+    // A replay that catches the original still in flight is refused rather
+    // than executed; one that arrives after it returns the stored body.
+    const statuses = [first.status, second.status].sort();
+    expect(statuses[0]).toBe(201);
+    expect([201, 409]).toContain(statuses[1]);
+    if (statuses[1] === 201) {
+      expect(first.body).toEqual(second.body);
+    }
+    expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'REPAY_LOAN' } })).toBe(1);
+    const loanRow = await harness.prisma.loan.findUnique({ where: { id: loan.loanId } });
+    expect(loanRow?.status).toBe('REPAID');
+  });
+
+  it('refuses a payment in a currency the loan is not in', async () => {
+    const loan = await originate();
+    const rejected = await server()
+      .post(`/api/v1/loans/${loan.loanId}/repay`)
+      .set('Cookie', loan.borrower.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({
+        amount: { minorUnits: '250000', currency: 'USD' },
+        quotedAt: new Date(Number(harness.clock.now().epochMilliseconds)).toISOString(),
+      })
+      .expect(400);
+    expect(rejected.body.error.code).toBe('VALIDATION_FAILED');
+
+    const loanRow = await harness.prisma.loan.findUnique({ where: { id: loan.loanId } });
+    expect(loanRow?.status).toBe('ACTIVE');
+    expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'REPAY_LOAN' } })).toBe(0);
+  });
+
   it('refuses a payment below the amount due and names the figure', async () => {
     const loan = await originate();
     harness.clock.advanceBy(10n * oneDay);
