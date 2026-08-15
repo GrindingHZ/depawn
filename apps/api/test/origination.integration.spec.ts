@@ -225,6 +225,38 @@ describe('origination', () => {
       .expect(404);
   });
 
+  it('rejects acceptance when the cap no longer covers the principal', async () => {
+    const borrower = await loginAs('borrower@orig.test', 'MEMBER');
+    const lender = await fundedLender('lender@orig.test', '250000');
+    const { listingId, receiptId } = await activeListing(borrower.accountId);
+    const offerId = await placedOffer(listingId, lender.cookies, 1800);
+
+    // Flow 4 step 3: the cap is re-evaluated at origination because it may
+    // have moved since the offer. Until parameters are editable in P7 the
+    // same condition is reached by revaluing the collateral downwards.
+    await harness.prisma.custodyReceipt.update({
+      where: { id: receiptId },
+      data: { appraisedValueMinorUnits: 200_000n },
+    });
+
+    const rejected = await server()
+      .post(`/api/v1/listings/${listingId}/offers/${offerId}/accept`)
+      .set('Cookie', borrower.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(422);
+    expect(rejected.body.error.code).toBe('LOAN_TO_VALUE_EXCEEDED');
+
+    expect(await harness.prisma.loan.count()).toBe(0);
+    const listing = await harness.prisma.listing.findUnique({ where: { id: listingId } });
+    expect(listing?.status).toBe('ACTIVE');
+    const receipt = await harness.prisma.custodyReceipt.findUnique({ where: { id: receiptId } });
+    expect(receipt?.status).toBe('IN_VAULT');
+    const offer = await harness.prisma.offer.findUnique({ where: { id: offerId } });
+    expect(offer?.status).toBe('PENDING');
+    expect(await harness.prisma.fundsHold.count({ where: { status: 'HELD' } })).toBe(1);
+  });
+
   it('rejects acceptance by anyone but the borrower', async () => {
     const borrower = await loginAs('borrower@orig.test', 'MEMBER');
     const lender = await fundedLender('lender@orig.test', '250000');
