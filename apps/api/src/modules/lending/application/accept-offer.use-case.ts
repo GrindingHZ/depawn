@@ -31,7 +31,7 @@ import { borrowerNoteIdOf, lenderNoteIdOf, loanIdOf } from '../../../domain/shar
 import type { AccountId, ListingId, OfferId } from '../../../domain/shared/identifiers';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
-import { holdOf } from '../../marketplace/application/withdraw-offer.use-case';
+import { holdOfOffer } from '../../shared/application/hold-of-offer';
 
 export interface AcceptOfferCommand {
   readonly listingId: ListingId;
@@ -101,7 +101,7 @@ export class AcceptOfferUseCase {
         }
 
         const settlementRef = await this.settlement.releaseHold(
-          holdOf(winningOffer, now),
+          holdOfOffer(winningOffer, now),
           [
             { accountId: listing.borrowerAccountId, amount: disbursement },
             { accountId: platformAccountIds.feeRevenue, amount: originationFee },

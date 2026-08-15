@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { Loan as LoanRow } from '@prisma/client';
 import type {
   LoanParticipantRole,
   LoanQueries,
@@ -18,7 +19,8 @@ export class PrismaLoanQueries implements LoanQueries {
     if (row === null) {
       return null;
     }
-    return this.withHolder(row);
+    const [readModel] = await this.withHolders([row]);
+    return readModel ?? null;
   }
 
   async listByParticipant(
@@ -39,19 +41,28 @@ export class PrismaLoanQueries implements LoanQueries {
       where: { id: { in: notes.map((note) => note.loanId) } },
       orderBy: { id: 'desc' },
     });
-    return Promise.all(rows.map((row) => this.withHolder(row)));
+    return this.withHolders(rows);
   }
 
-  private async withHolder(
-    row: NonNullable<Awaited<ReturnType<PrismaService['loan']['findUnique']>>>,
-  ): Promise<LoanReadModel> {
-    const lenderNote = await this.prisma.lenderNote.findUnique({ where: { loanId: row.id } });
-    if (lenderNote === null) {
-      throw new Error(`Loan ${row.id} has no lender note`);
+  /* Who is owed is whoever holds the lender note, so every read resolves the
+     holder; one query for the whole page keeps a long loan list flat. */
+  private async withHolders(rows: readonly LoanRow[]): Promise<LoanReadModel[]> {
+    if (rows.length === 0) {
+      return [];
     }
-    return {
-      loan: toLoan(row),
-      lenderNoteHolderAccountId: accountIdOf(lenderNote.holderAccountId),
-    };
+    const lenderNotes = await this.prisma.lenderNote.findMany({
+      where: { loanId: { in: rows.map((row) => row.id) } },
+      select: { loanId: true, holderAccountId: true },
+    });
+    const holderByLoanId = new Map(
+      lenderNotes.map((note) => [note.loanId, accountIdOf(note.holderAccountId)]),
+    );
+    return rows.map((row) => {
+      const holder = holderByLoanId.get(row.id);
+      if (holder === undefined) {
+        throw new Error(`Loan ${row.id} has no lender note`);
+      }
+      return { loan: toLoan(row), lenderNoteHolderAccountId: holder };
+    });
   }
 }

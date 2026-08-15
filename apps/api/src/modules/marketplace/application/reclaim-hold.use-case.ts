@@ -16,7 +16,7 @@ import type { AccountId, OfferId } from '../../../domain/shared/identifiers';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
 import type { SettlementRef } from '../../../domain/shared/settlement-ref';
-import { holdOf } from './withdraw-offer.use-case';
+import { holdOfOffer } from '../../shared/application/hold-of-offer';
 
 export interface ReclaimHoldCommand {
   readonly offerId: OfferId;
@@ -57,7 +57,7 @@ export class ReclaimHoldUseCase {
       // already rejects expired offers, and the refunded hold blocks any
       // release, so the row's lazy status is harmless.
       const settlementRef = await this.settlement.refundHold(
-        holdOf(offer, this.clock.now()),
+        holdOfOffer(offer, this.clock.now()),
         context,
       );
       await this.audit.record(

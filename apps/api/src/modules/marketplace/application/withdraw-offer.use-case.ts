@@ -12,30 +12,19 @@ import type { ClockPort } from '../../../domain/ports/clock.port';
 import { DOMAIN_EVENT_PUBLISHER } from '../../../domain/ports/domain-event-publisher.port';
 import type { DomainEventPublisher } from '../../../domain/ports/domain-event-publisher.port';
 import { SETTLEMENT_PORT } from '../../../domain/ports/settlement.port';
-import type { FundsHold, SettlementPort } from '../../../domain/ports/settlement.port';
+import type { SettlementPort } from '../../../domain/ports/settlement.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import type { AccountId, ListingId, OfferId } from '../../../domain/shared/identifiers';
-import type { Offer } from '../../../domain/marketplace/offer';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
 import type { SettlementRef } from '../../../domain/shared/settlement-ref';
+import { holdOfOffer } from '../../shared/application/hold-of-offer';
 
 export interface WithdrawOfferCommand {
   readonly listingId: ListingId;
   readonly offerId: OfferId;
   readonly requestedBy: AccountId;
-}
-
-/* The settlement adapter resolves a hold by id and reads its state from the
-   funds hold row, so the reconstructed object only carries identity. */
-export function holdOf(offer: Offer, settledAt: SettlementRef['settledAt']): FundsHold {
-  return {
-    id: offer.fundsHoldId,
-    accountId: offer.lenderAccountId,
-    amount: offer.principal,
-    settlementRef: { kind: 'ledger', reference: offer.fundsHoldId, settledAt },
-  };
 }
 
 @Injectable()
@@ -72,7 +61,7 @@ export class WithdrawOfferUseCase {
       }
 
       const settlementRef = await this.settlement.refundHold(
-        holdOf(withdrawn.value.offer, now),
+        holdOfOffer(withdrawn.value.offer, now),
         context,
       );
       await this.listings.save(withdrawn.value.listing, context);
