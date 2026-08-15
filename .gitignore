@@ -11,3 +11,4 @@ e2e/.auth/
 playwright-report/
 test-results/
 .claude/state/run.log
+var/
