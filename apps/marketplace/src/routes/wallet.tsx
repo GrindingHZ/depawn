@@ -1,21 +1,12 @@
 import { ApiError, fetchBalance, fetchLedgerEntries, withdraw } from '@depawn/contracts';
 import type { LedgerEntryResponse } from '@depawn/contracts';
-import {
-  AppShell,
-  Button,
-  Card,
-  DataTable,
-  Field,
-  Money,
-  Skeleton,
-  toMinorUnits,
-} from '@depawn/ui';
+import { Button, Card, DataTable, Field, Money, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { currentAccountKeys, useCurrentAccount } from '../current-account';
-
+import { MarketShell } from '../market-shell';
 import { walletKeys } from '../wallet-keys';
 
 export const Route = createFileRoute('/wallet')({
@@ -44,25 +35,13 @@ function WalletPage(): ReactElement | null {
   }
 
   return (
-    <AppShell
-      productName="depawn marketplace"
-      navigation={
-        <>
-          <Link to="/" className="font-body text-sm text-ink-secondary">
-            Home
-          </Link>
-          <Link to="/wallet" className="font-body text-sm text-ink-primary">
-            Wallet
-          </Link>
-        </>
-      }
-    >
+    <MarketShell>
       <div className="flex max-w-3xl flex-col gap-6">
         <BalanceCards />
         <WithdrawCard />
         <HistoryCard />
       </div>
-    </AppShell>
+    </MarketShell>
   );
 }
 
