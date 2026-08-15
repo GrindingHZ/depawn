@@ -77,9 +77,14 @@ export function PayoffCard({ loan }: { readonly loan: LoanResponse }): ReactElem
       if (quote === undefined) {
         return Promise.reject(new Error('A quote is required before repaying.'));
       }
+      // The repayment schema is single currency by design, so the amount is
+      // restated against that literal rather than passed through loosely.
       return repayLoan(
         loan.id,
-        { amount: quote.total, quotedAt: quote.quotedAt },
+        {
+          amount: { minorUnits: quote.total.minorUnits, currency: 'AUD' },
+          quotedAt: quote.quotedAt,
+        },
         { idempotencyKey },
       );
     },

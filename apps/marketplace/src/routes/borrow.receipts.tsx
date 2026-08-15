@@ -1,5 +1,12 @@
-import { ApiError, createListing, fetchMyReceipts, publishListing } from '@depawn/contracts';
-import type { ReceiptResponse } from '@depawn/contracts';
+import {
+  ApiError,
+  createListing,
+  fetchMyReceipts,
+  fetchMyRedemptionRequests,
+  publishListing,
+  requestRedemption,
+} from '@depawn/contracts';
+import type { ReceiptResponse, RedemptionRequestResponse } from '@depawn/contracts';
 import {
   Button,
   Card,
@@ -49,9 +56,45 @@ function BorrowReceiptsPage(): ReactElement | null {
   );
 }
 
+function redemptionMessageFor(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.code === 'RECEIPT_ENCUMBERED') {
+      return 'Repay the loan before asking for the item back.';
+    }
+    if (error.code === 'RECEIPT_ALREADY_BURNED') {
+      return 'This item has already been requested.';
+    }
+  }
+  return 'The request could not be made.';
+}
+
 function ReceiptsCard(): ReactElement {
+  const queryClient = useQueryClient();
   const receiptsQuery = useQuery({ queryKey: receiptKeys.myReceipts, queryFn: fetchMyReceipts });
+  const redemptionsQuery = useQuery({
+    queryKey: receiptKeys.myRedemptions,
+    queryFn: fetchMyRedemptionRequests,
+  });
   const [listingReceipt, setListingReceipt] = useState<ReceiptResponse | null>(null);
+  const [redemptionError, setRedemptionError] = useState<string | null>(null);
+  // Generated on mount and rotated per success (docs/05-frontend.md).
+  const [redemptionKey, setRedemptionKey] = useState(() => crypto.randomUUID());
+
+  const redemptionMutation = useMutation({
+    mutationFn: (receiptId: string) =>
+      requestRedemption(receiptId, { idempotencyKey: redemptionKey }),
+    onSuccess: async () => {
+      setRedemptionKey(crypto.randomUUID());
+      setRedemptionError(null);
+      await queryClient.invalidateQueries({ queryKey: receiptKeys.myReceipts });
+      await queryClient.invalidateQueries({ queryKey: receiptKeys.myRedemptions });
+    },
+    onError: (error) => setRedemptionError(redemptionMessageFor(error)),
+  });
+
+  const redemptionByReceipt = new Map<string, RedemptionRequestResponse>(
+    (redemptionsQuery.data?.items ?? []).map((item) => [item.receiptId, item]),
+  );
 
   if (receiptsQuery.isPending) {
     return (
@@ -72,6 +115,11 @@ function ReceiptsCard(): ReactElement {
 
   return (
     <Card title="My receipts">
+      {redemptionError === null ? null : (
+        <p role="alert" className="mb-3 font-body text-sm text-status-danger">
+          {redemptionError}
+        </p>
+      )}
       <div data-testid="my-receipts">
         <DataTable
           columns={[
@@ -102,17 +150,44 @@ function ReceiptsCard(): ReactElement {
               ),
             },
             {
+              key: 'redemption',
+              header: 'Redemption',
+              render: (receipt: ReceiptResponse) => {
+                const redemption = redemptionByReceipt.get(receipt.id);
+                return redemption === undefined ? (
+                  <span className="font-body text-sm text-ink-secondary">Not requested</span>
+                ) : (
+                  <span data-testid={`redemption-${receipt.id}`}>
+                    <StatusBadge
+                      tone={redemption.status === 'RELEASED' ? 'success' : 'active'}
+                      label={redemption.status}
+                    />
+                  </span>
+                );
+              },
+            },
+            {
               key: 'actions',
               header: '',
               render: (receipt: ReceiptResponse) =>
                 receipt.status === 'IN_VAULT' ? (
-                  <Button
-                    variant="secondary"
-                    data-testid={`list-${receipt.id}`}
-                    onClick={() => setListingReceipt(receipt)}
-                  >
-                    List
-                  </Button>
+                  <span className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      data-testid={`list-${receipt.id}`}
+                      onClick={() => setListingReceipt(receipt)}
+                    >
+                      List
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      data-testid={`redeem-${receipt.id}`}
+                      onClick={() => redemptionMutation.mutate(receipt.id)}
+                      disabled={redemptionMutation.isPending}
+                    >
+                      Ask for it back
+                    </Button>
+                  </span>
                 ) : null,
             },
           ]}
