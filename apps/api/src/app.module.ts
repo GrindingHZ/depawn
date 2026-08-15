@@ -11,6 +11,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { CustodyApiModule } from './modules/custody/custody-api.module';
 import { HealthModule } from './modules/health/health.module';
 import { LedgerModule } from './modules/ledger/ledger.module';
+import { LendingApiModule } from './modules/lending/lending-api.module';
 import { MarketplaceApiModule } from './modules/marketplace/marketplace-api.module';
 import { SharedHttpModule } from './modules/shared/shared-http.module';
 import { ApiExceptionFilter } from './modules/shared/http/api-exception.filter';
@@ -29,6 +30,7 @@ import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.
     LedgerModule,
     CustodyApiModule,
     MarketplaceApiModule,
+    LendingApiModule,
     HealthModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],

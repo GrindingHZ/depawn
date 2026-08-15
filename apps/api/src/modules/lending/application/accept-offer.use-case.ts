@@ -27,11 +27,7 @@ import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { DomainError } from '../../../domain/shared/domain-error';
 import { ID_GENERATOR } from '../../../domain/shared/id-generator';
 import type { IdGenerator } from '../../../domain/shared/id-generator';
-import {
-  borrowerNoteIdOf,
-  lenderNoteIdOf,
-  loanIdOf,
-} from '../../../domain/shared/identifiers';
+import { borrowerNoteIdOf, lenderNoteIdOf, loanIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, ListingId, OfferId } from '../../../domain/shared/identifiers';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
