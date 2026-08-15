@@ -143,3 +143,13 @@ mutable fixtures between tests. One api process serves every project, so the off
 a fixture: advancing it ages out the listings and offers other specs are working with. Scoping the
 offset to a request header would make it per client, at the cost of threading an async local
 through the clock adapter.
+
+## Q-017: where redemption status belongs in the marketplace
+**Blocks:** nothing; the information is on screen either way
+**Currently implemented:** redemption status is a column on `/borrow/receipts` beside the receipt
+it belongs to, and there is no `/borrow/redemptions` route
+**Needs:** whoever owns docs/05
+**Notes:** The route table names `/borrow/redemptions` for requests and their status. A request has
+no life of its own away from its receipt, and a borrower looking for an item looks for the item, so
+the narrowest reading put the status where the receipt already is. A separate route is worth
+building if redemptions grow fields of their own, such as an appointment time.

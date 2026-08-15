@@ -222,6 +222,34 @@ describe('redemption', () => {
     expect(emptied.body.items).toHaveLength(0);
   });
 
+  it('tells staff plainly when identity was already verified', async () => {
+    const borrower = await loginAs('borrower@redeem.test', 'MEMBER');
+    const staff = await loginAs('staff@redeem.test', 'VAULT_STAFF');
+    const receiptId = await receiptFor(borrower.accountId);
+    const requested = await server()
+      .post(`/api/v1/receipts/${receiptId}/redemption-requests`)
+      .set('Cookie', borrower.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+
+    await server()
+      .post(`/api/v1/redemption-requests/${requested.body.id}/verify`)
+      .set('Cookie', staff.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+
+    const again = await server()
+      .post(`/api/v1/redemption-requests/${requested.body.id}/verify`)
+      .set('Cookie', staff.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(409);
+    expect(again.body.error.code).toBe('REDEMPTION_ALREADY_VERIFIED');
+    expect(again.body.error.message).not.toContain('has not been verified');
+  });
+
   it('keeps the queue away from members', async () => {
     const borrower = await loginAs('borrower@redeem.test', 'MEMBER');
     await server()
