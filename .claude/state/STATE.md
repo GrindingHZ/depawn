@@ -1,8 +1,8 @@
 # State
 
 phase: P2
-slice: p2b-custody-persistence
-stage: execute
-task: 1
-slice-base: 591d6cc
+slice: p2c-intake-api
+stage: brainstorm
+task: 0
+slice-base: pending
 status: running
