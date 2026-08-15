@@ -21,7 +21,7 @@ import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { DomainError } from '../../../domain/shared/domain-error';
 import { ID_GENERATOR } from '../../../domain/shared/id-generator';
 import type { IdGenerator } from '../../../domain/shared/id-generator';
-import { offerIdOf } from '../../../domain/shared/identifiers';
+import { fundsHoldIdOf, offerIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, ListingId } from '../../../domain/shared/identifiers';
 import type { Instant } from '../../../domain/shared/instant';
 import type { Money } from '../../../domain/shared/money';
@@ -70,10 +70,33 @@ export class PlaceOfferUseCase {
         }
 
         const now = this.clock.now();
-        // The hold happens at offer time, not acceptance (rule M3). It sits
-        // inside this transaction, so a rejection below must abort the whole
-        // transaction; that is why aggregate rejections are thrown here and
-        // converted back to a Result outside the unit of work.
+        const offerId = offerIdOf(this.idGenerator.generate());
+        const offerFields = {
+          id: offerId,
+          listingId: listing.id,
+          lenderAccountId: command.lenderAccountId,
+          principal: command.principal,
+          annualPercentageRateBasisPoints: command.annualPercentageRateBasisPoints,
+          durationMs: command.durationMs,
+          expiresAt: command.expiresAt,
+          createdAt: now,
+        };
+
+        // Validation runs before the hold, matching the order in flow 3, on
+        // a probe carrying a placeholder hold id the checks never read.
+        const probe = listing.addOffer(
+          Offer.place({ ...offerFields, fundsHoldId: fundsHoldIdOf('pending') }),
+          receipt.appraisedValue,
+          receipt.itemCategory,
+          this.parameters,
+          now,
+        );
+        if (!probe.ok) {
+          return probe;
+        }
+
+        // The hold happens at offer time, not acceptance (rule M3), inside
+        // this same transaction.
         const hold = await this.settlement.hold(
           {
             accountId: command.lenderAccountId,
@@ -83,17 +106,7 @@ export class PlaceOfferUseCase {
           context,
         );
 
-        const offer = Offer.place({
-          id: offerIdOf(this.idGenerator.generate()),
-          listingId: listing.id,
-          lenderAccountId: command.lenderAccountId,
-          principal: command.principal,
-          annualPercentageRateBasisPoints: command.annualPercentageRateBasisPoints,
-          durationMs: command.durationMs,
-          fundsHoldId: hold.id,
-          expiresAt: command.expiresAt,
-          createdAt: now,
-        });
+        const offer = Offer.place({ ...offerFields, fundsHoldId: hold.id });
         const added = listing.addOffer(
           offer,
           receipt.appraisedValue,
