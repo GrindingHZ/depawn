@@ -5,4 +5,5 @@ export const marketKeys = {
   myOffers: ['offers', 'mine'] as const,
   myReceipts: ['receipts', 'mine'] as const,
   myLoans: (role: 'borrower' | 'lender') => ['loans', 'mine', role] as const,
+  payoffQuote: (loanId: string) => ['loans', 'payoff', loanId] as const,
 };

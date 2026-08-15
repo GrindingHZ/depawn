@@ -7,6 +7,7 @@ import { useCurrentAccount } from '../current-account';
 import { LoansTable } from '../loans-table';
 import { marketKeys } from '../market-keys';
 import { MarketShell } from '../market-shell';
+import { PayoffCard } from '../payoff-card';
 
 export const Route = createFileRoute('/borrow/loans')({
   component: BorrowLoansPage,
@@ -27,7 +28,7 @@ function BorrowLoansPage(): ReactElement | null {
 
   return (
     <MarketShell>
-      <div className="max-w-4xl">
+      <div className="flex max-w-4xl flex-col gap-6">
         <MyLoansCard />
       </div>
     </MarketShell>
@@ -39,14 +40,20 @@ function MyLoansCard(): ReactElement {
     queryKey: marketKeys.myLoans('borrower'),
     queryFn: () => fetchMyLoans('borrower'),
   });
+  const activeLoans = (loansQuery.data?.items ?? []).filter((loan) => loan.status === 'ACTIVE');
 
   return (
-    <LoansTable
-      title="My loans"
-      testId="my-loans"
-      emptyTitle="You have no loans yet"
-      query={loansQuery}
-      footnote="Payoff quotes and repayment open in the servicing release."
-    />
+    <>
+      <LoansTable
+        title="My loans"
+        testId="my-loans"
+        emptyTitle="You have no loans yet"
+        query={loansQuery}
+        footnote="Repaying a loan returns the item to the vault under your name."
+      />
+      {activeLoans.map((loan) => (
+        <PayoffCard key={loan.id} loan={loan} />
+      ))}
+    </>
   );
 }
