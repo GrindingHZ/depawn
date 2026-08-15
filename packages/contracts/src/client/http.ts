@@ -72,3 +72,27 @@ export async function requestJson<T>(
 export async function requestVoid(input: RequestInput): Promise<void> {
   await performRequest(input);
 }
+
+/* Multipart uploads bypass the JSON body path; the browser sets the boundary
+   header itself. */
+export async function requestMultipart<T>(input: {
+  readonly path: string;
+  readonly formData: FormData;
+  readonly responseSchema: ZodType<T>;
+  readonly options?: RequestOptions;
+}): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (input.options?.idempotencyKey !== undefined) {
+    headers['idempotency-key'] = input.options.idempotencyKey;
+  }
+  const response = await fetch(input.path, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+    body: input.formData,
+  });
+  if (!response.ok) {
+    throw await toApiError(response);
+  }
+  return input.responseSchema.parse(await response.json());
+}
