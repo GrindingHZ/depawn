@@ -160,6 +160,10 @@ export class Loan {
     return this.fields.principal.plus(this.calculateAccruedInterest(now));
   }
 
+  /* The sketch in docs/02-domain-model.md passes the clock in. Eligibility
+     turns out to be purely a question of status: a loan past maturity is
+     still repayable, and one past grace stays repayable until a note holder
+     marks it defaulted, so there is nothing for the clock to decide. */
   canBeRepaid(): boolean {
     return this.allows('repay');
   }
