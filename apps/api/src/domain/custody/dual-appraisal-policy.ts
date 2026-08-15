@@ -1,9 +1,10 @@
 import type { Appraisal } from './appraisal';
 import type { Money } from '../shared/money';
 
-/* Above the threshold a second independent appraiser must value the item
-   before sealing (docs/10-flows.md flow 1 step 5). The threshold defaults
-   high enough that the demo path is single appraisal (Q-005). */
+/* At or above the threshold a second independent appraiser must value the
+   item before sealing (docs/10-flows.md flow 1 step 5). The threshold is a
+   protocol parameter supplied by the caller; Q-005 keeps its configured
+   default high enough that the demo path is single appraisal. */
 export function requiresDualAppraisal(appraisedValue: Money, threshold: Money): boolean {
   return !appraisedValue.isLessThan(threshold);
 }

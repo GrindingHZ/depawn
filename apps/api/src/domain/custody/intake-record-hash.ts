@@ -26,9 +26,13 @@ export function canonicalIntakeRecordHash(fields: CanonicalIntakeFields): string
     serialNumbers: [...fields.serialNumbers].sort(),
     sealNumber: fields.sealNumber,
     evidence: [...fields.evidence]
-      .sort((left, right) =>
-        `${left.label}:${left.contentHash}`.localeCompare(`${right.label}:${right.contentHash}`),
-      )
+      .sort((left, right) => {
+        // Code unit comparison, never localeCompare: the hash must reproduce
+        // byte for byte on any machine regardless of locale.
+        const leftKey = `${left.label}:${left.contentHash}`;
+        const rightKey = `${right.label}:${right.contentHash}`;
+        return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+      })
       .map((item) => ({ label: item.label, contentHash: item.contentHash })),
   });
   return createHash('sha256').update(canonical).digest('hex');
