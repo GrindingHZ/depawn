@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as BorrowListingsRouteImport } from './routes/borrow.listings'
 import { Route as BorrowReceiptsRouteImport } from './routes/borrow.receipts'
+import { Route as LendOffersRouteImport } from './routes/lend.offers'
 import { Route as ListingsIndexRouteImport } from './routes/listings.index'
 import { Route as ListingsListingIdRouteImport } from './routes/listings.$listingId'
 
@@ -37,9 +39,19 @@ const WalletRoute = WalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BorrowListingsRoute = BorrowListingsRouteImport.update({
+  id: '/borrow/listings',
+  path: '/borrow/listings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BorrowReceiptsRoute = BorrowReceiptsRouteImport.update({
   id: '/borrow/receipts',
   path: '/borrow/receipts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LendOffersRoute = LendOffersRouteImport.update({
+  id: '/lend/offers',
+  path: '/lend/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListingsIndexRoute = ListingsIndexRouteImport.update({
@@ -58,7 +70,9 @@ export interface FileRoutesByFullPath {
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/listings': typeof BorrowListingsRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/': typeof ListingsIndexRoute
 }
@@ -67,7 +81,9 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/listings': typeof BorrowListingsRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings': typeof ListingsIndexRoute
 }
@@ -77,7 +93,9 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
+  '/borrow/listings': typeof BorrowListingsRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/': typeof ListingsIndexRoute
 }
@@ -88,7 +106,9 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/login'
     | '/wallet'
+    | '/borrow/listings'
     | '/borrow/receipts'
+    | '/lend/offers'
     | '/listings/$listingId'
     | '/listings/'
   fileRoutesByTo: FileRoutesByTo
@@ -97,7 +117,9 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/login'
     | '/wallet'
+    | '/borrow/listings'
     | '/borrow/receipts'
+    | '/lend/offers'
     | '/listings/$listingId'
     | '/listings'
   id:
@@ -106,7 +128,9 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/login'
     | '/wallet'
+    | '/borrow/listings'
     | '/borrow/receipts'
+    | '/lend/offers'
     | '/listings/$listingId'
     | '/listings/'
   fileRoutesById: FileRoutesById
@@ -116,7 +140,9 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   LoginRoute: typeof LoginRoute
   WalletRoute: typeof WalletRoute
+  BorrowListingsRoute: typeof BorrowListingsRoute
   BorrowReceiptsRoute: typeof BorrowReceiptsRoute
+  LendOffersRoute: typeof LendOffersRoute
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   ListingsIndexRoute: typeof ListingsIndexRoute
 }
@@ -151,11 +177,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/borrow/listings': {
+      id: '/borrow/listings'
+      path: '/borrow/listings'
+      fullPath: '/borrow/listings'
+      preLoaderRoute: typeof BorrowListingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/borrow/receipts': {
       id: '/borrow/receipts'
       path: '/borrow/receipts'
       fullPath: '/borrow/receipts'
       preLoaderRoute: typeof BorrowReceiptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lend/offers': {
+      id: '/lend/offers'
+      path: '/lend/offers'
+      fullPath: '/lend/offers'
+      preLoaderRoute: typeof LendOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/listings/': {
@@ -180,7 +220,9 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   LoginRoute: LoginRoute,
   WalletRoute: WalletRoute,
+  BorrowListingsRoute: BorrowListingsRoute,
   BorrowReceiptsRoute: BorrowReceiptsRoute,
+  LendOffersRoute: LendOffersRoute,
   ListingsListingIdRoute: ListingsListingIdRoute,
   ListingsIndexRoute: ListingsIndexRoute,
 }
