@@ -7,7 +7,7 @@
 - [x] feat(marketplace-ui): add listing creation from receipts and my listings
 - [x] feat(marketplace-ui): add lender offers with the reclaim banner (landed inside the previous
       commit through the same git pathspec mistake as p3a; recorded, not rewritten)
-- [ ] test(e2e): fund a listing offer from browse to the offer book
+- [x] test(e2e): fund a listing offer from browse to the offer book
 
 ## Design pass
 

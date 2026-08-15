@@ -1,25 +1,16 @@
-import { logout } from '@depawn/contracts';
-import { AppShell, Button, EmptyState, Skeleton } from '@depawn/ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { EmptyState, Skeleton } from '@depawn/ui';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
-import { currentAccountKeys, useCurrentAccount } from '../current-account';
+import { useCurrentAccount } from '../current-account';
+import { MarketShell } from '../market-shell';
+import { ReclaimBanner } from '../reclaim-banner';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 });
 
 function HomePage(): ReactElement | null {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const currentAccount = useCurrentAccount();
-  const logoutMutation = useMutation({
-    mutationFn: logout,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: currentAccountKeys.me });
-      await navigate({ to: '/login' });
-    },
-  });
 
   if (currentAccount.isPending) {
     return (
@@ -34,30 +25,16 @@ function HomePage(): ReactElement | null {
 
   return (
     <div data-testid="authenticated-home">
-      <AppShell
-        productName="depawn marketplace"
-        navigation={
-          <>
-            <Link to="/borrow/receipts" className="font-body text-sm text-ink-secondary">
-              My receipts
-            </Link>
-            <Link to="/wallet" className="font-body text-sm text-ink-secondary">
-              Wallet
-            </Link>
-            <span data-testid="account-email">{currentAccount.data.email}</span>
-          </>
-        }
-        actions={
-          <Button variant="secondary" onClick={() => logoutMutation.mutate()}>
-            Log out
-          </Button>
-        }
-      >
+      <MarketShell>
+        <p data-testid="account-email" className="mb-4 font-body text-sm text-ink-secondary">
+          {currentAccount.data.email}
+        </p>
+        <ReclaimBanner />
         <EmptyState
-          title="Nothing to show yet"
-          description="Listings, offers, and loans arrive with the next build phases."
+          title="Borrow or lend"
+          description="Browse live listings to lend, or list one of your receipts to borrow."
         />
-      </AppShell>
+      </MarketShell>
     </div>
   );
 }
