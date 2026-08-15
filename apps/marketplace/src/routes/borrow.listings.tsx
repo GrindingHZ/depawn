@@ -47,11 +47,13 @@ function MyListingsCard(): ReactElement {
   const queryClient = useQueryClient();
   const listingsQuery = useQuery({ queryKey: marketKeys.myListings, queryFn: fetchMyListings });
   const [cancelError, setCancelError] = useState<string | null>(null);
+  // Generated on mount and rotated per success (docs/05-frontend.md).
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const cancelMutation = useMutation({
-    mutationFn: (listingId: string) =>
-      cancelListing(listingId, { idempotencyKey: crypto.randomUUID() }),
+    mutationFn: (listingId: string) => cancelListing(listingId, { idempotencyKey }),
     onSuccess: async () => {
+      setIdempotencyKey(crypto.randomUUID());
       setCancelError(null);
       await queryClient.invalidateQueries({ queryKey: marketKeys.myListings });
       await queryClient.invalidateQueries({ queryKey: marketKeys.browse });

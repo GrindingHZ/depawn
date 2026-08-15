@@ -3,12 +3,12 @@ import type { OfferResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
 import { offerStatusTone } from '../listing-status-tone';
 import { marketKeys } from '../market-keys';
 import { MarketShell } from '../market-shell';
-import { ReclaimBanner } from '../reclaim-banner';
 import { walletKeys } from '../wallet-keys';
 
 export const Route = createFileRoute('/lend/offers')({
@@ -31,7 +31,6 @@ function LendOffersPage(): ReactElement | null {
   return (
     <MarketShell>
       <div className="max-w-4xl">
-        <ReclaimBanner />
         <MyOffersCard />
       </div>
     </MarketShell>
@@ -41,10 +40,14 @@ function LendOffersPage(): ReactElement | null {
 function MyOffersCard(): ReactElement {
   const queryClient = useQueryClient();
   const offersQuery = useQuery({ queryKey: marketKeys.myOffers, queryFn: fetchMyOffers });
+  // Generated on mount and rotated per success, so a double click replays and
+  // the next reclaim gets a fresh key (docs/05-frontend.md).
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const reclaimMutation = useMutation({
-    mutationFn: (offerId: string) => reclaimOffer(offerId, { idempotencyKey: crypto.randomUUID() }),
+    mutationFn: (offerId: string) => reclaimOffer(offerId, { idempotencyKey }),
     onSuccess: async () => {
+      setIdempotencyKey(crypto.randomUUID());
       await queryClient.invalidateQueries({ queryKey: marketKeys.myOffers });
       await queryClient.invalidateQueries({ queryKey: walletKeys.all });
     },

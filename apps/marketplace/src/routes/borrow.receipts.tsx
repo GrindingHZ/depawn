@@ -153,6 +153,11 @@ function ListReceiptDialog({
   const [maxRateInput, setMaxRateInput] = useState('24.00');
   const [durationDaysInput, setDurationDaysInput] = useState('30');
   const [inputError, setInputError] = useState<string | null>(null);
+  // Both steps carry keys generated when the dialog mounts, so a double
+  // click or a retry after a network blip replays instead of duplicating
+  // (docs/05-frontend.md).
+  const [createKey] = useState(() => crypto.randomUUID());
+  const [publishKey] = useState(() => crypto.randomUUID());
 
   const listMutation = useMutation({
     mutationFn: async (input: {
@@ -168,9 +173,9 @@ function ListReceiptDialog({
           requestedDurationMs: input.durationDays * 24 * 60 * 60 * 1000,
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         },
-        { idempotencyKey: crypto.randomUUID() },
+        { idempotencyKey: createKey },
       );
-      return publishListing(listing.id, { idempotencyKey: crypto.randomUUID() });
+      return publishListing(listing.id, { idempotencyKey: publishKey });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: marketKeys.myListings });

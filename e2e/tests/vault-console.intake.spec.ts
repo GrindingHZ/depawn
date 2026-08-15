@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const apiBase = 'http://localhost:3000/api/v1';
-const marketplaceBase = 'http://localhost:5173';
+const marketplaceBase = 'http://localhost:5273';
 const password = 'a-long-enough-password';
 
 async function loginAsStaff(page: import('@playwright/test').Page): Promise<void> {

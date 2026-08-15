@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
   server: {
     port: 5175,
+    strictPort: true,
     proxy: {
       '/api': 'http://localhost:3000',
     },

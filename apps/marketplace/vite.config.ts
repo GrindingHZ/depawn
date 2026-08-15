@@ -5,7 +5,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
   server: {
-    port: 5173,
+    port: 5273,
+    strictPort: true,
     proxy: {
       '/api': 'http://localhost:3000',
     },

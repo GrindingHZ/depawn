@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { ReactElement, ReactNode } from 'react';
 import { currentAccountKeys } from './current-account';
+import { ReclaimBanner } from './reclaim-banner';
 
 /* The one authenticated shell for every marketplace screen, so navigation
    stays consistent while routes multiply. */
@@ -46,6 +47,7 @@ export function MarketShell({ children }: { readonly children: ReactNode }): Rea
         </Button>
       }
     >
+      <ReclaimBanner />
       {children}
     </AppShell>
   );

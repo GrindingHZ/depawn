@@ -13,7 +13,7 @@ export default defineConfig({
     {
       name: 'marketplace',
       testMatch: /marketplace\..*\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
     {
       name: 'vault-console',
@@ -35,7 +35,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm --filter @depawn/marketplace dev',
-      url: 'http://localhost:5173',
+      url: 'http://localhost:5273',
       reuseExistingServer: true,
       timeout: 120_000,
     },
