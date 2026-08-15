@@ -54,7 +54,7 @@ function FundedLoansCard(): ReactElement {
         footnote="A defaulted loan lets you take the item into your own name at the vault."
       />
       {openLoans.map((loan) => (
-        <DefaultActionsCard key={loan.id} loan={loan} nowMilliseconds={Date.now()} />
+        <DefaultActionsCard key={loan.id} loan={loan} />
       ))}
     </>
   );

@@ -24,15 +24,11 @@ function actionMessageFor(error: unknown): string {
   return 'The step could not be recorded.';
 }
 
-/* A lender acts on dates, so the card states them rather than only
-   enabling or disabling a button they cannot explain. */
-export function DefaultActionsCard({
-  loan,
-  nowMilliseconds,
-}: {
-  readonly loan: LoanResponse;
-  readonly nowMilliseconds: number;
-}): ReactElement {
+/* Whether grace has run out is the server's clock to judge, not the
+   browser's: a lender whose machine is a day behind would otherwise face a
+   dead button with nothing to explain it. The card states the deadline and
+   lets the rejection carry the boundary. */
+export function DefaultActionsCard({ loan }: { readonly loan: LoanResponse }): ReactElement {
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
   const [defaultKey, setDefaultKey] = useState(() => crypto.randomUUID());
@@ -63,7 +59,6 @@ export function DefaultActionsCard({
     onError: (error) => setActionError(actionMessageFor(error)),
   });
 
-  const graceHasPassed = Date.parse(loan.graceEndsAt) < nowMilliseconds;
   return (
     <Card title="If the borrower does not repay">
       <div data-testid={`default-actions-${loan.id}`} className="flex flex-col gap-3">
@@ -76,7 +71,7 @@ export function DefaultActionsCard({
           <Button
             data-testid={`mark-default-${loan.id}`}
             onClick={() => defaultMutation.mutate()}
-            disabled={loan.status !== 'ACTIVE' || !graceHasPassed || defaultMutation.isPending}
+            disabled={loan.status !== 'ACTIVE' || defaultMutation.isPending}
           >
             Mark defaulted
           </Button>
