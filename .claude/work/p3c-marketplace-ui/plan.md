@@ -2,9 +2,11 @@
 
 ## Tasks
 
-- [ ] feat(marketplace-ui): add browse and listing detail with the offer book
-- [ ] feat(marketplace-ui): add listing creation from receipts and my listings
-- [ ] feat(marketplace-ui): add lender offers with the reclaim banner
+- [x] feat(marketplace-ui): add browse and listing detail with the offer book (this commit was
+      briefly red on typecheck because the shell linked to routes landing in the next commit)
+- [x] feat(marketplace-ui): add listing creation from receipts and my listings
+- [x] feat(marketplace-ui): add lender offers with the reclaim banner (landed inside the previous
+      commit through the same git pathspec mistake as p3a; recorded, not rewritten)
 - [ ] test(e2e): fund a listing offer from browse to the offer book
 
 ## Design pass
