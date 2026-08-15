@@ -52,7 +52,7 @@ export class PrismaListingRepository implements ListingRepository {
 
   async save(listing: Listing, context: UnitOfWorkContext): Promise<void> {
     const transaction = transactionOf(context);
-    const { version: _persistedVersion, ...row } = toListingRow(listing);
+    const row = toListingRow(listing);
     const existing = await transaction.listing.findUnique({ where: { id: listing.id } });
 
     if (existing === null) {
