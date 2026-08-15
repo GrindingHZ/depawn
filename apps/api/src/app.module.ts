@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ClockModule } from './infrastructure/clock/clock.module';
+import { CustodyModule } from './infrastructure/custody/custody.module';
 import { PersistenceModule } from './infrastructure/persistence/persistence.module';
 import { SettlementModule } from './infrastructure/settlement/settlement.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
@@ -16,6 +17,7 @@ import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.
     ClockModule,
     PersistenceModule,
     SettlementModule,
+    CustodyModule,
     SharedHttpModule,
     AccountsModule,
     LedgerModule,
