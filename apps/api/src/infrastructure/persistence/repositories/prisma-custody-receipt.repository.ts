@@ -60,6 +60,16 @@ export class PrismaCustodyReceiptRepository implements CustodyReceiptRepository 
     return Money.of(rows[0]?.exposure ?? 0n, currency);
   }
 
+  async findByIntakeRecordHash(
+    intakeRecordHash: string,
+    context: UnitOfWorkContext,
+  ): Promise<CustodyReceipt | null> {
+    const row = await transactionOf(context).custodyReceipt.findFirst({
+      where: { intakeRecordHash },
+    });
+    return row === null ? null : toCustodyReceipt(row);
+  }
+
   async save(receipt: CustodyReceipt, context: UnitOfWorkContext): Promise<void> {
     const transaction = transactionOf(context);
     const data = {

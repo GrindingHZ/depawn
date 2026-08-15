@@ -17,6 +17,11 @@ export interface CustodyReceiptRepository {
   ): Promise<readonly CustodyReceipt[]>;
   /* Rule C5: the sum of appraised values of IN_VAULT and ENCUMBERED receipts. */
   exposureOf(vaultId: VaultId, currency: Currency, context: UnitOfWorkContext): Promise<Money>;
+  /* Rule C2 makes the sealed hash a natural key: one receipt per intake. */
+  findByIntakeRecordHash(
+    intakeRecordHash: string,
+    context: UnitOfWorkContext,
+  ): Promise<CustodyReceipt | null>;
   save(receipt: CustodyReceipt, context: UnitOfWorkContext): Promise<void>;
 }
 
