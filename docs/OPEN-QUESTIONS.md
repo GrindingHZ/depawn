@@ -106,3 +106,12 @@ docs/10 flow 7, and `burnForLiquidation` is reachable from both `IN_VAULT` and `
 flow 7 says the claimant holds it `IN_VAULT`; the flow reading lets the claimant redeem through
 flow 6 without a special case. The diagram also shows liquidation burning only from `IN_VAULT`,
 but flow 8 can run before any lender claim.
+
+## Q-013: pause check inside origination before P7
+**Blocks:** the accept offer use case
+**Currently implemented:** origination does not consult a pause state because none exists before
+P7 builds the pause switch and its never-block-exit tests
+**Needs:** whoever owns docs/10
+**Notes:** Flow 4 step 4 asserts the system is not paused. The narrowest reading defers the
+assertion to the P7 slice that introduces the pause state, which must then add it to every
+blocked entry point listed in docs/10 in one pass.
