@@ -1,8 +1,19 @@
-import type { AppraisalResponse, IntakeResponse, ReceiptResponse } from '@depawn/contracts';
+import type {
+  AppraisalResponse,
+  IntakeResponse,
+  ReceiptResponse,
+  RedemptionRequestResponse,
+} from '@depawn/contracts';
 import type { Appraisal } from '../../../domain/custody/appraisal';
 import type { CustodyReceipt } from '../../../domain/custody/custody-receipt';
 import type { IntakeRecord } from '../../../domain/custody/intake-record';
+import type { RedemptionRequest } from '../../../domain/custody/redemption-request';
+import type { Instant } from '../../../domain/shared/instant';
 import { toMoneyDto } from '../../shared/http/money.mapper';
+
+function isoOf(instant: Instant): string {
+  return new Date(Number(instant.epochMilliseconds)).toISOString();
+}
 
 export function toAppraisalResponse(appraisal: Appraisal): AppraisalResponse {
   return {
@@ -52,15 +63,20 @@ export function toReceiptResponse(receipt: CustodyReceipt): ReceiptResponse {
   };
 }
 
-const statusByCode: Record<string, number> = {
-  NOT_FOUND: 404,
-  INTAKE_ALREADY_SEALED: 409,
-  INTAKE_NOT_SEALED: 409,
-  INTAKE_INCOMPLETE: 422,
-  DUAL_APPRAISAL_REQUIRED: 422,
-  VAULT_INSURED_LIMIT_EXCEEDED: 422,
-};
+export { domainErrorStatusFor as custodyStatusFor } from '../../shared/http/domain-error-status';
 
-export function custodyStatusFor(code: string): number {
-  return statusByCode[code] ?? 422;
+export function toRedemptionRequestResponse(request: RedemptionRequest): RedemptionRequestResponse {
+  return {
+    id: request.id,
+    receiptId: request.receiptId,
+    vaultId: request.vaultId,
+    requestedByAccountId: request.requestedByAccountId,
+    requestedAt: isoOf(request.requestedAt),
+    status: request.status,
+    verifiedAt: request.verifiedAt === null ? null : isoOf(request.verifiedAt),
+    verifiedByStaffId: request.verifiedByStaffId,
+    releasedAt: request.releasedAt === null ? null : isoOf(request.releasedAt),
+    releasedByStaffId: request.releasedByStaffId,
+    sealNumberBroken: request.sealNumberBroken,
+  };
 }
