@@ -15,6 +15,8 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IntakeIndexRouteImport } from './routes/intake.index'
 import { Route as IntakeIntakeIdRouteImport } from './routes/intake.$intakeId'
+import { Route as ReleasesIndexRouteImport } from './routes/releases.index'
+import { Route as ReleasesRequestIdRouteImport } from './routes/releases.$requestId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +48,16 @@ const IntakeIntakeIdRoute = IntakeIntakeIdRouteImport.update({
   path: '/intake/$intakeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReleasesIndexRoute = ReleasesIndexRouteImport.update({
+  id: '/releases/',
+  path: '/releases/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReleasesRequestIdRoute = ReleasesRequestIdRouteImport.update({
+  id: '/releases/$requestId',
+  path: '/releases/$requestId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
+  '/releases/$requestId': typeof ReleasesRequestIdRoute
   '/intake/': typeof IntakeIndexRoute
+  '/releases/': typeof ReleasesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
+  '/releases/$requestId': typeof ReleasesRequestIdRoute
   '/intake': typeof IntakeIndexRoute
+  '/releases': typeof ReleasesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +86,9 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/intake/$intakeId': typeof IntakeIntakeIdRoute
+  '/releases/$requestId': typeof ReleasesRequestIdRoute
   '/intake/': typeof IntakeIndexRoute
+  '/releases/': typeof ReleasesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +98,9 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/intake/$intakeId'
+    | '/releases/$requestId'
     | '/intake/'
+    | '/releases/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +108,9 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/intake/$intakeId'
+    | '/releases/$requestId'
     | '/intake'
+    | '/releases'
   id:
     | '__root__'
     | '/'
@@ -96,7 +118,9 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/intake/$intakeId'
+    | '/releases/$requestId'
     | '/intake/'
+    | '/releases/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +129,9 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   IntakeIntakeIdRoute: typeof IntakeIntakeIdRoute
+  ReleasesRequestIdRoute: typeof ReleasesRequestIdRoute
   IntakeIndexRoute: typeof IntakeIndexRoute
+  ReleasesIndexRoute: typeof ReleasesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +178,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntakeIntakeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/releases/': {
+      id: '/releases/'
+      path: '/releases'
+      fullPath: '/releases/'
+      preLoaderRoute: typeof ReleasesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/releases/$requestId': {
+      id: '/releases/$requestId'
+      path: '/releases/$requestId'
+      fullPath: '/releases/$requestId'
+      preLoaderRoute: typeof ReleasesRequestIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -161,7 +201,9 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   IntakeIntakeIdRoute: IntakeIntakeIdRoute,
+  ReleasesRequestIdRoute: ReleasesRequestIdRoute,
   IntakeIndexRoute: IntakeIndexRoute,
+  ReleasesIndexRoute: ReleasesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

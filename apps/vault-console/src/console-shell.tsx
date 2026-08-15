@@ -28,6 +28,9 @@ export function ConsoleShell({ children }: { readonly children: ReactNode }): Re
           <Link to="/inventory" className="font-body text-sm text-ink-secondary">
             Inventory
           </Link>
+          <Link to="/releases" className="font-body text-sm text-ink-secondary">
+            Releases
+          </Link>
           <Link to="/exposure" className="font-body text-sm text-ink-secondary">
             Exposure
           </Link>
