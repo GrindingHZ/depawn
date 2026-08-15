@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { Listing } from '../../../domain/marketplace/listing';
 import type { ListingRepository } from '../../../domain/marketplace/listing-repository';
 import type { UnitOfWorkContext } from '../../../domain/ports/unit-of-work';
-import type { AccountId, ListingId, ReceiptId } from '../../../domain/shared/identifiers';
+import { listingIdOf } from '../../../domain/shared/identifiers';
+import type { AccountId, ListingId, OfferId, ReceiptId } from '../../../domain/shared/identifiers';
 import { toListing, toListingRow, toOfferRow } from '../mappers/marketplace.mapper';
 import { transactionOf } from '../prisma-unit-of-work';
 
@@ -21,6 +22,14 @@ export class PrismaListingRepository implements ListingRepository {
       include: { offers: { orderBy: { id: 'asc' } } },
     });
     return row === null ? null : toListing(row);
+  }
+
+  async findByOffer(offerId: OfferId, context: UnitOfWorkContext): Promise<Listing | null> {
+    const offer = await transactionOf(context).offer.findUnique({ where: { id: offerId } });
+    if (offer === null) {
+      return null;
+    }
+    return this.findById(listingIdOf(offer.listingId), context);
   }
 
   async findLiveByReceipt(
