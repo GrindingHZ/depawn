@@ -21,6 +21,16 @@ Slice base: recorded at plan time. Closes P4 by exposing origination in the mark
    reclaim banner and reclaims.
 6. Review by a fresh subagent, fixes as new commits, then the four verify gates and close P4.
 
+## Deviations
+
+- Tasks 3 and 1 swapped: the accept handler navigates to `/borrow/loans`, and the generated route
+  tree makes that target a type error until the route file exists, so the loan screens landed first.
+- Tasks 2 and 4 dropped. docs/06 defines six layers and none of them is a React component test;
+  frontend behaviour belongs to layer 6, and the two SPA workspaces carry no Vitest harness, so
+  adding one mid-slice would have been new infrastructure rather than the planned coverage. The
+  accept visibility rule is asserted in the Playwright spec instead, which checks that the borrower
+  sees Accept and no offer form on their own listing.
+
 ## Notes
 
 - Q-014 is recorded only if the review wants the origination fee shown before the click; the
