@@ -197,6 +197,21 @@ describe('listing transitions', () => {
     }
   });
 
+  it('expires only past its expiry and supersedes pending offers', () => {
+    const listing = listingIn('ACTIVE', [offerIn('PENDING')]);
+    const early = listing.expire(now);
+    expect(early.ok).toBe(false);
+
+    const due = listing.expire(now.plusMilliseconds(999_999_999n));
+    expect(due.ok).toBe(true);
+    if (due.ok) {
+      expect(due.value.listing.status).toBe('EXPIRED');
+      expect(due.value.supersededOfferIds).toEqual(['OFF1']);
+    }
+
+    expect(listingIn('DRAFT').expire(now.plusMilliseconds(999_999_999n)).ok).toBe(false);
+  });
+
   it('cancels without refunding: pending offers become superseded', () => {
     const listing = listingIn('ACTIVE', [offerIn('PENDING'), offerIn('WITHDRAWN', 'W')]);
     const cancelled = listing.cancel(accountIdOf('BORROWER'));
