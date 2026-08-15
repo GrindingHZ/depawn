@@ -50,6 +50,7 @@ export function toLoan(row: LoanRow): Loan {
       reference: row.originationSettlementReference,
       settledAt: instantOf(row.originationSettledAt),
     },
+    defaultedAt: row.defaultedAt === null ? null : instantOf(row.defaultedAt),
     version: row.version,
   });
 }
@@ -71,6 +72,7 @@ export function toLoanRow(loan: Loan): Omit<LoanRow, 'createdAt' | 'updatedAt' |
     originationSettlementKind: loan.originationSettlementRef.kind,
     originationSettlementReference: loan.originationSettlementRef.reference,
     originationSettledAt: dateOf(loan.originationSettlementRef.settledAt),
+    defaultedAt: loan.defaultedAt === null ? null : dateOf(loan.defaultedAt),
   };
 }
 

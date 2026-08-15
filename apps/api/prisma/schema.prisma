@@ -369,6 +369,7 @@ model Loan {
   originationSettlementKind       String     @map("origination_settlement_kind")
   originationSettlementReference  String     @map("origination_settlement_reference")
   originationSettledAt            DateTime   @map("origination_settled_at")
+  defaultedAt                     DateTime?  @map("defaulted_at")
   version                         Int        @default(0)
   createdAt                       DateTime   @default(now()) @map("created_at")
   updatedAt                       DateTime   @updatedAt @map("updated_at")
