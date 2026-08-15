@@ -7,6 +7,7 @@ import { PlatformServicesModule } from './infrastructure/platform-services.modul
 import { PersistenceModule } from './infrastructure/persistence/persistence.module';
 import { SettlementModule } from './infrastructure/settlement/settlement.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { CustodyApiModule } from './modules/custody/custody-api.module';
 import { HealthModule } from './modules/health/health.module';
 import { LedgerModule } from './modules/ledger/ledger.module';
 import { SharedHttpModule } from './modules/shared/shared-http.module';
@@ -23,6 +24,7 @@ import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.
     SharedHttpModule,
     AccountsModule,
     LedgerModule,
+    CustodyApiModule,
     HealthModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],

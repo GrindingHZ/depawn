@@ -25,6 +25,18 @@ async function seed(): Promise<void> {
     });
   }
 
+  await prisma.vault.upsert({
+    where: { id: 'VAULT-DEMO-1' },
+    update: {},
+    create: {
+      id: 'VAULT-DEMO-1',
+      name: 'Sydney vault',
+      city: 'Sydney',
+      insuredLimitMinorUnits: 100_000_000n,
+      currency: 'AUD',
+    },
+  });
+
   await prisma.$disconnect();
 }
 
