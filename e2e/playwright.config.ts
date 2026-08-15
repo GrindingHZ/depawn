@@ -13,7 +13,7 @@ export default defineConfig({
     {
       name: 'marketplace',
       testMatch: /marketplace\..*\.spec\.ts/,
-      testIgnore: /marketplace\.repayment\.spec\.ts/,
+      testIgnore: /marketplace\.(repayment|default)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
     {
@@ -44,6 +44,14 @@ export default defineConfig({
       name: 'marketplace-time-travel',
       testMatch: /marketplace\.repayment\.spec\.ts/,
       dependencies: ['marketplace', 'vault-console', 'admin', 'vault-console-redemption'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
+    },
+    /* Two specs that both move the one clock cannot share a project either,
+       because files inside a project still run on separate workers. */
+    {
+      name: 'marketplace-default',
+      testMatch: /marketplace\.default\.spec\.ts/,
+      dependencies: ['marketplace-time-travel'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
     },
   ],
