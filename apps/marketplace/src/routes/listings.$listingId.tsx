@@ -137,6 +137,9 @@ function OfferBookCard({
       await queryClient.invalidateQueries({ queryKey: marketKeys.detail(detail.id) });
       await queryClient.invalidateQueries({ queryKey: marketKeys.myListings });
       await queryClient.invalidateQueries({ queryKey: marketKeys.myLoans('borrower') });
+      // The collateral becomes ENCUMBERED in the same transaction, so a
+      // cached receipts screen would still offer it for listing.
+      await queryClient.invalidateQueries({ queryKey: marketKeys.myReceipts });
       await queryClient.invalidateQueries({ queryKey: walletKeys.all });
       await navigate({ to: '/borrow/loans' });
     },

@@ -137,6 +137,9 @@ test('a borrower accepts an offer and both sides see the loan', async ({
   // The book is ranked by total borrower cost, so the cheapest offer leads.
   await expect(page.getByTestId('offer-book')).toContainText('18.00% p.a.');
   await expect(page.getByTestId('offer-submit')).toHaveCount(0);
+  // A lender never sees the control, so the offer book cannot be used to
+  // accept on someone else's behalf.
+  await expect(winnerPage.getByRole('button', { name: 'Accept' })).toHaveCount(0);
   await page.getByTestId('offer-book').getByRole('button', { name: 'Accept' }).first().click();
 
   await expect(page.getByTestId('my-loans')).toContainText('ACTIVE');
