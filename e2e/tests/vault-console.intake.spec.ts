@@ -24,6 +24,17 @@ test('an item goes from intake to a receipt the borrower can see', async ({
   expect(registered.status()).toBe(201);
 
   await loginAsStaff(page);
+
+  // The dev database persists across runs, so the exposure assertion is
+  // relative to the value before this test issues its receipt.
+  await request.post(`${apiBase}/auth/login`, {
+    data: { email: 'staff@demo.test', password: 'demo-password-123' },
+  });
+  const exposureBefore = await request.get(`${apiBase}/vaults/VAULT-DEMO-1/exposure`);
+  const beforeMinorUnits = BigInt(
+    ((await exposureBefore.json()) as { exposure: { minorUnits: string } }).exposure.minorUnits,
+  );
+
   await page.getByRole('link', { name: 'Intake' }).click();
   await page.getByTestId('intake-borrower-email').fill(borrowerEmail);
   await page.getByTestId('intake-item-description').fill('One kilogram gold bar');
@@ -60,7 +71,12 @@ test('an item goes from intake to a receipt the borrower can see', async ({
   await expect(page.getByTestId('inventory-table')).toContainText('IN_VAULT');
 
   await page.getByRole('link', { name: 'Exposure' }).click();
-  await expect(page.getByTestId('exposure-current')).toHaveText('AUD 5,000.00');
+  const exposureAfter = await request.get(`${apiBase}/vaults/VAULT-DEMO-1/exposure`);
+  const afterMinorUnits = BigInt(
+    ((await exposureAfter.json()) as { exposure: { minorUnits: string } }).exposure.minorUnits,
+  );
+  expect(afterMinorUnits - beforeMinorUnits).toBe(500_000n);
+  await expect(page.getByTestId('exposure-current')).toContainText('AUD');
 
   const borrowerContext = await browser.newContext();
   const borrowerPage = await borrowerContext.newPage();
