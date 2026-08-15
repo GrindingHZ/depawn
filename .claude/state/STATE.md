@@ -1,8 +1,8 @@
 # State
 
 phase: P4
-slice: p4a-loan-domain
-stage: review
-task: 10
-slice-base: c5bd186
+slice: p4b-origination-ui
+stage: execute
+task: 1
+slice-base: 976fe1c
 status: running
