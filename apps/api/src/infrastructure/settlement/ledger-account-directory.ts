@@ -10,10 +10,10 @@ import { transactionOf } from '../persistence/prisma-unit-of-work';
 /* Resolves an account id from a command or distribution to a ledger account
    row, creating it on first use. Platform sentinels map to the platform
    accounts in the chart; everything else is a user account. Ledger account
-   ids are deterministic so first use insert races resolve through
-   ON CONFLICT DO NOTHING instead of a unique violation aborting the
-   transaction; the nullable owner column makes the compound unique
-   constraint useless against races for platform rows. */
+   ids are deterministic so first use insert races resolve through a
+   targetless ON CONFLICT DO NOTHING, which must cover every unique index:
+   under contention Postgres can surface the compound owner constraint
+   before the id arbiter, and a named target would still raise there. */
 @Injectable()
 export class LedgerAccountDirectory {
   async resolve(
@@ -52,7 +52,7 @@ export class LedgerAccountDirectory {
         now(),
         now()
       )
-      ON CONFLICT (id) DO NOTHING
+      ON CONFLICT DO NOTHING
     `;
     return ledgerAccountIdOf(deterministicId);
   }
