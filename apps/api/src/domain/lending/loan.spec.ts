@@ -138,6 +138,75 @@ describe('Loan repayment', () => {
   });
 });
 
+describe('Loan default', () => {
+  it('refuses a default while the borrower still has grace', () => {
+    const loan = originate();
+    const result = loan.markDefaulted(loan.maturesAt.plusMilliseconds(1n));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('GRACE_PERIOD_ACTIVE');
+    }
+  });
+
+  it('refuses a default on the last millisecond of grace', () => {
+    const loan = originate();
+    // Grace is a real second chance, so the borrower keeps the instant it
+    // ends rather than losing the item on it.
+    const result = loan.markDefaulted(loan.graceEndsAt);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('GRACE_PERIOD_ACTIVE');
+    }
+  });
+
+  it('allows a default one millisecond after grace ends', () => {
+    const loan = originate();
+    const at = loan.graceEndsAt.plusMilliseconds(1n);
+    const result = loan.markDefaulted(at);
+    if (!result.ok) {
+      throw new Error('a loan past grace must be defaultable');
+    }
+    expect(result.value.status).toBe('DEFAULTED');
+    expect(result.value.defaultedAt?.equals(at)).toBe(true);
+    expect(result.value.allows('claimReceipt')).toBe(true);
+  });
+
+  it('refuses a second default', () => {
+    const loan = originate();
+    const first = loan.markDefaulted(loan.graceEndsAt.plusMilliseconds(1n));
+    if (!first.ok) {
+      throw new Error('a loan past grace must be defaultable');
+    }
+    const again = first.value.markDefaulted(loan.graceEndsAt.plusMilliseconds(2n));
+    expect(again.ok).toBe(false);
+    if (!again.ok) {
+      expect(again.error.code).toBe('LOAN_NOT_ACTIVE');
+    }
+  });
+
+  it('refuses a default on a repaid loan', () => {
+    const loan = originate();
+    const repaid = loan.recordRepayment(loan.calculateAmountDue(startedAt), startedAt);
+    if (!repaid.ok) {
+      throw new Error('the repayment must settle');
+    }
+    const result = repaid.value.loan.markDefaulted(loan.graceEndsAt.plusMilliseconds(1n));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('LOAN_NOT_ACTIVE');
+    }
+  });
+
+  it('carries the grace deadline on the rejection', () => {
+    const loan = originate();
+    const result = loan.markDefaulted(startedAt);
+    if (result.ok) {
+      throw new Error('a loan in grace must not be defaultable');
+    }
+    expect(result.error).toHaveProperty('graceEndsAt');
+  });
+});
+
 describe('allowedLoanTransitions', () => {
   const everyEvent: readonly LoanEvent[] = ['repay', 'markDefault', 'liquidate', 'claimReceipt'];
   const expected: Record<LoanStatus, readonly LoanEvent[]> = {
@@ -161,6 +230,7 @@ describe('allowedLoanTransitions', () => {
       borrowerNoteId: borrowerNoteIdOf('BN-1'),
       status: status as LoanStatus,
       originationSettlementRef: settlementRef,
+      defaultedAt: null,
       version: 3,
     });
     for (const event of everyEvent) {
