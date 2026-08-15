@@ -209,7 +209,7 @@ model CustodyReceipt {
   id                        String        @id
   vaultId                   String        @map("vault_id")
   holderAccountId           String        @map("holder_account_id")
-  intakeRecordHash          String        @map("intake_record_hash")
+  intakeRecordHash          String        @unique @map("intake_record_hash")
   appraisedValueMinorUnits  BigInt        @map("appraised_value_minor_units")
   currency                  String
   appraisedAt               DateTime      @map("appraised_at")

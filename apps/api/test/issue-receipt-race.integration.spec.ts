@@ -130,4 +130,46 @@ describe('issue receipt race', () => {
       expect(await harness.prisma.custodyReceipt.count()).toBe(1);
     }
   }, 240_000);
+
+  it('issues one receipt when the same intake races itself', async () => {
+    for (let round = 0; round < raceRounds; round += 1) {
+      await harness.truncateAllTables();
+      await unitOfWork.run((context) =>
+        vaults.save(
+          Vault.create({
+            id: vaultId,
+            name: 'Race vault',
+            city: 'Sydney',
+            insuredLimit: Money.of(1000n, aud),
+          }),
+          context,
+        ),
+      );
+      const intakeId = await seedSealedIntake(round, 'same');
+
+      const attempts = await Promise.allSettled([
+        useCase.execute({
+          intakeId: intakeIdOf(intakeId),
+          requestedBy: accountIdOf('RACE-STAFF'),
+          insurancePolicyReference: 'POL-RACE',
+        }),
+        useCase.execute({
+          intakeId: intakeIdOf(intakeId),
+          requestedBy: accountIdOf('RACE-STAFF'),
+          insurancePolicyReference: 'POL-RACE',
+        }),
+      ]);
+
+      // Both callers may succeed (the loser replays the winner's receipt
+      // after the lock) or the loser may hit the unique index backstop; in
+      // every outcome exactly one receipt exists.
+      const receiptIds = attempts
+        .filter((attempt) => attempt.status === 'fulfilled')
+        .map((attempt) => (attempt.value.ok ? attempt.value.value.id : null))
+        .filter((id) => id !== null);
+      expect(receiptIds.length, `round ${round}`).toBeGreaterThanOrEqual(1);
+      expect(new Set(receiptIds).size).toBe(1);
+      expect(await harness.prisma.custodyReceipt.count()).toBe(1);
+    }
+  }, 240_000);
 });

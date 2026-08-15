@@ -58,12 +58,6 @@ export class IssueReceiptUseCase {
         return failure(new IntakeNotSealed());
       }
 
-      // A repeat of the issue call returns the receipt the first call created.
-      const existing = await this.receipts.findByIntakeRecordHash(intake.sealedHash, context);
-      if (existing !== null) {
-        return ok(existing);
-      }
-
       const vault = await this.vaults.findById(intake.vaultId, context);
       if (vault === null) {
         return failure(new VaultNotFound());
@@ -74,9 +68,16 @@ export class IssueReceiptUseCase {
         return failure(new IntakeIncomplete('The intake has no appraisal.'));
       }
 
-      // The lock comes before the exposure read so two issuances against the
-      // same vault serialise and rule C5 cannot be raced past.
+      // The lock comes before both the replay check and the exposure read so
+      // two issuances serialise: a racing repeat blocks here, then sees the
+      // winner's committed receipt and replays it. Rule C5 cannot be raced
+      // past for the same reason, and the unique index on the intake hash is
+      // the database backstop.
       await this.vaults.lock(vault.id, context);
+      const existing = await this.receipts.findByIntakeRecordHash(intake.sealedHash, context);
+      if (existing !== null) {
+        return ok(existing);
+      }
       const exposure = await this.receipts.exposureOf(vault.id, appraisal.value.currency, context);
       const withinLimit = assertWithinInsuredLimit(exposure, appraisal.value, vault.insuredLimit);
       if (!withinLimit.ok) {
