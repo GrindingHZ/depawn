@@ -33,8 +33,14 @@ export function MarketShell({ children }: { readonly children: ReactNode }): Rea
           <Link to="/borrow/listings" className="font-body text-sm text-ink-secondary">
             My listings
           </Link>
+          <Link to="/borrow/loans" className="font-body text-sm text-ink-secondary">
+            My loans
+          </Link>
           <Link to="/lend/offers" className="font-body text-sm text-ink-secondary">
             My offers
+          </Link>
+          <Link to="/lend/loans" className="font-body text-sm text-ink-secondary">
+            Funded loans
           </Link>
           <Link to="/wallet" className="font-body text-sm text-ink-secondary">
             Wallet

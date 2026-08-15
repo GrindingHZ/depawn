@@ -14,7 +14,9 @@ import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as BorrowListingsRouteImport } from './routes/borrow.listings'
+import { Route as BorrowLoansRouteImport } from './routes/borrow.loans'
 import { Route as BorrowReceiptsRouteImport } from './routes/borrow.receipts'
+import { Route as LendLoansRouteImport } from './routes/lend.loans'
 import { Route as LendOffersRouteImport } from './routes/lend.offers'
 import { Route as ListingsIndexRouteImport } from './routes/listings.index'
 import { Route as ListingsListingIdRouteImport } from './routes/listings.$listingId'
@@ -44,9 +46,19 @@ const BorrowListingsRoute = BorrowListingsRouteImport.update({
   path: '/borrow/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BorrowLoansRoute = BorrowLoansRouteImport.update({
+  id: '/borrow/loans',
+  path: '/borrow/loans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BorrowReceiptsRoute = BorrowReceiptsRouteImport.update({
   id: '/borrow/receipts',
   path: '/borrow/receipts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LendLoansRoute = LendLoansRouteImport.update({
+  id: '/lend/loans',
+  path: '/lend/loans',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LendOffersRoute = LendOffersRouteImport.update({
@@ -71,7 +83,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/listings': typeof BorrowListingsRoute
+  '/borrow/loans': typeof BorrowLoansRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/loans': typeof LendLoansRoute
   '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/': typeof ListingsIndexRoute
@@ -82,7 +96,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/listings': typeof BorrowListingsRoute
+  '/borrow/loans': typeof BorrowLoansRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/loans': typeof LendLoansRoute
   '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings': typeof ListingsIndexRoute
@@ -94,7 +110,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/wallet': typeof WalletRoute
   '/borrow/listings': typeof BorrowListingsRoute
+  '/borrow/loans': typeof BorrowLoansRoute
   '/borrow/receipts': typeof BorrowReceiptsRoute
+  '/lend/loans': typeof LendLoansRoute
   '/lend/offers': typeof LendOffersRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/listings/': typeof ListingsIndexRoute
@@ -107,7 +125,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/wallet'
     | '/borrow/listings'
+    | '/borrow/loans'
     | '/borrow/receipts'
+    | '/lend/loans'
     | '/lend/offers'
     | '/listings/$listingId'
     | '/listings/'
@@ -118,7 +138,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/wallet'
     | '/borrow/listings'
+    | '/borrow/loans'
     | '/borrow/receipts'
+    | '/lend/loans'
     | '/lend/offers'
     | '/listings/$listingId'
     | '/listings'
@@ -129,7 +151,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/wallet'
     | '/borrow/listings'
+    | '/borrow/loans'
     | '/borrow/receipts'
+    | '/lend/loans'
     | '/lend/offers'
     | '/listings/$listingId'
     | '/listings/'
@@ -141,7 +165,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   WalletRoute: typeof WalletRoute
   BorrowListingsRoute: typeof BorrowListingsRoute
+  BorrowLoansRoute: typeof BorrowLoansRoute
   BorrowReceiptsRoute: typeof BorrowReceiptsRoute
+  LendLoansRoute: typeof LendLoansRoute
   LendOffersRoute: typeof LendOffersRoute
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   ListingsIndexRoute: typeof ListingsIndexRoute
@@ -184,11 +210,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BorrowListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/borrow/loans': {
+      id: '/borrow/loans'
+      path: '/borrow/loans'
+      fullPath: '/borrow/loans'
+      preLoaderRoute: typeof BorrowLoansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/borrow/receipts': {
       id: '/borrow/receipts'
       path: '/borrow/receipts'
       fullPath: '/borrow/receipts'
       preLoaderRoute: typeof BorrowReceiptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lend/loans': {
+      id: '/lend/loans'
+      path: '/lend/loans'
+      fullPath: '/lend/loans'
+      preLoaderRoute: typeof LendLoansRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lend/offers': {
@@ -221,7 +261,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   WalletRoute: WalletRoute,
   BorrowListingsRoute: BorrowListingsRoute,
+  BorrowLoansRoute: BorrowLoansRoute,
   BorrowReceiptsRoute: BorrowReceiptsRoute,
+  LendLoansRoute: LendLoansRoute,
   LendOffersRoute: LendOffersRoute,
   ListingsListingIdRoute: ListingsListingIdRoute,
   ListingsIndexRoute: ListingsIndexRoute,
