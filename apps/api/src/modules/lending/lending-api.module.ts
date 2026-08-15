@@ -8,12 +8,16 @@ import { PrismaListingRepository } from '../../infrastructure/persistence/reposi
 import { PrismaLoanRepository } from '../../infrastructure/persistence/repositories/prisma-loan.repository';
 import { PrismaLoanQueries } from '../../infrastructure/persistence/queries/prisma-loan-queries';
 import { AcceptOfferUseCase } from './application/accept-offer.use-case';
+import { PayoffQuoteQuery } from './application/payoff-quote.query';
+import { RepayLoanUseCase } from './application/repay-loan.use-case';
 import { LendingController } from './http/lending.controller';
 
 @Module({
   controllers: [LendingController],
   providers: [
     AcceptOfferUseCase,
+    PayoffQuoteQuery,
+    RepayLoanUseCase,
     { provide: LISTING_REPOSITORY, useClass: PrismaListingRepository },
     { provide: CUSTODY_RECEIPT_REPOSITORY, useClass: PrismaCustodyReceiptRepository },
     { provide: LOAN_REPOSITORY, useClass: PrismaLoanRepository },

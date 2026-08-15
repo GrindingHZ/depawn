@@ -1,5 +1,17 @@
-import { loanResponseSchema, myLoansResponseSchema } from '../lending';
-import type { LoanResponse, LoanRole, MyLoansResponse } from '../lending';
+import {
+  loanResponseSchema,
+  myLoansResponseSchema,
+  payoffQuoteResponseSchema,
+  repaymentResponseSchema,
+} from '../lending';
+import type {
+  LoanResponse,
+  LoanRole,
+  MyLoansResponse,
+  PayoffQuoteResponse,
+  RepayLoanRequest,
+  RepaymentResponse,
+} from '../lending';
 import { requestJson } from './http';
 import type { RequestOptions } from './http';
 
@@ -32,5 +44,27 @@ export function fetchLoan(loanId: string): Promise<LoanResponse> {
     method: 'GET',
     path: `${basePath}/loans/${loanId}`,
     responseSchema: loanResponseSchema,
+  });
+}
+
+export function fetchPayoffQuote(loanId: string): Promise<PayoffQuoteResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/loans/${loanId}/payoff-quote`,
+    responseSchema: payoffQuoteResponseSchema,
+  });
+}
+
+export function repayLoan(
+  loanId: string,
+  body: RepayLoanRequest,
+  options: RequestOptions,
+): Promise<RepaymentResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/loans/${loanId}/repay`,
+    body,
+    options,
+    responseSchema: repaymentResponseSchema,
   });
 }
