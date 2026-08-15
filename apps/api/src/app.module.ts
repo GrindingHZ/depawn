@@ -14,8 +14,13 @@ import { LedgerModule } from './modules/ledger/ledger.module';
 import { LendingApiModule } from './modules/lending/lending-api.module';
 import { MarketplaceApiModule } from './modules/marketplace/marketplace-api.module';
 import { SharedHttpModule } from './modules/shared/shared-http.module';
+import { TestSupportModule } from './modules/test-support/test-support.module';
 import { ApiExceptionFilter } from './modules/shared/http/api-exception.filter';
 import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.middleware';
+
+/* The test support routes exist in the graph only under NODE_ENV=test, so a
+   deployed process has no way to move its own clock. */
+const testOnlyModules = process.env.NODE_ENV === 'test' ? [TestSupportModule] : [];
 
 @Module({
   imports: [
@@ -32,6 +37,7 @@ import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.
     MarketplaceApiModule,
     LendingApiModule,
     HealthModule,
+    ...testOnlyModules,
   ],
   providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
 })

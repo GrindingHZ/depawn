@@ -32,6 +32,10 @@ export default defineConfig({
       url: 'http://localhost:3000/api/v1/health',
       reuseExistingServer: true,
       timeout: 120_000,
+      // Mounts the test only clock route so a spec can push a loan past
+      // maturity. Set here rather than as a shell prefix, which would not
+      // survive every platform this runs on.
+      env: { NODE_ENV: 'test' },
     },
     {
       command: 'pnpm --filter @depawn/marketplace dev',
