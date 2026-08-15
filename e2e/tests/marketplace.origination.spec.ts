@@ -146,7 +146,9 @@ test('a borrower accepts an offer and both sides see the loan', async ({
   await expect(page.getByTestId('my-loans')).toContainText('AUD 2,500.00');
   await expect(page.getByTestId('my-loans')).toContainText('18.00% p.a.');
 
-  await winnerPage.getByRole('link', { name: 'Funded loans' }).click();
+  // A full load rather than a client side hop, because this page has been
+  // sitting on the listing while another context originated the loan.
+  await winnerPage.goto('/lend/loans');
   await expect(winnerPage.getByTestId('funded-loans')).toContainText('ACTIVE');
   await expect(winnerPage.getByTestId('funded-loans')).toContainText('AUD 2,500.00');
 
