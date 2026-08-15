@@ -1,5 +1,6 @@
-import type { LoanResponse } from '@depawn/contracts';
+import type { LoanResponse, PayoffQuoteResponse } from '@depawn/contracts';
 import type { LoanReadModel } from '../../../domain/ports/loan-queries.port';
+import type { PayoffQuote } from '../application/payoff-quote.query';
 import { toMoneyDto, toSettlementRefDto } from '../../shared/http/money.mapper';
 
 function isoOf(epochMilliseconds: bigint): string {
@@ -20,5 +21,16 @@ export function toLoanResponse(readModel: LoanReadModel): LoanResponse {
     lenderNoteHolderAccountId: readModel.lenderNoteHolderAccountId,
     status: loan.status,
     originationSettlementRef: toSettlementRefDto(loan.originationSettlementRef),
+  };
+}
+
+export function toPayoffQuoteResponse(quote: PayoffQuote): PayoffQuoteResponse {
+  return {
+    loanId: quote.loanId,
+    principal: toMoneyDto(quote.principal),
+    accruedInterest: toMoneyDto(quote.accruedInterest),
+    total: toMoneyDto(quote.total),
+    quotedAt: isoOf(quote.quotedAt.epochMilliseconds),
+    validUntil: isoOf(quote.validUntil.epochMilliseconds),
   };
 }

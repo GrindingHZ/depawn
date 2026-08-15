@@ -124,3 +124,11 @@ PAST MATURITY, whether or not grace has ended
 **Notes:** The brief gives warning to a loan that is past maturity and in grace, and danger to a
 loan that is DEFAULTED. A loan that has run past the end of grace while no note holder has marked
 it defaulted falls between the two cells, and calling it in grace on screen would be false.
+
+## Q-015: should the payoff quote validity be a protocol parameter
+**Blocks:** the payoff quote
+**Currently implemented:** a five minute window as a constant beside the query
+**Needs:** whoever owns docs/03
+**Notes:** docs/10 flow 5 requires a validUntil and a stale rejection but names no duration. The
+window trades how long a borrower has to act against how far the charged amount can drift from the
+figure on screen, which reads like an operations dial rather than a code constant.
