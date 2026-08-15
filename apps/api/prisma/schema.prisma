@@ -316,6 +316,64 @@ model FundsHold {
   @@map("funds_hold")
 }
 
+enum LoanStatus {
+  ACTIVE
+  REPAID
+  DEFAULTED
+  LIQUIDATED
+
+  @@map("loan_status")
+}
+
+model Loan {
+  id                              String     @id
+  receiptId                       String     @map("receipt_id")
+  borrowerAccountId               String     @map("borrower_account_id")
+  principalMinorUnits             BigInt     @map("principal_minor_units")
+  currency                        String
+  annualPercentageRateBasisPoints Int        @map("annual_percentage_rate_basis_points")
+  startedAt                       DateTime   @map("started_at")
+  maturesAt                       DateTime   @map("matures_at")
+  graceEndsAt                     DateTime   @map("grace_ends_at")
+  lenderNoteId                    String     @unique @map("lender_note_id")
+  borrowerNoteId                  String     @unique @map("borrower_note_id")
+  status                          LoanStatus
+  originationSettlementKind       String     @map("origination_settlement_kind")
+  originationSettlementReference  String     @map("origination_settlement_reference")
+  originationSettledAt            DateTime   @map("origination_settled_at")
+  version                         Int        @default(0)
+  createdAt                       DateTime   @default(now()) @map("created_at")
+  updatedAt                       DateTime   @updatedAt @map("updated_at")
+
+  @@index([receiptId, status])
+  @@index([borrowerAccountId, status])
+  @@map("loan")
+}
+
+model LenderNote {
+  id              String   @id
+  loanId          String   @unique @map("loan_id")
+  holderAccountId String   @map("holder_account_id")
+  transferable    Boolean
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([holderAccountId])
+  @@map("lender_note")
+}
+
+model BorrowerNote {
+  id              String   @id
+  loanId          String   @unique @map("loan_id")
+  holderAccountId String   @map("holder_account_id")
+  transferable    Boolean
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([holderAccountId])
+  @@map("borrower_note")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String
