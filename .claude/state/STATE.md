@@ -2,7 +2,7 @@
 
 phase: P6
 slice: p6b-liquidation
-stage: execute
-task: 13
-slice-base: d8da0b7
+stage: review
+task: 15
+slice-base: 3d04621
 status: running
