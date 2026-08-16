@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Liquidation, canBeScheduled } from '../../../domain/lending/liquidation';
+import { LiquidationAlreadyScheduled } from '../../../domain/lending/liquidation-already-scheduled';
 import { LIQUIDATION_REPOSITORY } from '../../../domain/lending/liquidation-repository';
 import type { LiquidationRepository } from '../../../domain/lending/liquidation-repository';
 import { LoanNotDefaulted } from '../../../domain/lending/loan-not-defaulted';
@@ -52,6 +53,13 @@ export class ScheduleLiquidationUseCase {
       }
       if (loan.status !== 'DEFAULTED' || loan.defaultedAt === null) {
         return failure(new LoanNotDefaulted());
+      }
+
+      // One sale per loan. The database enforces it too, but a second
+      // attempt deserves an answer rather than a fault.
+      const existing = await this.liquidations.findByLoan(loan.id, context);
+      if (existing !== null) {
+        return failure(new LiquidationAlreadyScheduled());
       }
 
       const withinRules = canBeScheduled(loan.defaultedAt, this.clock.now(), this.parameters);

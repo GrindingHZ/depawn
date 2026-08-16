@@ -180,3 +180,13 @@ non positive entry amount since P1 and enforces it in the entity, in a database 
 property test. Reading the two together, never omitted means never forgotten in the arithmetic
 rather than always written as an entry: a movement of zero is not a movement, and the four line
 calculation is what proves the parts still sum to the whole.
+
+## Q-020: may a sale close before its bidding window ends
+**Blocks:** nothing today
+**Currently implemented:** operations may close as soon as any bid clears the reserve, and the
+closing time only governs whether further bids are accepted
+**Needs:** whoever owns docs/10
+**Notes:** Flow 8 sets a closesAt when the sale opens and gives no rule about closing early. Letting
+operations settle the moment a bid lands undercuts the point of advertising a window to bidders,
+while forcing them to wait leaves an item unsold when everyone has finished bidding. The narrowest
+reading keeps closesAt governing bids only.
