@@ -1,6 +1,8 @@
 import { hash } from '@node-rs/argon2';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import { ulid } from 'ulid';
 import { loadConfiguration } from '../src/config/configuration';
 import { solidPng } from '../src/infrastructure/storage/solid-png';
@@ -167,6 +169,14 @@ function refuseToWipeAnythingImportant(databaseUrl: string): void {
   }
 }
 
+/* The database and the blob store have to be emptied together. Emptying only
+   the tables leaves every photograph any previous run wrote sitting on disk
+   with nothing pointing at it, which after a few dozen runs is most of what
+   is in there. */
+async function emptyStoredObjects(storageDirectory: string): Promise<void> {
+  await rm(path.resolve(storageDirectory, 'intakes'), { recursive: true, force: true });
+}
+
 async function emptyEveryTable(prisma: PrismaClient): Promise<void> {
   const rows = await prisma.$queryRaw<{ tablename: string }[]>`
     SELECT tablename FROM pg_tables
@@ -209,14 +219,15 @@ const accountsOnly = process.argv.includes('--accounts-only');
 
 async function main(): Promise<void> {
   process.env.DEMO_MODE = 'true';
-  const databaseUrl = loadConfiguration().databaseUrl;
-  refuseToWipeAnythingImportant(databaseUrl);
-  const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
+  const configuration = loadConfiguration();
+  refuseToWipeAnythingImportant(configuration.databaseUrl);
+  const prisma = new PrismaClient({ datasourceUrl: configuration.databaseUrl });
 
   /* The dataset is a story with a fixed cast, so it starts from an empty
      database. Seeding on top of a previous run would double the loan book
      and leave the runbook describing a screen nobody can reproduce. */
   await emptyEveryTable(prisma);
+  await emptyStoredObjects(configuration.storageDirectory);
   const passwordHash = await hash(demoPassword);
 
   for (const account of demoAccounts) {
