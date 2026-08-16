@@ -5,10 +5,10 @@ const password = 'demo-password-123';
 
 async function signIn(page: Page, email: string): Promise<void> {
   await page.goto('/login');
-  await page.getByTestId('email').fill(email);
-  await page.getByTestId('password').fill(password);
-  await page.getByTestId('sign-in').click();
-  await expect(page.getByRole('link', { name: 'Operations' })).toBeVisible();
+  await page.getByTestId('email-input').fill(email);
+  await page.getByTestId('password-input').fill(password);
+  await page.getByTestId('login-submit').click();
+  await expect(page.getByTestId('authenticated-home')).toBeVisible();
 }
 
 test('an operator edits the parameters and sees the version in the history', async ({ page }) => {
@@ -61,9 +61,9 @@ test('the dead letter table is empty on a healthy queue', async ({ page }) => {
 
 test('a member cannot reach the parameters', async ({ page }) => {
   await page.goto('/login');
-  await page.getByTestId('email').fill('member@demo.test');
-  await page.getByTestId('password').fill(password);
-  await page.getByTestId('sign-in').click();
+  await page.getByTestId('email-input').fill('member@demo.test');
+  await page.getByTestId('password-input').fill(password);
+  await page.getByTestId('login-submit').click();
   await page.goto('/parameters');
   await expect(page.getByTestId('access-denied')).toBeVisible();
 });
