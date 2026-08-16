@@ -7,6 +7,8 @@ import type {
   PlaceBidRequest,
   ScheduleLiquidationRequest,
 } from '../liquidation';
+import { settlementResponseSchema } from '../wallet';
+import type { SettlementResponse } from '../wallet';
 import { requestJson } from './http';
 import type { RequestOptions } from './http';
 
@@ -81,5 +83,19 @@ export function closeLiquidation(
     body: {},
     options,
     responseSchema: liquidationResponseSchema,
+  });
+}
+
+export function reclaimBid(
+  liquidationId: string,
+  bidId: string,
+  options: RequestOptions,
+): Promise<SettlementResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/liquidations/${liquidationId}/bids/${bidId}/reclaim`,
+    body: {},
+    options,
+    responseSchema: settlementResponseSchema,
   });
 }

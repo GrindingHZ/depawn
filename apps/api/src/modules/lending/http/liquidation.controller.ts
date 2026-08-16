@@ -11,6 +11,7 @@ import type {
   OpenLiquidationRequest,
   PlaceBidRequest,
   ScheduleLiquidationRequest,
+  SettlementResponse,
 } from '@depawn/contracts';
 import type { Account } from '../../../domain/accounts/account';
 import type { LiquidationStatus } from '../../../domain/lending/liquidation';
@@ -19,13 +20,14 @@ import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { DomainErrorHttpException } from '../../shared/http/domain-error-http.exception';
 import { domainErrorStatusFor } from '../../shared/http/domain-error-status';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
-import { toMoney } from '../../shared/http/money.mapper';
+import { toMoney, toSettlementRefDto } from '../../shared/http/money.mapper';
 import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { CloseLiquidationUseCase } from '../application/close-liquidation.use-case';
 import { LiquidationQuery } from '../application/liquidation.query';
 import { OpenLiquidationUseCase } from '../application/open-liquidation.use-case';
 import { PlaceBidUseCase } from '../application/place-bid.use-case';
+import { ReclaimBidUseCase } from '../application/reclaim-bid.use-case';
 import { ScheduleLiquidationUseCase } from '../application/schedule-liquidation.use-case';
 import { toLiquidationResponse } from './lending-response.mapper';
 
@@ -36,6 +38,7 @@ export class LiquidationController {
     private readonly openLiquidation: OpenLiquidationUseCase,
     private readonly placeBid: PlaceBidUseCase,
     private readonly closeLiquidation: CloseLiquidationUseCase,
+    private readonly reclaimBid: ReclaimBidUseCase,
     private readonly liquidations: LiquidationQuery,
   ) {}
 
@@ -115,6 +118,26 @@ export class LiquidationController {
       throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
     }
     return toLiquidationResponse(result.value);
+  }
+
+  /* Any bidder may pull back a beaten bid; nobody else may pull it for
+     them, which the use case checks against the bid's owner. */
+  @Post('liquidations/:liquidationId/bids/:bidId/reclaim')
+  @UseInterceptors(IdempotencyInterceptor)
+  async reclaim(
+    @Param('liquidationId') liquidationId: string,
+    @Param('bidId') bidId: string,
+    @CurrentAccount() account: Account,
+  ): Promise<SettlementResponse> {
+    const result = await this.reclaimBid.execute({
+      liquidationId: liquidationIdOf(liquidationId),
+      bidId,
+      requestedBy: account.id,
+    });
+    if (!result.ok) {
+      throw new DomainErrorHttpException(result.error, domainErrorStatusFor(result.error.code));
+    }
+    return { settlementRef: toSettlementRefDto(result.value) };
   }
 
   @Roles('OPERATIONS')

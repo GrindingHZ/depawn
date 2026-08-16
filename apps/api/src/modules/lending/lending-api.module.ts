@@ -18,6 +18,7 @@ import { CloseLiquidationUseCase } from './application/close-liquidation.use-cas
 import { LiquidationQuery } from './application/liquidation.query';
 import { OpenLiquidationUseCase } from './application/open-liquidation.use-case';
 import { PlaceBidUseCase } from './application/place-bid.use-case';
+import { ReclaimBidUseCase } from './application/reclaim-bid.use-case';
 import { ScheduleLiquidationUseCase } from './application/schedule-liquidation.use-case';
 import { LendingController } from './http/lending.controller';
 import { LiquidationController } from './http/liquidation.controller';
@@ -34,6 +35,7 @@ import { LiquidationController } from './http/liquidation.controller';
     OpenLiquidationUseCase,
     PlaceBidUseCase,
     CloseLiquidationUseCase,
+    ReclaimBidUseCase,
     LiquidationQuery,
     { provide: LIQUIDATION_REPOSITORY, useClass: PrismaLiquidationRepository },
     { provide: LISTING_REPOSITORY, useClass: PrismaListingRepository },
