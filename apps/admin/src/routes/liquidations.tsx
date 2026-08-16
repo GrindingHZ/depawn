@@ -76,6 +76,9 @@ function LiquidationsPage(): ReactElement | null {
           <Link to="/" className="font-body text-sm text-ink-secondary">
             Home
           </Link>
+          <Link to="/operations" className="font-body text-sm text-ink-secondary">
+            Operations
+          </Link>
           <Link to="/deposits" className="font-body text-sm text-ink-secondary">
             Deposits
           </Link>

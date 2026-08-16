@@ -53,6 +53,9 @@ function HomePage(): ReactElement | null {
             <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
               Liquidations
             </Link>
+            <Link to="/operations" className="font-body text-sm text-ink-secondary">
+              Operations
+            </Link>
             <Link to="/deposits" className="font-body text-sm text-ink-secondary">
               Deposits
             </Link>
