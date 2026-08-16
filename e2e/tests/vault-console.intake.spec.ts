@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { photographBytes } from './support/photograph';
 
 const apiBase = 'http://localhost:3000/api/v1';
 const marketplaceBase = 'http://localhost:5273';
@@ -44,11 +45,11 @@ test('an item goes from intake to a receipt the borrower can see', async ({
   await page.getByTestId('identify-save').click();
 
   await page.getByTestId('photo-input').setInputFiles({
-    name: 'front.jpg',
-    mimeType: 'image/jpeg',
-    buffer: Buffer.from('fake image bytes for the intake test'),
+    name: 'front.png',
+    mimeType: 'image/png',
+    buffer: photographBytes(),
   });
-  await expect(page.getByTestId('evidence-list')).toContainText('front.jpg');
+  await expect(page.getByTestId('evidence-list')).toContainText('front.png');
   await page.getByTestId('photograph-continue').click();
 
   await page.getByTestId('appraise-value').fill('5000.00');

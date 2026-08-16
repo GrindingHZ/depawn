@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { createTestApplication } from './create-test-application';
 import type { TestApplication } from './create-test-application';
+import { solidPng } from '../src/infrastructure/storage/solid-png';
 
 const vaultId = 'VAULT-TEST-1';
 const password = 'a-long-enough-password';
@@ -67,7 +68,7 @@ describe('intake flow', () => {
     await server()
       .post(`/api/v1/intakes/${intakeId}/photos`)
       .set('Cookie', staffCookies)
-      .attach('photo', Buffer.from('fake image bytes'), 'front.jpg')
+      .attach('photo', solidPng(32, 32, [201, 153, 47]), 'front.png')
       .expect(201);
 
     await server()

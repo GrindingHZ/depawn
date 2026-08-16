@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
+import { photographBytes } from './support/photograph';
 
 const apiBase = 'http://localhost:3000/api/v1';
 const password = 'a-long-enough-password';
@@ -38,7 +39,7 @@ async function issueReceiptFor(request: APIRequestContext, borrowerEmail: string
       photo: {
         name: 'front.jpg',
         mimeType: 'image/jpeg',
-        buffer: Buffer.from(`fake bytes ${randomUUID()}`),
+        buffer: photographBytes(),
       },
     },
   });
@@ -116,7 +117,9 @@ test('a receipt becomes a listing and takes a funded offer', async ({ page, brow
   // the same time, so the lender opens the listing under test by id rather
   // than taking whatever happens to be on top.
   await lenderPage.getByRole('link', { name: 'Browse' }).click();
-  await expect(lenderPage.getByTestId('browse-table')).toContainText(listingId);
+  /* The row is the item now, not the identifier, so Browse is checked by the
+     row's own handle rather than by looking for a ULID in the text. */
+  await expect(lenderPage.getByTestId(`listing-${listingId}`)).toBeVisible();
   await lenderPage.goto(`/listings/${listingId}`);
 
   await expect(lenderPage.getByTestId('max-principal')).toHaveText('AUD 3,000.00');

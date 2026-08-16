@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { APIRequestContext, Browser, Page } from '@playwright/test';
+import { photographBytes } from './support/photograph';
 
 /* docs/DEMO.md is a script someone reads out in front of an audience, so it
    has to be a test rather than a document that used to be true. This walks
@@ -85,11 +86,11 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await vaultPage.getByTestId('identify-serials').fill(`SN-${stamp}`);
   await vaultPage.getByTestId('identify-save').click();
   await vaultPage.getByTestId('photo-input').setInputFiles({
-    name: 'front.jpg',
-    mimeType: 'image/jpeg',
-    buffer: Buffer.from(`runbook bytes ${stamp}`),
+    name: 'front.png',
+    mimeType: 'image/png',
+    buffer: photographBytes(),
   });
-  await expect(vaultPage.getByTestId('evidence-list')).toContainText('front.jpg');
+  await expect(vaultPage.getByTestId('evidence-list')).toContainText('front.png');
   await vaultPage.getByTestId('photograph-continue').click();
 
   await vaultPage.getByTestId('appraise-value').fill('3000.00');
@@ -236,7 +237,7 @@ test('the runbook can settle a sale that is already taking bids', async ({ brows
   });
   await request.post(`${apiBase}/intakes/${intakeId}/photos`, {
     multipart: {
-      photo: { name: 'front.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(`bytes ${stamp}`) },
+      photo: { name: 'front.png', mimeType: 'image/png', buffer: photographBytes() },
     },
   });
   await request.post(`${apiBase}/intakes/${intakeId}/appraisals`, {

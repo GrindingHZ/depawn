@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
+import { photographBytes } from './support/photograph';
 
 const apiBase = 'http://localhost:3000/api/v1';
 const password = 'a-long-enough-password';
@@ -42,7 +43,7 @@ async function issueReceiptFor(request: APIRequestContext, borrowerEmail: string
       photo: {
         name: 'front.jpg',
         mimeType: 'image/jpeg',
-        buffer: Buffer.from(`fake bytes ${randomUUID()}`),
+        buffer: photographBytes(),
       },
     },
   });
