@@ -12,3 +12,6 @@ playwright-report/
 test-results/
 .claude/state/run.log
 var/
+
+# Scratch output from the Playwright MCP browser tools
+.playwright-mcp/

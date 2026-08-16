@@ -10,3 +10,5 @@ pnpm-lock.yaml
 packages/move
 *.md
 **/routeTree.gen.ts
+
+.playwright-mcp
