@@ -533,10 +533,14 @@ model OutboxEvent {
   occurredAt  DateTime  @map("occurred_at")
   publishedAt DateTime? @map("published_at")
   attempts    Int       @default(0)
+  /* Set when a drain takes the row. A row lock only reserves for the life of
+     its transaction, so without this a second drain could take the same
+     event the moment the first committed. */
+  claimedAt   DateTime? @map("claimed_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  @@index([publishedAt])
+  @@index([publishedAt, claimedAt])
   @@map("outbox_event")
 }
 
