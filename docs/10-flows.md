@@ -456,3 +456,77 @@ pending until it expires rather than ever executing twice.
 
 Deposits and withdrawals become on and off ramp operations against the user's wallet; the float
 account disappears from the user path and the ledger records the mirror entries from the indexer.
+
+---
+
+## Flow 13: editing the protocol parameters
+
+**Actor:** operations
+
+`GET /admin/protocol-parameters` answers what is in force now together with every version ever
+written. `PUT` writes a new version with the instant it takes effect; nothing is ever updated in
+place, so what applied on any past day stays answerable.
+
+### Steps
+
+1. Operations opens the parameters screen and sees the fees, the grace period, and the statutory
+   holding period, with the full edit history beneath them.
+2. A version is submitted with an effective instant. It may be in the future, in which case it is
+   stored and waits.
+3. The version row and its audit entry commit in one transaction. An edit nobody can trace to an
+   operator would be worse than no edit at all.
+4. Only after that commit does the process reload what it serves, because a rollback must not leave
+   it answering with a version that never landed.
+
+### What an edit cannot do
+
+An edit never reaches a loan already originated. Everything a loan is judged by travels with it:
+the principal, the rate, the duration, the maturity, the grace deadline, the origination fee it
+paid, and the liquidation fee its sale will pay. That last one is the only term read long after
+origination, which is why it is copied onto the loan rather than looked up when the sale settles.
+
+### Failures
+
+| Condition | Result |
+|---|---|
+| Caller lacks the operations role | 403 `FORBIDDEN` |
+| A fee outside zero to ten thousand basis points | 400 `VALIDATION_FAILED` |
+| Same idempotency key, different payload | 409 `IDEMPOTENCY_KEY_REUSED` |
+
+### Phase 3
+
+The parameters become a shared `Config` object mutated through an `AdminCap`. The effective date
+becomes a field the Move code reads against the on chain clock, and the history becomes the chain's
+own transaction history. Q-022 notes that a second api process would serve a stale copy until it
+restarted; the shared object removes the question rather than answering it.
+
+---
+
+## Flow 14: draining the outbox
+
+**Actor:** the api process, unattended
+
+Every use case that publishes a domain event writes it to the outbox inside its own transaction, so
+the event and the state change land together or not at all. A worker in the serving process drains
+it every five seconds.
+
+### Steps
+
+1. The drain claims a batch: rows not yet published whose claim is absent or older than the
+   visibility window, locked with `FOR UPDATE SKIP LOCKED` and stamped with the claim instant. The
+   lock alone is not enough, because it releases the moment the claiming transaction commits.
+2. Each claimed event is published, then marked delivered.
+3. A failure releases the claim so the next drain retries it immediately rather than waiting out the
+   window.
+4. After five attempts the event moves to the dead letter table in one transaction, so the queue
+   keeps moving and a human can see what gave up. `GET /admin/dead-letters` is where they see it.
+
+Delivery is at least once, not exactly once: a crash between a successful publish and the delivered
+mark republishes once the window expires. In Phase 1 the handler is a log line, so that costs
+nothing. Q-023 records that a chain submission is a different matter.
+
+### Phase 3
+
+The handler becomes the chain submission and the indexer feeds events back the other way. The
+claiming, the retry, and the dead letter table are already here, which is the point of building the
+outbox before there is anywhere to publish to.
