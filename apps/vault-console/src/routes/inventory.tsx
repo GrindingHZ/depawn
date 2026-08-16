@@ -58,11 +58,21 @@ function InventoryCard(): ReactElement {
         <div data-testid="inventory-table">
           <DataTable
             columns={[
+              /* The id stays first and stays monospaced: staff quote these to
+                 each other and read them off labels, so leading with a name
+                 would be a lender's treatment applied to an operations tool.
+                 The description sits under it, because finding a thing on a
+                 shelf is easier when the screen says what the thing is. */
               {
                 key: 'id',
                 header: 'Receipt',
                 render: (receipt: ReceiptResponse) => (
-                  <span className="font-mono text-xs">{receipt.id}</span>
+                  <span className="block">
+                    <span className="block font-mono text-xs">{receipt.id}</span>
+                    <span className="block font-body text-xs text-ink-secondary">
+                      {receipt.itemDescription}
+                    </span>
+                  </span>
                 ),
               },
               {
