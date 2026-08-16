@@ -8,15 +8,15 @@ import { IntakeNotFound } from '../../../domain/custody/intake-not-found';
 import type { IntakeRecord } from '../../../domain/custody/intake-record';
 import { INTAKE_RECORD_REPOSITORY } from '../../../domain/custody/intake-record-repository';
 import type { IntakeRecordRepository } from '../../../domain/custody/intake-record-repository';
+import { PROTOCOL_PARAMETERS } from '../../../domain/marketplace/protocol-parameters';
+import type { ProtocolParameters } from '../../../domain/marketplace/protocol-parameters';
 import { AUDIT_PORT } from '../../../domain/ports/audit.port';
 import type { AuditPort } from '../../../domain/ports/audit.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import type { AccountId, IntakeId } from '../../../domain/shared/identifiers';
-import type { Money } from '../../../domain/shared/money';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
-import { DUAL_APPRAISAL_THRESHOLD } from './intake-tokens';
 
 export interface SealIntakeCommand {
   readonly intakeId: IntakeId;
@@ -33,7 +33,7 @@ export class SealIntakeUseCase {
     @Inject(INTAKE_RECORD_REPOSITORY) private readonly intakes: IntakeRecordRepository,
     @Inject(APPRAISAL_REPOSITORY) private readonly appraisals: AppraisalRepository,
     @Inject(AUDIT_PORT) private readonly audit: AuditPort,
-    @Inject(DUAL_APPRAISAL_THRESHOLD) private readonly dualAppraisalThreshold: Money,
+    @Inject(PROTOCOL_PARAMETERS) private readonly parameters: ProtocolParameters,
   ) {}
 
   execute(command: SealIntakeCommand): Promise<Result<IntakeRecord, SealRejection>> {
@@ -43,7 +43,7 @@ export class SealIntakeUseCase {
         return failure(new IntakeNotFound());
       }
       const appraisals = await this.appraisals.listByIntake(command.intakeId, context);
-      const sealed = intake.seal(appraisals, this.dualAppraisalThreshold);
+      const sealed = intake.seal(appraisals, this.parameters.dualAppraisalThreshold);
       if (!sealed.ok) {
         return sealed;
       }
