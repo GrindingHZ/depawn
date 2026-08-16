@@ -495,6 +495,37 @@ model ReconciliationDrift {
   @@map("reconciliation_drift")
 }
 
+/* History is the table: a new version is a new row with the instant it takes
+   effect, never an update in place, so what was in force on any past day is
+   always answerable. */
+model ProtocolParameterVersion {
+  id                       String   @id
+  effectiveAt              DateTime @map("effective_at")
+  writtenByAccountId       String   @map("written_by_account_id")
+  parameters               Json
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@index([effectiveAt])
+  @@map("protocol_parameter_version")
+}
+
+/* An event the drain could not deliver after every retry. It leaves the
+   queue so the queue keeps moving, and waits for a human. */
+model DeadLetterEvent {
+  id           String   @id
+  outboxId     String   @map("outbox_id")
+  type         String
+  payload      Json
+  attempts     Int
+  lastError    String   @map("last_error")
+  deadLetteredAt DateTime @map("dead_lettered_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("dead_letter_event")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String
