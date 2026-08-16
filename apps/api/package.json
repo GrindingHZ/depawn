@@ -12,7 +12,8 @@
     "db:seed": "node -r @swc-node/register prisma/seed.ts",
     "db:seed:accounts": "node -r @swc-node/register prisma/seed.ts --accounts-only",
     "db:truncate": "tsx prisma/truncate.ts",
-    "start": "node -r @swc-node/register src/main.ts"
+    "start": "node -r @swc-node/register src/main.ts",
+    "dev": "node -r @swc-node/register --watch src/dev.ts"
   },
   "devDependencies": {
     "@depawn/test-support": "workspace:*",

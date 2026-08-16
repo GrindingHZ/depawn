@@ -116,7 +116,8 @@ function ClockCard(): ReactElement | null {
       <div data-testid="demo-clock" className="flex flex-col gap-3">
         <p className="font-body text-sm text-ink-secondary">
           This process was started for a demo, so its clock can be pushed forward. Nothing moves it
-          back short of a restart.
+          back short of a restart. A jump longer than a week outlives every signed in session, so
+          expect to sign in again afterwards.
         </p>
         <div className="flex flex-wrap gap-3">
           {[1, 7, 31].map((days) => (

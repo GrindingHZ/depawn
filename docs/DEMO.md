@@ -45,15 +45,19 @@ Every account uses the password `demo-password-123`.
 
 ### What the seed leaves behind
 
-- Eight receipts in the Sydney vault, four of them free and four pledged
-- Four live listings, each with two competing offers
-- Two active loans at different distances from maturity
+- Eight receipts: one already released, four pledged against loans, three still free
+- Three live listings, each with two competing offers on it
+- Three active loans, maturing in a fortnight, in six weeks, and in three months
 - One loan repaid and its item already walked back out of the vault
 - One loan defaulted, its sale open, two bids standing against it
 
-The clock is where the seed left it, roughly a hundred days ahead of the wall clock, because a loan
-book with history cannot be built at one instant. That is deliberate and consistent: every date on
-every screen is measured against the same clock.
+The clock is where the seed left it, roughly two months ahead of the wall clock, because a loan
+book with history cannot be built at one instant and a clock cannot be asked to run backwards. That
+is deliberate and consistent: the offset is written down, the api reads it at startup, and every
+date on every screen is measured against the same clock.
+
+`pnpm dev` starts the api in demo mode, which is what puts the clock control on the admin screen.
+`pnpm start` does not, and a deployed process has no such route at all.
 
 ## The demo
 
@@ -78,7 +82,7 @@ Sign in as `ada@demo.test` in the marketplace window.
 
 1. **My items** shows the receipt you just issued. List it: AUD 1,500.00 requested, a ceiling of
    24.00 percent, thirty days.
-2. Publish it. **Browse** now shows it alongside the four the seed left.
+2. Publish it. **Browse** now shows it alongside the three the seed left.
 
 Sign in as `gita@demo.test` in a second marketplace window.
 
@@ -101,7 +105,10 @@ Sign in as `ops@demo.test`. Go to **Parameters**.
 
 1. The **Demo clock** card is present because this process was started for a demo. Push the clock
    forward 31 days.
-2. Return to the marketplace. The loan the borrower just took is now past maturity and the screen
+2. Every window is now signed out, because a session lasts seven days and you just skipped a month.
+   Sign in again in each. This is worth saying out loud rather than hiding: sessions are measured
+   against the same clock as everything else, and the demo is not exempt from its own rules.
+3. Return to the marketplace. The loan the borrower just took is now past maturity and the screen
    says so.
 
 Say: nothing here is a mock. The clock is the only thing being lied to, and only in a demo.
@@ -156,6 +163,7 @@ Still as `ops@demo.test`:
 | Dates look far in the future | Working as intended, see above | Nothing |
 | The demo clock card is missing | The api was started without `DEMO_MODE=true` | Restart with the flag |
 | An offer is refused as expired | The clock moved past it | Place a new one |
+| Every window bounces to login | The clock jumped past the session lifetime | Sign in again |
 | A sale refuses to open | The statutory holding period has not passed | Push the clock forward 31 days |
 
 ## What not to promise

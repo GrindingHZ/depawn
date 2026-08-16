@@ -145,13 +145,21 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await signIn(adminPage, 'ops@demo.test', staffPassword);
   await adminPage.getByRole('link', { name: 'Parameters' }).click();
   await expect(adminPage.getByTestId('demo-clock')).toBeVisible();
-  for (let jump = 0; jump < 2; jump += 1) {
-    await adminPage.getByTestId('advance-31').click();
-    await expect(adminPage.getByTestId('clock-now')).toBeVisible();
-  }
+  await adminPage.getByTestId('advance-31').click();
+  await expect(adminPage.getByTestId('clock-now')).toBeVisible();
+
+  /* A month is longer than a session lasts, so everyone is signed out. The
+     runbook says so at this step, and this is what proves it still says the
+     truth: after a jump, signing in again is the next thing that happens. */
+  await adminPage.goto(`${adminBase}/login`);
+  await signIn(adminPage, 'ops@demo.test', staffPassword);
+  await vaultPage.goto(`${vaultConsoleBase}/login`);
+  await signIn(vaultPage, 'staff@demo.test', staffPassword);
+  await borrowerPage.goto(`${marketplaceBase}/login`);
+  await signIn(borrowerPage, borrowerEmail, password);
 
   // Step 4. The borrower repays and the item walks back out of the vault.
-  await borrowerPage.reload();
+  await borrowerPage.getByRole('link', { name: 'My loans' }).click();
   await expect(borrowerPage.getByTestId('payoff-total')).toContainText('AUD');
   await borrowerPage.getByRole('button', { name: 'Repay and release the item' }).click();
   await expect(borrowerPage.getByTestId('my-loans')).toContainText('REPAID');
