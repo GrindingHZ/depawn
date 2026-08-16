@@ -30,7 +30,16 @@ function applyMigrations(databaseUrl: string): void {
   });
 }
 
-export async function createTestApplication(): Promise<TestApplication> {
+export interface ProviderOverride {
+  readonly token: unknown;
+  readonly useValue: unknown;
+}
+
+/* Some suites need to watch a port rather than the real adapter, so the
+   harness takes overrides instead of every suite building its own module. */
+export async function createTestApplication(
+  overrides: readonly ProviderOverride[] = [],
+): Promise<TestApplication> {
   const container: StartedPostgreSqlContainer = await new PostgreSqlContainer('postgres:16')
     .withDatabase('depawn_test')
     .withUsername('depawn')
@@ -45,10 +54,13 @@ export async function createTestApplication(): Promise<TestApplication> {
   // reproducible across runs.
   const clock = new FixedClockAdapter(Instant.fromEpochMilliseconds(1_767_225_600_000n));
 
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+  let builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(CLOCK_PORT)
-    .useValue(clock)
-    .compile();
+    .useValue(clock);
+  for (const override of overrides) {
+    builder = builder.overrideProvider(override.token).useValue(override.useValue);
+  }
+  const moduleRef = await builder.compile();
 
   const app = moduleRef.createNestApplication();
   app.use(cookieParser());
