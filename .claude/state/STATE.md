@@ -1,8 +1,8 @@
 # State
 
-phase: P7
-slice: p7c-parameters-and-outbox
-stage: review
-task: 10
-slice-base: 52baaad
+phase: P8
+slice: p8a-demo-hardening
+stage: execute
+task: 8
+slice-base: 168777e
 status: running
