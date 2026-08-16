@@ -403,6 +403,53 @@ model BorrowerNote {
   @@map("borrower_note")
 }
 
+enum LiquidationStatus {
+  SCHEDULED
+  BIDDING
+  SETTLED
+  CANCELLED
+
+  @@map("liquidation_status")
+}
+
+model Liquidation {
+  id                     String            @id
+  loanId                 String            @unique @map("loan_id")
+  receiptId              String            @map("receipt_id")
+  reservePriceMinorUnits BigInt            @map("reserve_price_minor_units")
+  currency               String
+  status                 LiquidationStatus
+  opensAt                DateTime?         @map("opens_at")
+  closesAt               DateTime?         @map("closes_at")
+  winningBidId           String?           @map("winning_bid_id")
+  version                Int               @default(0)
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  bids                   LiquidationBid[]
+
+  @@index([status])
+  @@map("liquidation")
+}
+
+model LiquidationBid {
+  id               String      @id
+  liquidationId    String      @map("liquidation_id")
+  bidderAccountId  String      @map("bidder_account_id")
+  minorUnits       BigInt      @map("minor_units")
+  currency         String
+  fundsHoldId      String      @map("funds_hold_id")
+  placedAt         DateTime    @map("placed_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  liquidation      Liquidation @relation(fields: [liquidationId], references: [id])
+
+  @@index([liquidationId])
+  @@index([bidderAccountId])
+  @@map("liquidation_bid")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String
