@@ -256,3 +256,13 @@ recording, before it is sealed
 given day, which is exactly what makes it worth showing to a lender. A borrower supplied image would
 be a different kind of thing wearing the same clothes. If borrowers ever do upload, the two need to
 be visibly distinct on screen, not merged into one gallery.
+
+## Q-027: whether the operations consoles should read like the marketplace
+**Blocks:** nothing today
+**Currently implemented:** the vault console and the admin lead with identifiers and monospace, and
+carry no explain layer; only their state names were put into words
+**Needs:** whoever owns docs/05
+**Notes:** Staff quote receipt ids to each other and read them off labels, so a table that leads
+with the id is the right tool for that job rather than a shortcoming. Applying a lender's treatment
+to an operations console would be copying a pattern instead of using it. This is written down so
+the asymmetry reads as a decision rather than as unfinished work.
