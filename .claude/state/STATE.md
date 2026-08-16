@@ -1,8 +1,8 @@
 # State
 
 phase: P7
-slice: p7a-pause-and-audit
-stage: review
-task: 12
-slice-base: bdb36c7
+slice: p7b-reconciliation-and-parameters
+stage: plan
+task: 0
+slice-base: pending
 status: running
