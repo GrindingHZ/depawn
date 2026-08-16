@@ -5,7 +5,7 @@ import type { Money } from '../shared/money';
 export type DriftKind =
   | 'MISSING_FROM_COUNT'
   | 'MISSING_FROM_RECORDS'
-  | 'LEDGER_ACCOUNT_IMBALANCE'
+  | 'LEDGER_TRANSACTION_IMBALANCE'
   | 'LEDGER_GLOBAL_IMBALANCE';
 
 /* A drift row names the thing to go and look at, not a total. Drift is an
@@ -29,10 +29,9 @@ export interface RecordedInventory {
   readonly receiptIds: readonly ReceiptId[];
 }
 
-export interface LedgerAccountBalance {
-  readonly ledgerAccountId: string;
-  readonly derivedBalance: Money;
-  readonly entrySum: Money;
+export interface LedgerTransactionBalance {
+  readonly ledgerTransactionId: string;
+  readonly net: Money;
 }
 
 export interface ReconciliationRun {
@@ -75,21 +74,25 @@ export function detectInventoryDrift(counted: VaultCount, recorded: RecordedInve
   return drift;
 }
 
-/* The ledger half of flow 10. Balances were never stored, so this checks the
-   invariant the whole build rests on rather than reconciling two copies. */
+/* The ledger half of flow 10. Balances were never stored, so there is no
+   second copy to reconcile against: comparing a derived balance with a sum
+   of the same entries would compare a number with itself and pass forever.
+   What can actually be wrong is the invariant every write upholds, so that
+   is what this checks: each transaction balances, and the whole sums to
+   zero (docs/03-ledger-and-money.md). */
 export function detectLedgerDrift(
-  balances: readonly LedgerAccountBalance[],
+  transactions: readonly LedgerTransactionBalance[],
   globalSum: Money,
 ): DriftRow[] {
   const drift: DriftRow[] = [];
-  for (const balance of balances) {
-    if (!balance.derivedBalance.equals(balance.entrySum)) {
+  for (const transaction of transactions) {
+    if (!transaction.net.isZero()) {
       drift.push({
-        kind: 'LEDGER_ACCOUNT_IMBALANCE',
-        subject: balance.ledgerAccountId,
-        field: 'balance',
-        expected: balance.derivedBalance.minorUnits.toString(),
-        observed: balance.entrySum.minorUnits.toString(),
+        kind: 'LEDGER_TRANSACTION_IMBALANCE',
+        subject: transaction.ledgerTransactionId,
+        field: 'net',
+        expected: '0',
+        observed: transaction.net.minorUnits.toString(),
       });
     }
   }

@@ -49,7 +49,7 @@ export class ReconcileVaultUseCase {
           { vaultId: command.vaultId, countedReceiptIds: command.countedReceiptIds },
           { vaultId: command.vaultId, receiptIds: recorded },
         ),
-        ...detectLedgerDrift(ledger.balances, ledger.globalSum),
+        ...detectLedgerDrift(ledger.transactions, ledger.globalSum),
       ];
 
       const run: ReconciliationRun = {

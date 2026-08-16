@@ -29,32 +29,27 @@ export class PrismaReconciliationRepository implements ReconciliationRepository 
     return rows.map((row) => receiptIdOf(row.id));
   }
 
-  /* Balances were never stored, so the two sides are two ways of deriving
-     the same number: the grouped query the application uses and a direct sum
-     per account. */
+  /* Two checks that can actually fail: every transaction's entries net to
+     zero, and the ledger as a whole nets to zero. Comparing an account's
+     balance against a sum of the same entries would compare a number with
+     itself. */
   async ledgerSnapshot(context: UnitOfWorkContext): Promise<LedgerSnapshot> {
-    const rows = await transactionOf(context).$queryRaw<
-      { account_id: string; derived: bigint; entry_sum: bigint }[]
-    >`
-      SELECT a.id AS account_id,
-             COALESCE(SUM(CASE WHEN e.direction = 'CREDIT' THEN e.minor_units ELSE -e.minor_units END), 0)::bigint AS derived,
-             COALESCE((
-               SELECT SUM(CASE WHEN e2.direction = 'CREDIT' THEN e2.minor_units ELSE -e2.minor_units END)
-               FROM ledger_entry e2 WHERE e2.account_id = a.id
-             ), 0)::bigint AS entry_sum
-      FROM ledger_account a
-      LEFT JOIN ledger_entry e ON e.account_id = a.id
-      GROUP BY a.id
+    const rows = await transactionOf(context).$queryRaw<{ transaction_id: string; net: bigint }[]>`
+      SELECT t.id AS transaction_id,
+             COALESCE(SUM(CASE WHEN e.direction = 'CREDIT' THEN e.minor_units ELSE -e.minor_units END), 0)::bigint AS net
+      FROM ledger_transaction t
+      LEFT JOIN ledger_entry e ON e.transaction_id = t.id
+      GROUP BY t.id
+      HAVING COALESCE(SUM(CASE WHEN e.direction = 'CREDIT' THEN e.minor_units ELSE -e.minor_units END), 0) <> 0
     `;
     const globalRows = await transactionOf(context).$queryRaw<{ total: bigint }[]>`
       SELECT COALESCE(SUM(CASE WHEN direction = 'CREDIT' THEN minor_units ELSE -minor_units END), 0)::bigint AS total
       FROM ledger_entry
     `;
     return {
-      balances: rows.map((row) => ({
-        ledgerAccountId: row.account_id,
-        derivedBalance: Money.of(row.derived, aud),
-        entrySum: Money.of(row.entry_sum, aud),
+      transactions: rows.map((row) => ({
+        ledgerTransactionId: row.transaction_id,
+        net: Money.of(row.net, aud),
       })),
       globalSum: Money.of(globalRows[0]?.total ?? 0n, aud),
     };

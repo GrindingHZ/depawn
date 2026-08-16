@@ -1,10 +1,10 @@
 import type { UnitOfWorkContext } from '../ports/unit-of-work';
 import type { ReceiptId, VaultId } from '../shared/identifiers';
 import type { Money } from '../shared/money';
-import type { LedgerAccountBalance, ReconciliationRun } from './reconciliation-run';
+import type { LedgerTransactionBalance, ReconciliationRun } from './reconciliation-run';
 
 export interface LedgerSnapshot {
-  readonly balances: readonly LedgerAccountBalance[];
+  readonly transactions: readonly LedgerTransactionBalance[];
   readonly globalSum: Money;
 }
 

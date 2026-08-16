@@ -4,7 +4,7 @@ import { moneySchema } from './money';
 export const driftKindSchema = z.enum([
   'MISSING_FROM_COUNT',
   'MISSING_FROM_RECORDS',
-  'LEDGER_ACCOUNT_IMBALANCE',
+  'LEDGER_TRANSACTION_IMBALANCE',
   'LEDGER_GLOBAL_IMBALANCE',
 ]);
 

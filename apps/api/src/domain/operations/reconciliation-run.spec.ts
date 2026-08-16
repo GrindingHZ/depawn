@@ -58,29 +58,20 @@ describe('detectInventoryDrift', () => {
 });
 
 describe('detectLedgerDrift', () => {
-  it('reports nothing when every account agrees and the whole sums to zero', () => {
-    const drift = detectLedgerDrift(
-      [
-        {
-          ledgerAccountId: 'A',
-          derivedBalance: Money.of(100n, aud),
-          entrySum: Money.of(100n, aud),
-        },
-      ],
-      Money.zero(aud),
-    );
-    expect(drift).toEqual([]);
+  it('reports nothing when every transaction nets to zero and so does the whole', () => {
+    expect(detectLedgerDrift([], Money.zero(aud))).toEqual([]);
   });
 
-  it('reports an account whose balance disagrees with its entries', () => {
+  it('reports a transaction whose entries do not net to zero', () => {
     const drift = detectLedgerDrift(
-      [{ ledgerAccountId: 'A', derivedBalance: Money.of(100n, aud), entrySum: Money.of(99n, aud) }],
+      [{ ledgerTransactionId: 'TX-1', net: Money.of(1n, aud) }],
       Money.zero(aud),
     );
     expect(drift).toHaveLength(1);
-    expect(drift[0]?.kind).toBe('LEDGER_ACCOUNT_IMBALANCE');
-    expect(drift[0]?.expected).toBe('100');
-    expect(drift[0]?.observed).toBe('99');
+    expect(drift[0]?.kind).toBe('LEDGER_TRANSACTION_IMBALANCE');
+    expect(drift[0]?.subject).toBe('TX-1');
+    expect(drift[0]?.expected).toBe('0');
+    expect(drift[0]?.observed).toBe('1');
   });
 
   it('reports a ledger that does not sum to zero', () => {
@@ -88,5 +79,16 @@ describe('detectLedgerDrift', () => {
     expect(drift).toHaveLength(1);
     expect(drift[0]?.kind).toBe('LEDGER_GLOBAL_IMBALANCE');
     expect(drift[0]?.observed).toBe('-5');
+  });
+
+  it('reports both when one bad transaction unbalances the whole', () => {
+    const drift = detectLedgerDrift(
+      [{ ledgerTransactionId: 'TX-1', net: Money.of(1n, aud) }],
+      Money.of(1n, aud),
+    );
+    expect(drift.map((row) => row.kind)).toEqual([
+      'LEDGER_TRANSACTION_IMBALANCE',
+      'LEDGER_GLOBAL_IMBALANCE',
+    ]);
   });
 });

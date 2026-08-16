@@ -179,6 +179,16 @@ describe('reconciliation', () => {
     );
     expect(global).toBeDefined();
     expect(global.observed).toBe('1');
+
+    // The same planted entry also leaves its own transaction unbalanced,
+    // which points at the row to go and look at rather than only saying the
+    // ledger is out somewhere.
+    const perTransaction = run.body.drift.find(
+      (row: { kind: string }) => row.kind === 'LEDGER_TRANSACTION_IMBALANCE',
+    );
+    expect(perTransaction).toBeDefined();
+    expect(perTransaction.subject).toBe(transaction.id);
+    expect(perTransaction.observed).toBe('1');
   });
 
   it('keeps a history of runs and their drift', async () => {
