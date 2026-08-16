@@ -1,8 +1,8 @@
 # State
 
-phase: P6
-slice: p6b-liquidation
-stage: review
-task: 15
-slice-base: 3d04621
+phase: P7
+slice: p7a-pause-and-audit
+stage: plan
+task: 0
+slice-base: pending
 status: running
