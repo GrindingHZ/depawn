@@ -197,8 +197,15 @@ describe('a demo process serving the seeded dataset', () => {
   });
 
   it('reports that it is a demo process, so the clock control appears', async () => {
-    const response = await call('GET', '/health');
-    expect(await response.json()).toEqual({ status: 'ok', demoMode: true });
+    const health = (await (await call('GET', '/health')).json()) as {
+      status: string;
+      demoMode: boolean;
+      now: string;
+    };
+    expect(health.status).toBe('ok');
+    expect(health.demoMode).toBe(true);
+    // It says so on the way out, which is how anything else notices.
+    expect(Date.parse(health.now)).toBeGreaterThan(Date.now() + 7 * 24 * 60 * 60 * 1000);
   });
 
   /* The whole point of writing the offset down. A process that read the

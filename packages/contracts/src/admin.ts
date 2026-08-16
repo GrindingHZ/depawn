@@ -40,6 +40,7 @@ export type AuditPageResponse = z.infer<typeof auditPageResponseSchema>;
 
 export const healthResponseSchema = z.object({
   status: z.literal('ok'),
+  now: z.string(),
   demoMode: z.boolean(),
 });
 

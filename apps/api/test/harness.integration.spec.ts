@@ -22,8 +22,11 @@ describe('test harness', () => {
   it('boots the application against a fresh postgres', async () => {
     const response = await request(harness.app.getHttpServer()).get('/api/v1/health').expect(200);
     // The suite runs under NODE_ENV=test, which is one of the two modes that
-    // hands the process a movable clock.
-    expect(response.body).toEqual({ status: 'ok', demoMode: true });
+    // hands the process a movable clock. The instant is the process's own,
+    // which is what lets a caller notice it is talking to a demo.
+    expect(response.body.status).toBe('ok');
+    expect(response.body.demoMode).toBe(true);
+    expect(Date.parse(response.body.now)).toBe(Number(harness.clock.now().epochMilliseconds));
   });
 
   it('shapes unknown routes through the error filter', async () => {
