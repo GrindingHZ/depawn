@@ -99,6 +99,10 @@ test('a receipt becomes a listing and takes a funded offer', async ({ page, brow
   await page.getByTestId('list-principal').fill('2500.00');
   await page.getByTestId('list-submit').click();
   await expect(page.getByTestId('my-listings')).toContainText('ACTIVE');
+  await page.getByRole('link', { name: 'My listings' }).click();
+  const listingId = (
+    await page.getByTestId('my-listings').getByRole('link').first().innerText()
+  ).trim();
 
   const lenderContext = await browser.newContext();
   const lenderPage = await lenderContext.newPage();
@@ -108,9 +112,12 @@ test('a receipt becomes a listing and takes a funded offer', async ({ page, brow
   await lenderPage.getByTestId('login-submit').click();
   await expect(lenderPage.getByTestId('authenticated-home')).toBeVisible();
 
+  // Browse shows every live listing, including ones other specs publish at
+  // the same time, so the lender opens the listing under test by id rather
+  // than taking whatever happens to be on top.
   await lenderPage.getByRole('link', { name: 'Browse' }).click();
-  await expect(lenderPage.getByTestId('browse-table')).toContainText('AUD 2,500.00');
-  await lenderPage.getByTestId('browse-table').getByRole('link').first().click();
+  await expect(lenderPage.getByTestId('browse-table')).toContainText(listingId);
+  await lenderPage.goto(`/listings/${listingId}`);
 
   await expect(lenderPage.getByTestId('max-principal')).toHaveText('AUD 3,000.00');
   await lenderPage.getByTestId('offer-rate').fill('18.00');
@@ -140,6 +147,9 @@ test('the offer form blocks a principal above the ceiling', async ({ page, reque
   await page.getByTestId('list-principal').fill('2500.00');
   await page.getByTestId('list-submit').click();
   await expect(page.getByTestId('my-listings')).toContainText('ACTIVE');
+  const ceilingListingId = (
+    await page.getByTestId('my-listings').getByRole('link').first().innerText()
+  ).trim();
   await page.getByRole('button', { name: 'Log out' }).click();
   await page.waitForURL('**/login');
   // A full reload gives the login form a clean mount; the logout redirect
@@ -149,8 +159,8 @@ test('the offer form blocks a principal above the ceiling', async ({ page, reque
   await page.getByTestId('email-input').fill(lenderEmail);
   await page.getByTestId('password-input').fill(password);
   await page.getByTestId('login-submit').click();
-  await page.getByRole('link', { name: 'Browse' }).click();
-  await page.getByTestId('browse-table').getByRole('link').first().click();
+  await expect(page.getByTestId('authenticated-home')).toBeVisible();
+  await page.goto(`/listings/${ceilingListingId}`);
 
   await page.getByTestId('offer-principal').fill('3000.01');
   await expect(page.getByTestId('offer-submit')).toBeDisabled();
