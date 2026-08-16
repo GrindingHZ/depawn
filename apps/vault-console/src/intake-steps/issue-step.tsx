@@ -1,4 +1,4 @@
-import { ApiError, issueReceipt } from '@depawn/contracts';
+import { ApiError, issueReceipt, messageForError } from '@depawn/contracts';
 import type { ReceiptResponse } from '@depawn/contracts';
 import { Button, Card, Dialog, Field } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ function messageFor(error: unknown): string {
       return 'Issuing this receipt would push the vault past its insured limit.';
     }
   }
-  return 'The receipt could not be issued.';
+  return messageForError(error, 'The receipt could not be issued.');
 }
 
 export function IssueStep({ intake }: Omit<IntakeStepProps, 'onAdvance'>): ReactElement {

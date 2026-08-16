@@ -1,4 +1,10 @@
-import { ApiError, acceptOffer, fetchListing, placeOffer } from '@depawn/contracts';
+import {
+  ApiError,
+  acceptOffer,
+  fetchListing,
+  messageForError,
+  placeOffer,
+} from '@depawn/contracts';
 import type { ListingDetailResponse, RankedOfferResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Field, Money, Rate, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -113,7 +119,7 @@ function acceptMessageFor(error: unknown): string {
       return 'The principal is now above the lending ceiling for this item.';
     }
   }
-  return 'The offer could not be accepted.';
+  return messageForError(error, 'The offer could not be accepted.');
 }
 
 function OfferBookCard({
@@ -214,7 +220,7 @@ function offerMessageFor(error: unknown): string {
       return 'Your available balance does not cover this principal.';
     }
   }
-  return 'The offer could not be placed.';
+  return messageForError(error, 'The offer could not be placed.');
 }
 
 function PlaceOfferCard({ detail }: { readonly detail: ListingDetailResponse }): ReactElement {

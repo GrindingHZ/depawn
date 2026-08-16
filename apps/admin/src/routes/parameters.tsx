@@ -90,12 +90,17 @@ function ClockCard(): ReactElement | null {
     mutationFn: (days: number) => advanceClock({ milliseconds: days * oneDay }),
     onSuccess: async (response) => {
       setMovedTo(response.now);
-      // Everything on every screen is measured against this clock.
-      await queryClient.invalidateQueries();
+      /* Everything on every screen is measured against this clock, so
+         everything is refetched. Everything except the answer to whether
+         this process has a clock at all, which cannot change while it is
+         running and whose refetch would take this card away mid demo. */
+      await queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] !== parameterKeys.health[0],
+      });
     },
   });
 
-  if (healthQuery.isPending) {
+  if (healthQuery.isLoading) {
     return (
       <Card title="Demo clock">
         <Skeleton lineCount={2} />

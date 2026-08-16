@@ -1,4 +1,4 @@
-import { ApiError, patchIntake, sealIntake } from '@depawn/contracts';
+import { ApiError, messageForError, patchIntake, sealIntake } from '@depawn/contracts';
 import { Button, Card, Dialog, Field } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -18,7 +18,7 @@ function messageFor(error: unknown): string {
       return 'The intake is already sealed.';
     }
   }
-  return 'The intake could not be sealed.';
+  return messageForError(error, 'The intake could not be sealed.');
 }
 
 export function SealStep({ intake, onAdvance }: IntakeStepProps): ReactElement {

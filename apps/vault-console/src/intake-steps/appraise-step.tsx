@@ -1,4 +1,4 @@
-import { ApiError, recordAppraisal } from '@depawn/contracts';
+import { ApiError, messageForError, recordAppraisal } from '@depawn/contracts';
 import { Button, Card, Field, Money, toMinorUnits } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -10,7 +10,7 @@ function messageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'INTAKE_ALREADY_SEALED') {
     return 'The intake is sealed and cannot take another appraisal.';
   }
-  return 'The appraisal could not be recorded.';
+  return messageForError(error, 'The appraisal could not be recorded.');
 }
 
 export function AppraiseStep({ intake, onAdvance }: IntakeStepProps): ReactElement {

@@ -1,4 +1,4 @@
-import { ApiError, cancelListing, fetchMyListings } from '@depawn/contracts';
+import { ApiError, cancelListing, fetchMyListings, messageForError } from '@depawn/contracts';
 import type { ListingResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +40,7 @@ function cancelMessageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'LISTING_NOT_ACTIVE') {
     return 'The listing can no longer be cancelled.';
   }
-  return 'The listing could not be cancelled.';
+  return messageForError(error, 'The listing could not be cancelled.');
 }
 
 function MyListingsCard(): ReactElement {

@@ -3,6 +3,7 @@ import {
   createListing,
   fetchMyReceipts,
   fetchMyRedemptionRequests,
+  messageForError,
   publishListing,
   requestRedemption,
 } from '@depawn/contracts';
@@ -65,7 +66,7 @@ function redemptionMessageFor(error: unknown): string {
       return 'This item has already been requested.';
     }
   }
-  return 'The request could not be made.';
+  return messageForError(error, 'The request could not be made.');
 }
 
 function ReceiptsCard(): ReactElement {
@@ -212,7 +213,7 @@ function listMessageFor(error: unknown): string {
       return 'This receipt already has a live listing.';
     }
   }
-  return 'The listing could not be created.';
+  return messageForError(error, 'The listing could not be created.');
 }
 
 function ListReceiptDialog({

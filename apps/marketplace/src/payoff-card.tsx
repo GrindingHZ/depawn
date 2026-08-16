@@ -1,4 +1,4 @@
-import { ApiError, fetchPayoffQuote, repayLoan } from '@depawn/contracts';
+import { ApiError, fetchPayoffQuote, messageForError, repayLoan } from '@depawn/contracts';
 import type { LoanResponse, MoneyDto } from '@depawn/contracts';
 import { Button, Card, Money, Skeleton } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,7 +42,7 @@ function repayMessageFor(error: unknown): string {
       return 'This loan is already closed.';
     }
   }
-  return 'The repayment could not be completed.';
+  return messageForError(error, 'The repayment could not be completed.');
 }
 
 export function PayoffCard({ loan }: { readonly loan: LoanResponse }): ReactElement {

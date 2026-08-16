@@ -1,4 +1,10 @@
-import { ApiError, fetchBalance, fetchLedgerEntries, withdraw } from '@depawn/contracts';
+import {
+  ApiError,
+  fetchBalance,
+  fetchLedgerEntries,
+  messageForError,
+  withdraw,
+} from '@depawn/contracts';
 import type { LedgerEntryResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Field, Money, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,7 +23,7 @@ function withdrawalMessageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'INSUFFICIENT_FUNDS') {
     return 'The available balance is below the requested amount.';
   }
-  return 'The request failed. Try again.';
+  return messageForError(error, 'The request failed. Try again.');
 }
 
 function WalletPage(): ReactElement | null {

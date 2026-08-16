@@ -1,4 +1,10 @@
-import { ApiError, closeLiquidation, fetchLiquidations, openLiquidation } from '@depawn/contracts';
+import {
+  ApiError,
+  closeLiquidation,
+  fetchLiquidations,
+  messageForError,
+  openLiquidation,
+} from '@depawn/contracts';
 import type { LiquidationResponse } from '@depawn/contracts';
 import { AppShell, Button, Card, DataTable, Money, Skeleton, StatusBadge } from '@depawn/ui';
 import type { StatusTone } from '@depawn/ui';
@@ -43,7 +49,7 @@ function actionMessageFor(error: unknown): string {
       return 'This sale cannot be closed: it is not taking bids, or nobody has bid.';
     }
   }
-  return 'The step could not be recorded.';
+  return messageForError(error, 'The step could not be recorded.');
 }
 
 function LiquidationsPage(): ReactElement | null {

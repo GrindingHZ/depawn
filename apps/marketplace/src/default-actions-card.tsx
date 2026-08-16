@@ -1,4 +1,4 @@
-import { ApiError, claimReceipt, markLoanDefaulted } from '@depawn/contracts';
+import { ApiError, claimReceipt, markLoanDefaulted, messageForError } from '@depawn/contracts';
 import type { LoanResponse } from '@depawn/contracts';
 import { Button, Card } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,7 +21,7 @@ function actionMessageFor(error: unknown): string {
       return 'The item has already been claimed.';
     }
   }
-  return 'The step could not be recorded.';
+  return messageForError(error, 'The step could not be recorded.');
 }
 
 /* Whether grace has run out is the server's clock to judge, not the

@@ -1,4 +1,4 @@
-import { ApiError, deposit } from '@depawn/contracts';
+import { ApiError, deposit, messageForError } from '@depawn/contracts';
 import { AppShell, Button, Card, Field, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useMutation } from '@tanstack/react-query';
 import { Navigate, createFileRoute } from '@tanstack/react-router';
@@ -15,7 +15,7 @@ function depositMessageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'NOT_FOUND') {
     return 'No account exists for this email.';
   }
-  return 'The request failed. Try again.';
+  return messageForError(error, 'The request failed. Try again.');
 }
 
 function DepositsPage(): ReactElement | null {

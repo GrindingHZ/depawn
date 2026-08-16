@@ -2,6 +2,7 @@ import {
   ApiError,
   confirmRelease,
   fetchRedemptionQueue,
+  messageForError,
   verifyRedemption,
 } from '@depawn/contracts';
 import type { RedemptionRequestResponse } from '@depawn/contracts';
@@ -40,7 +41,7 @@ function counterMessageFor(error: unknown): string {
       return 'This item has already been handed over.';
     }
   }
-  return 'The step could not be recorded.';
+  return messageForError(error, 'The step could not be recorded.');
 }
 
 function ReleaseDetail({ requestId }: { readonly requestId: string }): ReactElement {

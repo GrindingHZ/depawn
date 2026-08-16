@@ -1,4 +1,4 @@
-import { ApiError, beginIntake } from '@depawn/contracts';
+import { ApiError, beginIntake, messageForError } from '@depawn/contracts';
 import { Button, Card, Field } from '@depawn/ui';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -16,7 +16,7 @@ function messageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'NOT_FOUND') {
     return 'No account exists for this email.';
   }
-  return 'The request failed. Try again.';
+  return messageForError(error, 'The request failed. Try again.');
 }
 
 function IntakeStartPage(): ReactElement {

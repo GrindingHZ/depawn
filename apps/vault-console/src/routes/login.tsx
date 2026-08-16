@@ -1,4 +1,4 @@
-import { ApiError, login, loginRequestSchema } from '@depawn/contracts';
+import { ApiError, login, loginRequestSchema, messageForError } from '@depawn/contracts';
 import type { LoginRequest } from '@depawn/contracts';
 import { Button, Card, Field } from '@depawn/ui';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +16,7 @@ function messageFor(error: unknown): string {
   if (error instanceof ApiError && error.code === 'UNAUTHENTICATED') {
     return 'Email or password is incorrect.';
   }
-  return 'The request failed. Try again.';
+  return messageForError(error, 'The request failed. Try again.');
 }
 
 function LoginPage(): ReactElement {

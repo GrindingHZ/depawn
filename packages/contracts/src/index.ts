@@ -13,6 +13,7 @@ export * from './client/wallet-client';
 export * from './custody';
 export * from './marketplace';
 export * from './error-codes';
+export * from './error-copy';
 export * from './lending';
 export * from './liquidation';
 export * from './money';
