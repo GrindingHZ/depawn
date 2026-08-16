@@ -1,3 +1,12 @@
+# Everything the demo needs, in one command:
+#
+#   docker compose up --build
+#
+# Then the marketplace is on 5273, the vault console on 5174 and the admin on
+# 5175, the same addresses `pnpm dev` uses, so docs/DEMO.md reads the same
+# either way. The database keeps its data between runs, and the seed only
+# fills an empty one.
+
 services:
   postgres:
     image: postgres:16
@@ -9,6 +18,90 @@ services:
       - '5433:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U depawn -d depawn']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://depawn:depawn@postgres:5432/depawn
+      PORT: '3000'
+      # The clock control on the admin screen, and the advanceable clock the
+      # seed needs to spread a loan book across weeks.
+      DEMO_MODE: 'true'
+      # The seed refuses to empty a database it cannot see is local, which is
+      # the right default for a script that truncates. Here the host is this
+      # file's own postgres service, so the refusal is answered deliberately
+      # rather than by widening the rule.
+      SEED_ANY_DATABASE: 'true'
+      # Set to false to keep whatever is already in the database.
+      SEED_ON_START: 'true'
+      STORAGE_DIRECTORY: /var/depawn/storage
+    volumes:
+      # Photographs live on disk beside the database rows that reference them,
+      # so the two have to survive a restart together.
+      - api-storage:/var/depawn/storage
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - '-e'
+        - "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+  marketplace:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: web
+      args:
+        APP: marketplace
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '5273:80'
+
+  vault-console:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: web
+      args:
+        APP: vault-console
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '5174:80'
+
+  admin:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: web
+      args:
+        APP: admin
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '5175:80'
 
 volumes:
   postgres-data:
+  api-storage:

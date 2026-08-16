@@ -9,6 +9,19 @@ the runbook fails the suite rather than surprising you in front of an audience.
 
 ## Before anyone is watching
 
+One command, nothing installed but Docker:
+
+```
+docker compose up --build
+```
+
+The first build takes a few minutes. After that it starts in seconds. The stack migrates the
+database, seeds it if it is empty, and serves all three apps. Restarting keeps whatever is in
+there; to start the story again, `docker compose down -v` and up.
+
+If you are working on the code rather than showing it, run it from source instead, which gives you
+hot reload:
+
 ```
 pnpm install
 pnpm db:up
@@ -20,6 +33,11 @@ pnpm dev
 `pnpm db:seed` empties the database and rebuilds the whole story through the same endpoints the
 apps use, so it is repeatable and so nothing in it could have been reached any other way. It takes
 about a minute.
+
+Either way the addresses are the same, so the rest of this runbook does not care which you chose.
+One thing does differ: under Docker the api serves through nginx on each app's own port, so
+`pnpm test:e2e` will refuse to run while the stack is up, for the same reason it refuses while
+`pnpm dev` is running. Stop it first with `docker compose down`.
 
 Three apps come up:
 
@@ -167,7 +185,8 @@ Still as `ops@demo.test`:
 |---|---|---|
 | Every screen is empty | The seed did not run or ran against another database | `pnpm db:seed` |
 | Dates look far in the future | Working as intended, see above | Nothing |
-| The demo clock card is missing | The api was started without `DEMO_MODE=true` | Restart with the flag |
+| The demo clock card is missing | The api was started without `DEMO_MODE=true` | Restart with the flag, or use compose, which sets it |
+| Compose says a port is in use | `pnpm dev` is still running | Stop it, or `docker compose down` |
 | An offer is refused as expired | The clock moved past it | Place a new one |
 | Every window bounces to login | The clock jumped past the session lifetime | Sign in again |
 | A sale refuses to open | The statutory holding period has not passed | Push the clock forward 31 days |

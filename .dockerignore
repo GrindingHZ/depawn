@@ -1,0 +1,24 @@
+# Anything the image should build for itself, or that belongs to a developer's
+# machine rather than to the image. Node modules in particular: they are
+# platform specific, and copying a Windows install into a Linux image produces
+# failures that look like code faults.
+node_modules
+**/node_modules
+dist
+**/dist
+build
+**/build
+.turbo
+**/.turbo
+.git
+.github
+.husky
+.claude
+.playwright-mcp
+e2e/test-results
+e2e/playwright-report
+apps/api/var
+var
+coverage
+**/coverage
+*.log

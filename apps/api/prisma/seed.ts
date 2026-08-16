@@ -217,11 +217,22 @@ function money(minorUnits: string): { minorUnits: string; currency: 'AUD' } {
    what a demo account is called. */
 const accountsOnly = process.argv.includes('--accounts-only');
 
+/* For a container that starts on every `docker compose up`. Seeding an empty
+   database is helpful; emptying a full one because the stack restarted is
+   not, and belongs behind a deliberate `pnpm db:seed`. */
+const onlyIfEmpty = process.argv.includes('--if-empty');
+
 async function main(): Promise<void> {
   process.env.DEMO_MODE = 'true';
   const configuration = loadConfiguration();
-  refuseToWipeAnythingImportant(configuration.databaseUrl);
   const prisma = new PrismaClient({ datasourceUrl: configuration.databaseUrl });
+
+  if (onlyIfEmpty && (await prisma.account.count()) > 0) {
+    process.stdout.write('the database already has accounts, so the seed left it alone\n');
+    await prisma.$disconnect();
+    return;
+  }
+  refuseToWipeAnythingImportant(configuration.databaseUrl);
 
   /* The dataset is a story with a fixed cast, so it starts from an empty
      database. Seeding on top of a previous run would double the loan book

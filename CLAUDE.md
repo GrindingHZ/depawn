@@ -121,6 +121,7 @@ Full rules in `docs/09-conventions.md`. The short version:
 ## Commands
 
 ```
+docker compose up --build  the whole demo: database, api, all three apps
 pnpm install
 pnpm db:up                 docker compose up postgres
 pnpm db:migrate            prisma migrate dev
