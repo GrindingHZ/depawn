@@ -14,6 +14,12 @@ export function assertWithinLoanToValue(
   parameters: ProtocolParameters,
 ): Result<void, LoanToValueExceeded> {
   const capBasisPoints = parameters.maxLoanToValueBasisPointsByCategory[category];
+  /* A category with no cap would put undefined into money arithmetic and lend
+     against a NaN. Refusing loudly is the only safe reading of a parameter set
+     that has fallen behind the categories the vault accepts. */
+  if (typeof capBasisPoints !== 'number') {
+    throw new Error(`No loan to value cap is configured for ${category}`);
+  }
   const maxPrincipal = appraisedValue.multiplyByBasisPoints(capBasisPoints);
   if (principal.isGreaterThan(maxPrincipal)) {
     return failure(new LoanToValueExceeded(maxPrincipal));

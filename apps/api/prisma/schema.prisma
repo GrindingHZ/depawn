@@ -145,6 +145,10 @@ enum ReceiptStatus {
 
 enum ItemCategory {
   BULLION
+  WATCH
+  JEWELLERY
+  COLLECTIBLE
+  ART
 
   @@map("item_category")
 }

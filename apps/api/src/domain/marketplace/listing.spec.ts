@@ -19,7 +19,13 @@ const now = Instant.fromEpochMilliseconds(1_700_000_000_000n);
 const later = now.plusMilliseconds(3_600_000n);
 
 const parameters: ProtocolParameters = {
-  maxLoanToValueBasisPointsByCategory: { BULLION: 6000 },
+  maxLoanToValueBasisPointsByCategory: {
+    BULLION: 6000,
+    WATCH: 5000,
+    JEWELLERY: 4500,
+    COLLECTIBLE: 3500,
+    ART: 3000,
+  },
   maxAnnualPercentageRateBasisPoints: 4800,
   minimumOfferLifetimeMs: 600_000n,
   originationFeeBasisPoints: 200,

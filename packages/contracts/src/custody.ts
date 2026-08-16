@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { moneySchema, positiveMoneySchema } from './money';
 
-export const itemCategorySchema = z.enum(['BULLION']);
+export const itemCategorySchema = z.enum(['BULLION', 'WATCH', 'JEWELLERY', 'COLLECTIBLE', 'ART']);
+
+export type ItemCategoryDto = z.infer<typeof itemCategorySchema>;
 
 export const intakeStatusSchema = z.enum(['DRAFT', 'SEALED']);
 
