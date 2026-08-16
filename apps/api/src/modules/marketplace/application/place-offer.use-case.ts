@@ -16,6 +16,8 @@ import { DOMAIN_EVENT_PUBLISHER } from '../../../domain/ports/domain-event-publi
 import type { DomainEventPublisher } from '../../../domain/ports/domain-event-publisher.port';
 import { SETTLEMENT_PORT } from '../../../domain/ports/settlement.port';
 import type { SettlementPort } from '../../../domain/ports/settlement.port';
+import { SYSTEM_STATE_PORT } from '../../../domain/ports/system-state.port';
+import type { SystemStatePort } from '../../../domain/ports/system-state.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { DomainError } from '../../../domain/shared/domain-error';
@@ -25,6 +27,7 @@ import { fundsHoldIdOf, offerIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, ListingId } from '../../../domain/shared/identifiers';
 import type { Instant } from '../../../domain/shared/instant';
 import type { Money } from '../../../domain/shared/money';
+import { SystemPaused } from '../../../domain/shared/system-paused';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
 
@@ -46,6 +49,7 @@ type PlaceOfferRejection = DomainError;
 export class PlaceOfferUseCase {
   constructor(
     @Inject(UNIT_OF_WORK) private readonly unitOfWork: UnitOfWork,
+    @Inject(SYSTEM_STATE_PORT) private readonly systemState: SystemStatePort,
     @Inject(LISTING_REPOSITORY) private readonly listings: ListingRepository,
     @Inject(CUSTODY_RECEIPT_REPOSITORY) private readonly receipts: CustodyReceiptRepository,
     @Inject(SETTLEMENT_PORT) private readonly settlement: SettlementPort,
@@ -59,6 +63,11 @@ export class PlaceOfferUseCase {
   async execute(command: PlaceOfferCommand): Promise<Result<Offer, PlaceOfferRejection>> {
     try {
       return await this.unitOfWork.run(async (context) => {
+        // Flow 11 blocks this entrance while the system is paused. The
+        // flows that return money or collateral never carry this check.
+        if ((await this.systemState.read(context)).isPaused) {
+          return failure(new SystemPaused());
+        }
         await this.listings.lock(command.listingId, context);
         const listing = await this.listings.findById(command.listingId, context);
         if (listing === null) {

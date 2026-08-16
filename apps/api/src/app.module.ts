@@ -7,7 +7,9 @@ import { ProtocolParametersModule } from './infrastructure/parameters/protocol-p
 import { PlatformServicesModule } from './infrastructure/platform-services.module';
 import { PersistenceModule } from './infrastructure/persistence/persistence.module';
 import { SettlementModule } from './infrastructure/settlement/settlement.module';
+import { SystemStateModule } from './infrastructure/system-state/system-state.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { AdminApiModule } from './modules/admin/admin-api.module';
 import { CustodyApiModule } from './modules/custody/custody-api.module';
 import { HealthModule } from './modules/health/health.module';
 import { LedgerModule } from './modules/ledger/ledger.module';
@@ -27,11 +29,13 @@ const testOnlyModules = process.env.NODE_ENV === 'test' ? [TestSupportModule] : 
     ClockModule,
     PersistenceModule,
     SettlementModule,
+    SystemStateModule,
     CustodyModule,
     PlatformServicesModule,
     ProtocolParametersModule,
     SharedHttpModule,
     AccountsModule,
+    AdminApiModule,
     LedgerModule,
     CustodyApiModule,
     MarketplaceApiModule,

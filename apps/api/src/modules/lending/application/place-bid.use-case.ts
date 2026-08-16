@@ -9,6 +9,8 @@ import { CLOCK_PORT } from '../../../domain/ports/clock.port';
 import type { ClockPort } from '../../../domain/ports/clock.port';
 import { SETTLEMENT_PORT } from '../../../domain/ports/settlement.port';
 import type { SettlementPort } from '../../../domain/ports/settlement.port';
+import { SYSTEM_STATE_PORT } from '../../../domain/ports/system-state.port';
+import type { SystemStatePort } from '../../../domain/ports/system-state.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { DomainError } from '../../../domain/shared/domain-error';
@@ -17,6 +19,7 @@ import type { IdGenerator } from '../../../domain/shared/id-generator';
 import { fundsHoldIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, LiquidationId } from '../../../domain/shared/identifiers';
 import type { Money } from '../../../domain/shared/money';
+import { SystemPaused } from '../../../domain/shared/system-paused';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
 
@@ -34,6 +37,7 @@ export interface PlaceBidCommand {
 export class PlaceBidUseCase {
   constructor(
     @Inject(UNIT_OF_WORK) private readonly unitOfWork: UnitOfWork,
+    @Inject(SYSTEM_STATE_PORT) private readonly systemState: SystemStatePort,
     @Inject(LIQUIDATION_REPOSITORY) private readonly liquidations: LiquidationRepository,
     @Inject(SETTLEMENT_PORT) private readonly settlement: SettlementPort,
     @Inject(AUDIT_PORT) private readonly audit: AuditPort,
@@ -44,6 +48,11 @@ export class PlaceBidUseCase {
   async execute(command: PlaceBidCommand): Promise<Result<Liquidation, DomainError>> {
     try {
       return await this.unitOfWork.run(async (context) => {
+        // Flow 11 blocks this entrance while the system is paused. The
+        // flows that return money or collateral never carry this check.
+        if ((await this.systemState.read(context)).isPaused) {
+          return failure(new SystemPaused());
+        }
         await this.liquidations.lock(command.liquidationId, context);
         const liquidation = await this.liquidations.findById(command.liquidationId, context);
         if (liquidation === null) {

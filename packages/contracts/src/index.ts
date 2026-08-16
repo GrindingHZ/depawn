@@ -1,3 +1,4 @@
+export * from './admin';
 export * from './auth';
 export * from './client/api-error';
 export * from './client/auth-client';

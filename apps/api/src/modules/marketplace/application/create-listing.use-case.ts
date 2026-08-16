@@ -16,6 +16,8 @@ import { AUDIT_PORT } from '../../../domain/ports/audit.port';
 import type { AuditPort } from '../../../domain/ports/audit.port';
 import { CLOCK_PORT } from '../../../domain/ports/clock.port';
 import type { ClockPort } from '../../../domain/ports/clock.port';
+import { SYSTEM_STATE_PORT } from '../../../domain/ports/system-state.port';
+import type { SystemStatePort } from '../../../domain/ports/system-state.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { ID_GENERATOR } from '../../../domain/shared/id-generator';
@@ -24,6 +26,7 @@ import { listingIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, ReceiptId } from '../../../domain/shared/identifiers';
 import type { Instant } from '../../../domain/shared/instant';
 import type { Money } from '../../../domain/shared/money';
+import { SystemPaused } from '../../../domain/shared/system-paused';
 import { failure, ok } from '../../../domain/shared/result';
 import type { Result } from '../../../domain/shared/result';
 import { ReceiptNotFound } from '../../../domain/marketplace/receipt-not-found';
@@ -43,12 +46,14 @@ type CreateListingRejection =
   | ReceiptNotInVault
   | ReceiptAlreadyListed
   | LoanToValueExceeded
-  | RateAboveMaximum;
+  | RateAboveMaximum
+  | SystemPaused;
 
 @Injectable()
 export class CreateListingUseCase {
   constructor(
     @Inject(UNIT_OF_WORK) private readonly unitOfWork: UnitOfWork,
+    @Inject(SYSTEM_STATE_PORT) private readonly systemState: SystemStatePort,
     @Inject(CUSTODY_RECEIPT_REPOSITORY) private readonly receipts: CustodyReceiptRepository,
     @Inject(LISTING_REPOSITORY) private readonly listings: ListingRepository,
     @Inject(PROTOCOL_PARAMETERS) private readonly parameters: ProtocolParameters,
@@ -59,6 +64,11 @@ export class CreateListingUseCase {
 
   execute(command: CreateListingCommand): Promise<Result<Listing, CreateListingRejection>> {
     return this.unitOfWork.run(async (context) => {
+      // Flow 11 blocks this entrance while the system is paused. The
+      // flows that return money or collateral never carry this check.
+      if ((await this.systemState.read(context)).isPaused) {
+        return failure(new SystemPaused());
+      }
       const receipt = await this.receipts.findById(command.receiptId, context);
       if (receipt === null) {
         return failure(new ReceiptNotFound());
