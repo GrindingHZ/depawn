@@ -50,6 +50,9 @@ function HomePage(): ReactElement | null {
         productName="depawn admin"
         navigation={
           <>
+            <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
+              Liquidations
+            </Link>
             <Link to="/deposits" className="font-body text-sm text-ink-secondary">
               Deposits
             </Link>
