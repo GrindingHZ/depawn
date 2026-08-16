@@ -17,6 +17,14 @@ grep -qP '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]' <<< "$message" && fail "no emo
 pattern='^(feat|fix|test|refactor|chore|docs|perf|ci)\([a-z0-9-]+\): [a-z][^A-Z]*[^.]$'
 grep -qE "$pattern" <<< "$message" || fail "expected: type(scope): lowercase imperative summary"
 
+# The scope list in docs/12 was advisory until a slice invented four scopes
+# nobody noticed. Drawn from the module and app names, nothing invented.
+scopes='domain|ledger|custody|marketplace|lending|liquidation|accounts|admin'
+scopes="$scopes|api|marketplace-ui|vault-console|admin-ui|contracts|ui|e2e"
+scopes="$scopes|db|ci|deps|state|move|indexer|flows|demo|events|operations|parameters|seed|config"
+scope=$(sed -E 's|^[a-z]+\(([a-z0-9-]+)\).*|\1|' <<< "$message")
+grep -qE "^($scopes)$" <<< "$scope" || fail "scope '$scope' is not in the list in docs/12"
+
 [ "${#message}" -gt 72 ] && fail "header longer than 72 characters"
 
 exit 0

@@ -50,7 +50,13 @@ Drawn from the module and app names, nothing invented:
 domain  ledger  custody  marketplace  lending  liquidation  accounts  admin
 api  marketplace-ui  vault-console  admin-ui  contracts  ui  e2e
 db  ci  deps  state  move  indexer
+flows  demo  events  operations  parameters  seed  config
 ```
+
+The second row of names arrived with the subsystems that needed them. Adding one is a deliberate
+act: put it here and in `scripts/check-commit-msg.sh`, which rejects anything else. That check was
+advisory prose until P8, when four invented scopes went in unnoticed, which is exactly the kind of
+thing a machine should be catching rather than a reader.
 
 ### Examples
 
