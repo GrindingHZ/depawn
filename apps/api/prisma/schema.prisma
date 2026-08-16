@@ -450,6 +450,19 @@ model LiquidationBid {
   @@map("liquidation_bid")
 }
 
+/* One row, id fixed, because the system is either paused or it is not. A
+   pause has no effective date, unlike the protocol parameters. */
+model SystemState {
+  id                String    @id
+  pausedAt          DateTime? @map("paused_at")
+  pausedByAccountId String?   @map("paused_by_account_id")
+  reason            String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("system_state")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String
