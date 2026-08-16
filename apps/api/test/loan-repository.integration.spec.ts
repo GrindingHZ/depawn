@@ -30,6 +30,7 @@ function originated(id: string) {
     startedAt,
     durationMs: 2_592_000_000n,
     gracePeriodMs: 604_800_000n,
+    liquidationFeeBasisPoints: 200,
     lenderNoteId: lenderNoteIdOf(`LN-${id}`),
     borrowerNoteId: borrowerNoteIdOf(`BN-${id}`),
     originationSettlementRef: { kind: 'ledger', reference: `TX-${id}`, settledAt: startedAt },

@@ -1,4 +1,3 @@
-import type { ProtocolParameters } from '../marketplace/protocol-parameters';
 import { platformAccountIds } from '../ledger/platform-accounts';
 import type { AccountId } from '../shared/identifiers';
 import { Money } from '../shared/money';
@@ -9,7 +8,9 @@ export interface WaterfallRecipients {
   readonly borrower: AccountId;
 }
 
-/* Rule L7 and docs/10 flow 8: proceeds are split strictly in this order, the
+/* The fee arrives as a number rather than the parameters object because it is
+   the loan's fee, pinned at origination, not whatever is in force today.
+   Rule L7 and docs/10 flow 8: proceeds are split strictly in this order, the
    surplus always goes back to the borrower, and the rounding line is present
    even when it is zero because docs/03 forbids omitting it. Every branch is
    integer arithmetic on minor units, so the only way the parts can fail to
@@ -18,14 +19,14 @@ export function distributeLiquidationProceeds(
   proceeds: Money,
   amountOwedToLender: Money,
   recipients: WaterfallRecipients,
-  parameters: ProtocolParameters,
+  liquidationFeeBasisPoints: number,
 ): Distribution[] {
   const currency = proceeds.currency;
   const toLender = proceeds.isLessThan(amountOwedToLender) ? proceeds : amountOwedToLender;
   const remainder = proceeds.minus(toLender);
 
   // A loss leaves nothing to take a fee on, and no surplus to return.
-  const fee = remainder.multiplyByBasisPoints(parameters.liquidationFeeBasisPoints);
+  const fee = remainder.multiplyByBasisPoints(liquidationFeeBasisPoints);
   const surplus = remainder.minus(fee);
 
   const distributions: Distribution[] = [

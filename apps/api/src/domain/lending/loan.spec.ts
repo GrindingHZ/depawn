@@ -30,6 +30,7 @@ function originate(overrides: Partial<Parameters<typeof Loan.originate>[0]> = {}
     startedAt,
     durationMs: 2_592_000_000n,
     gracePeriodMs: 604_800_000n,
+    liquidationFeeBasisPoints: 200,
     lenderNoteId: lenderNoteIdOf('LN-1'),
     borrowerNoteId: borrowerNoteIdOf('BN-1'),
     originationSettlementRef: settlementRef,
@@ -46,6 +47,22 @@ describe('Loan.originate', () => {
       1_700_000_000_000n + 2_592_000_000n + 604_800_000n,
     );
     expect(loan.version).toBe(0);
+  });
+
+  /* The liquidation fee is the one term read long after origination, so it
+     has to be carried rather than looked up, or an edit to the parameters
+     would reach back into a loan written under the old fee. */
+  it('carries the liquidation fee in force when it was written', () => {
+    expect(originate({ liquidationFeeBasisPoints: 750 }).liquidationFeeBasisPoints).toBe(750);
+  });
+
+  it('refuses a liquidation fee outside the basis point range', () => {
+    expect(() => originate({ liquidationFeeBasisPoints: 10_001 })).toThrow(
+      'A liquidation fee must be a basis point count',
+    );
+    expect(() => originate({ liquidationFeeBasisPoints: -1 })).toThrow(
+      'A liquidation fee must be a basis point count',
+    );
   });
 
   it('identifies the lender only through the note id', () => {
@@ -208,6 +225,7 @@ describe('Loan default', () => {
         startedAt,
         maturesAt: startedAt.plusMilliseconds(2_592_000_000n),
         graceEndsAt: startedAt.plusMilliseconds(3_196_800_000n),
+        liquidationFeeBasisPoints: 200,
         lenderNoteId: lenderNoteIdOf('LN-1'),
         borrowerNoteId: borrowerNoteIdOf('BN-1'),
         status: 'DEFAULTED',
@@ -247,6 +265,7 @@ describe('allowedLoanTransitions', () => {
       startedAt,
       maturesAt: startedAt.plusMilliseconds(2_592_000_000n),
       graceEndsAt: startedAt.plusMilliseconds(3_196_800_000n),
+      liquidationFeeBasisPoints: 200,
       lenderNoteId: lenderNoteIdOf('LN-1'),
       borrowerNoteId: borrowerNoteIdOf('BN-1'),
       status: status as LoanStatus,

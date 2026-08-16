@@ -39,6 +39,12 @@ interface LoanFields {
   readonly startedAt: Instant;
   readonly maturesAt: Instant;
   readonly graceEndsAt: Instant;
+  /* Copied from the parameters in force at origination rather than read at
+     close time, because a liquidation settles a loan and a loan keeps the
+     terms it was originated under. Reading the live value would let an edit
+     with a past effective date take a different cut from a loan written
+     months earlier. */
+  readonly liquidationFeeBasisPoints: number;
   readonly lenderNoteId: LenderNoteId;
   readonly borrowerNoteId: BorrowerNoteId;
   readonly status: LoanStatus;
@@ -69,6 +75,7 @@ export interface OriginateLoanInput {
   readonly startedAt: Instant;
   readonly durationMs: bigint;
   readonly gracePeriodMs: bigint;
+  readonly liquidationFeeBasisPoints: number;
   readonly lenderNoteId: LenderNoteId;
   readonly borrowerNoteId: BorrowerNoteId;
   readonly originationSettlementRef: SettlementRef;
@@ -87,6 +94,12 @@ export class Loan {
     }
     if (fields.graceEndsAt.isBefore(fields.maturesAt)) {
       throw new Error('Grace cannot end before maturity');
+    }
+    const fee = fields.liquidationFeeBasisPoints;
+    if (!Number.isInteger(fee) || fee < 0 || fee > 10_000) {
+      throw new Error(
+        'A liquidation fee must be a basis point count between zero and ten thousand',
+      );
     }
     // A liquidated loan was defaulted first, so the instant survives the
     // move; nothing else may carry one.
@@ -120,6 +133,9 @@ export class Loan {
   get graceEndsAt(): Instant {
     return this.fields.graceEndsAt;
   }
+  get liquidationFeeBasisPoints(): number {
+    return this.fields.liquidationFeeBasisPoints;
+  }
   get lenderNoteId(): LenderNoteId {
     return this.fields.lenderNoteId;
   }
@@ -150,6 +166,7 @@ export class Loan {
       startedAt: input.startedAt,
       maturesAt,
       graceEndsAt: maturesAt.plusMilliseconds(input.gracePeriodMs),
+      liquidationFeeBasisPoints: input.liquidationFeeBasisPoints,
       lenderNoteId: input.lenderNoteId,
       borrowerNoteId: input.borrowerNoteId,
       status: 'ACTIVE',

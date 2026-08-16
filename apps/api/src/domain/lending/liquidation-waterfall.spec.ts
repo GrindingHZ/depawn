@@ -1,7 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { platformAccountIds } from '../ledger/platform-accounts';
-import type { ProtocolParameters } from '../marketplace/protocol-parameters';
 import { accountIdOf } from '../shared/identifiers';
 import { Money, currencyOf } from '../shared/money';
 import type { Distribution } from '../shared/settlement-ref';
@@ -13,9 +12,7 @@ const recipients = {
   borrower: accountIdOf('BORROWER-1'),
 };
 
-const parameters = {
-  liquidationFeeBasisPoints: 500,
-} as ProtocolParameters;
+const liquidationFeeBasisPoints = 500;
 
 function sumOf(distributions: readonly Distribution[]): bigint {
   return distributions.reduce((total, distribution) => total + distribution.amount.minorUnits, 0n);
@@ -33,7 +30,7 @@ describe('distributeLiquidationProceeds', () => {
       Money.of(300_000n, aud),
       Money.of(250_000n, aud),
       recipients,
-      parameters,
+      liquidationFeeBasisPoints,
     );
 
     expect(amountFor(distributions, 'LENDER-1')).toBe(250_000n);
@@ -48,7 +45,7 @@ describe('distributeLiquidationProceeds', () => {
       Money.of(200_000n, aud),
       Money.of(250_000n, aud),
       recipients,
-      parameters,
+      liquidationFeeBasisPoints,
     );
 
     expect(amountFor(distributions, 'LENDER-1')).toBe(200_000n);
@@ -63,7 +60,7 @@ describe('distributeLiquidationProceeds', () => {
       Money.of(250_000n, aud),
       Money.of(250_000n, aud),
       recipients,
-      parameters,
+      liquidationFeeBasisPoints,
     );
 
     expect(amountFor(distributions, 'LENDER-1')).toBe(250_000n);
@@ -77,7 +74,7 @@ describe('distributeLiquidationProceeds', () => {
       Money.of(300_000n, aud),
       Money.of(250_000n, aud),
       recipients,
-      parameters,
+      liquidationFeeBasisPoints,
     );
     const rounding = distributions.filter(
       (distribution) => distribution.accountId === platformAccountIds.rounding,
@@ -94,7 +91,7 @@ describe('distributeLiquidationProceeds', () => {
       Money.of(250_001n, aud),
       Money.of(250_000n, aud),
       recipients,
-      parameters,
+      liquidationFeeBasisPoints,
     );
     expect(sumOf(distributions)).toBe(250_001n);
   });
@@ -113,7 +110,7 @@ describe('distributeLiquidationProceeds', () => {
             Money.of(proceeds, aud),
             Money.of(owed, aud),
             recipients,
-            { liquidationFeeBasisPoints: feeBasisPoints } as ProtocolParameters,
+            feeBasisPoints,
           );
 
           const toLender = amountFor(distributions, 'LENDER-1');

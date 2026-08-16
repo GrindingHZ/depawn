@@ -35,23 +35,23 @@ way "executes without deviation" can be an exit criterion rather than a hope.
 
 ## Tasks
 
-1. `feat(config): add a demo mode flag` — `demoModeEnabled` in configuration, read by ClockModule and
+1. `feat(config): add a demo mode flag`: `demoModeEnabled` in configuration, read by ClockModule and
    AppModule so demo mode gets the advanceable clock and the clock route. NODE_ENV=test keeps working.
-2. `test(config): demo mode mounts the clock route` — unit test on the flag, integration test that the
+2. `test(config): demo mode mounts the clock route`: unit test on the flag, integration test that the
    route is absent without it.
-3. `feat(seed): build the demo dataset through the use cases` — the seed boots an application context
+3. `feat(seed): build the demo dataset through the use cases`: the seed boots an application context
    and produces: the Sydney vault with eight receipts in inventory, three live listings with competing
    offers, four active loans at different points between origination and maturity, one loan past its
    grace period and mid liquidation with two bids, and one completed cycle from deposit to redemption.
-4. `test(seed): the seeded dataset holds the invariants` — an integration test that runs the seed
+4. `test(seed): the seeded dataset holds the invariants`: an integration test that runs the seed
    against a Testcontainers database and asserts the ledger nets to zero, every loan is in the status
    the dataset claims, and the clock is back where it started.
-5. `feat(admin): move the clock from the operations screen` — a demo only control that advances the
+5. `feat(admin): move the clock from the operations screen`: a demo only control that advances the
    clock by a day or to the next maturity, hidden when the API reports demo mode off.
-6. `test(admin): the clock control advances a loan to maturity` — component test plus the endpoint.
-7. `docs(demo): write the runbook` — `docs/DEMO.md`, the click path, the expected screen at each step,
+6. `test(admin): the clock control advances a loan to maturity`: component test plus the endpoint.
+7. `docs(demo): write the runbook`: `docs/DEMO.md`, the click path, the expected screen at each step,
    the credentials, and what to say.
-8. `test(e2e): walk the demo runbook end to end` — the Playwright spec covering the runbook, in its
+8. `test(e2e): walk the demo runbook end to end`: the Playwright spec covering the runbook, in its
    own project ordered last because it moves the clock.
 
 ## What is deliberately not here

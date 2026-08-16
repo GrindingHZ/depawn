@@ -131,6 +131,7 @@ export class AcceptOfferUseCase {
           startedAt: now,
           durationMs: winningOffer.durationMs,
           gracePeriodMs: this.parameters.gracePeriodMs,
+          liquidationFeeBasisPoints: this.parameters.liquidationFeeBasisPoints,
           lenderNoteId: lenderNoteIdOf(this.idGenerator.generate()),
           borrowerNoteId: borrowerNoteIdOf(this.idGenerator.generate()),
           originationSettlementRef: settlementRef,

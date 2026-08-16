@@ -7,8 +7,6 @@ import { distributeLiquidationProceeds } from '../../../domain/lending/liquidati
 import { LoanNotFound } from '../../../domain/lending/loan-not-found';
 import { LOAN_REPOSITORY } from '../../../domain/lending/loan-repository';
 import type { LoanRepository } from '../../../domain/lending/loan-repository';
-import { PROTOCOL_PARAMETERS } from '../../../domain/marketplace/protocol-parameters';
-import type { ProtocolParameters } from '../../../domain/marketplace/protocol-parameters';
 import { AUDIT_PORT } from '../../../domain/ports/audit.port';
 import type { AuditPort } from '../../../domain/ports/audit.port';
 import { CLOCK_PORT } from '../../../domain/ports/clock.port';
@@ -52,7 +50,6 @@ export class CloseLiquidationUseCase {
     @Inject(DOMAIN_EVENT_PUBLISHER) private readonly events: DomainEventPublisher,
     @Inject(AUDIT_PORT) private readonly audit: AuditPort,
     @Inject(CLOCK_PORT) private readonly clock: ClockPort,
-    @Inject(PROTOCOL_PARAMETERS) private readonly parameters: ProtocolParameters,
   ) {}
 
   async execute(
@@ -91,7 +88,7 @@ export class CloseLiquidationUseCase {
           closed.value.winningBid.amount,
           loan.calculateAmountDue(now),
           { noteHolder, borrower: loan.borrowerAccountId },
-          this.parameters,
+          loan.liquidationFeeBasisPoints,
         );
 
         // The waterfall always computes all four lines so the parts provably

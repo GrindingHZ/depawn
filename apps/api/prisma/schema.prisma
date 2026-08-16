@@ -363,6 +363,7 @@ model Loan {
   startedAt                       DateTime   @map("started_at")
   maturesAt                       DateTime   @map("matures_at")
   graceEndsAt                     DateTime   @map("grace_ends_at")
+  liquidationFeeBasisPoints       Int        @map("liquidation_fee_basis_points")
   lenderNoteId                    String     @unique @map("lender_note_id")
   borrowerNoteId                  String     @unique @map("borrower_note_id")
   status                          LoanStatus
