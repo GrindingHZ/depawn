@@ -79,7 +79,7 @@ describe('reconciliation', () => {
     const second = await receiptIn(member.accountId);
 
     const run = await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', ops.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [first, second] })
@@ -102,7 +102,7 @@ describe('reconciliation', () => {
     });
 
     const run = await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', ops.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [present, tampered] })
@@ -123,7 +123,7 @@ describe('reconciliation', () => {
     const missing = await receiptIn(member.accountId);
 
     const run = await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', ops.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [present] })
@@ -168,7 +168,7 @@ describe('reconciliation', () => {
     await harness.prisma.$executeRawUnsafe('ALTER TABLE ledger_entry ENABLE TRIGGER USER');
 
     const run = await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', ops.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [] })
@@ -191,24 +191,23 @@ describe('reconciliation', () => {
     expect(perTransaction.observed).toBe('1');
   });
 
-  it('keeps a history of runs and their drift', async () => {
+  it('reports the latest run and its drift', async () => {
     const member = await loginAs('member@recon.test', 'MEMBER');
     const ops = await loginAs('ops@recon.test', 'OPERATIONS');
     const receiptId = await receiptIn(member.accountId);
     await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', ops.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [] })
       .expect(201);
 
-    const history = await server()
-      .get('/api/v1/admin/reconciliations')
+    const latest = await server()
+      .get('/api/v1/admin/reconciliation/latest')
       .set('Cookie', ops.cookies)
       .expect(200);
-    expect(history.body.items).toHaveLength(1);
-    expect(history.body.items[0].vaultId).toBe(vaultId);
-    expect(history.body.items[0].drift[0].subject).toBe(receiptId);
+    expect(latest.body.run.vaultId).toBe(vaultId);
+    expect(latest.body.run.drift[0].subject).toBe(receiptId);
   });
 
   it('reports the loan book and the exposure by vault', async () => {
@@ -235,7 +234,7 @@ describe('reconciliation', () => {
   it('keeps reconciliation away from members', async () => {
     const member = await loginAs('member@recon.test', 'MEMBER');
     await server()
-      .post('/api/v1/admin/reconciliations')
+      .post('/api/v1/admin/reconciliation/run')
       .set('Cookie', member.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ vaultId, countedReceiptIds: [] })

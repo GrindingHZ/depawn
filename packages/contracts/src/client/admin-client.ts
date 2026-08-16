@@ -2,14 +2,14 @@ import { auditPageResponseSchema, systemStateResponseSchema } from '../admin';
 import {
   exposureByVaultResponseSchema,
   loanBookResponseSchema,
-  reconciliationListResponseSchema,
+  latestReconciliationResponseSchema,
   reconciliationRunResponseSchema,
 } from '../operations';
 import type {
   ExposureByVaultResponse,
   LoanBookResponse,
   ReconcileRequest,
-  ReconciliationListResponse,
+  LatestReconciliationResponse,
   ReconciliationRunResponse,
 } from '../operations';
 import type { AuditPageResponse, PauseSystemRequest, SystemStateResponse } from '../admin';
@@ -75,18 +75,18 @@ export function runReconciliation(
 ): Promise<ReconciliationRunResponse> {
   return requestJson({
     method: 'POST',
-    path: `${basePath}/admin/reconciliations`,
+    path: `${basePath}/admin/reconciliation/run`,
     body,
     options,
     responseSchema: reconciliationRunResponseSchema,
   });
 }
 
-export function fetchReconciliations(): Promise<ReconciliationListResponse> {
+export function fetchLatestReconciliation(): Promise<LatestReconciliationResponse> {
   return requestJson({
     method: 'GET',
-    path: `${basePath}/admin/reconciliations`,
-    responseSchema: reconciliationListResponseSchema,
+    path: `${basePath}/admin/reconciliation/latest`,
+    responseSchema: latestReconciliationResponseSchema,
   });
 }
 

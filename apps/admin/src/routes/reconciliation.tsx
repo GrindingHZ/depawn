@@ -1,7 +1,7 @@
 import {
   fetchExposureByVault,
   fetchLoanBook,
-  fetchReconciliations,
+  fetchLatestReconciliation,
   runReconciliation,
 } from '@depawn/contracts';
 import type { DriftRowResponse, ReconciliationRunResponse } from '@depawn/contracts';
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/reconciliation')({
 });
 
 const reconciliationKeys = {
-  runs: ['reconciliations'] as const,
+  latestRun: ['reconciliation', 'latest'] as const,
   loanBook: ['loan-book'] as const,
   exposure: ['exposure-by-vault'] as const,
 };
@@ -186,9 +186,9 @@ function ReconciliationCard(): ReactElement {
   const queryClient = useQueryClient();
   const [countInput, setCountInput] = useState('');
   const [runKey, setRunKey] = useState(() => crypto.randomUUID());
-  const runsQuery = useQuery({
-    queryKey: reconciliationKeys.runs,
-    queryFn: fetchReconciliations,
+  const latestQuery = useQuery({
+    queryKey: reconciliationKeys.latestRun,
+    queryFn: fetchLatestReconciliation,
   });
 
   const runMutation = useMutation({
@@ -199,7 +199,7 @@ function ReconciliationCard(): ReactElement {
       ),
     onSuccess: async () => {
       setRunKey(crypto.randomUUID());
-      await queryClient.invalidateQueries({ queryKey: reconciliationKeys.runs });
+      await queryClient.invalidateQueries({ queryKey: reconciliationKeys.latestRun });
     },
   });
 
@@ -236,60 +236,64 @@ function ReconciliationCard(): ReactElement {
         </p>
       ) : null}
 
-      {runsQuery.isPending ? (
+      {latestQuery.isPending ? (
         <Skeleton lineCount={4} />
-      ) : runsQuery.isError || runsQuery.data === undefined ? (
+      ) : latestQuery.isError || latestQuery.data === undefined ? (
         <p role="alert" className="font-body text-sm text-status-danger">
-          The reconciliation history could not be loaded.
+          The last reconciliation could not be loaded.
         </p>
       ) : (
         <div data-testid="reconciliation-runs" className="flex flex-col gap-4">
-          {runsQuery.data.items.length === 0 ? (
+          {latestQuery.data.run === null ? (
             <p className="font-body text-sm text-ink-secondary">No runs yet</p>
           ) : (
-            runsQuery.data.items.map((run: ReconciliationRunResponse) => (
-              <div key={run.id} className="rounded-md border border-line p-4">
-                <div className="mb-2 flex items-center gap-3">
-                  <StatusBadge
-                    tone={run.drift.length === 0 ? 'success' : 'danger'}
-                    label={run.drift.length === 0 ? 'CLEAN' : `${run.drift.length} DRIFT`}
-                  />
-                  <span className="font-body text-sm text-ink-secondary">
-                    {run.vaultId ?? 'every vault'} on {run.startedAt.slice(0, 19)}
-                  </span>
-                </div>
-                {run.drift.length === 0 ? null : (
-                  <DataTable
-                    columns={[
-                      { key: 'kind', header: 'Kind', render: (row: DriftRowResponse) => row.kind },
-                      {
-                        key: 'subject',
-                        header: 'Subject',
-                        render: (row: DriftRowResponse) => (
-                          <span className="font-mono text-xs">{row.subject}</span>
-                        ),
-                      },
-                      {
-                        key: 'expected',
-                        header: 'Records say',
-                        render: (row: DriftRowResponse) => row.expected,
-                      },
-                      {
-                        key: 'observed',
-                        header: 'Count says',
-                        render: (row: DriftRowResponse) => row.observed,
-                      },
-                    ]}
-                    rows={[...run.drift]}
-                    rowKey={(row) => `${run.id}-${row.subject}-${row.kind}`}
-                    emptyTitle="No drift"
-                  />
-                )}
-              </div>
-            ))
+            <LatestRun run={latestQuery.data.run} />
           )}
         </div>
       )}
     </Card>
+  );
+}
+
+function LatestRun({ run }: { readonly run: ReconciliationRunResponse }): ReactElement {
+  return (
+    <div className="rounded-md border border-line p-4">
+      <div className="mb-2 flex items-center gap-3">
+        <StatusBadge
+          tone={run.drift.length === 0 ? 'success' : 'danger'}
+          label={run.drift.length === 0 ? 'CLEAN' : `${run.drift.length} DRIFT`}
+        />
+        <span className="font-body text-sm text-ink-secondary">
+          {run.vaultId ?? 'every vault'} on {run.startedAt.slice(0, 19)}
+        </span>
+      </div>
+      {run.drift.length === 0 ? null : (
+        <DataTable
+          columns={[
+            { key: 'kind', header: 'Kind', render: (row: DriftRowResponse) => row.kind },
+            {
+              key: 'subject',
+              header: 'Subject',
+              render: (row: DriftRowResponse) => (
+                <span className="font-mono text-xs">{row.subject}</span>
+              ),
+            },
+            {
+              key: 'expected',
+              header: 'Records say',
+              render: (row: DriftRowResponse) => row.expected,
+            },
+            {
+              key: 'observed',
+              header: 'Count says',
+              render: (row: DriftRowResponse) => row.observed,
+            },
+          ]}
+          rows={[...run.drift]}
+          rowKey={(row) => `${run.id}-${row.subject}-${row.kind}`}
+          emptyTitle="No drift"
+        />
+      )}
+    </div>
   );
 }

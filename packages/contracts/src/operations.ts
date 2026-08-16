@@ -29,11 +29,13 @@ export const reconciliationRunResponseSchema = z.object({
 
 export type ReconciliationRunResponse = z.infer<typeof reconciliationRunResponseSchema>;
 
-export const reconciliationListResponseSchema = z.object({
-  items: z.array(reconciliationRunResponseSchema),
+/* The latest run, or null before anyone has counted anything. Not a list,
+   so the cursor rule for list endpoints does not apply. */
+export const latestReconciliationResponseSchema = z.object({
+  run: reconciliationRunResponseSchema.nullable(),
 });
 
-export type ReconciliationListResponse = z.infer<typeof reconciliationListResponseSchema>;
+export type LatestReconciliationResponse = z.infer<typeof latestReconciliationResponseSchema>;
 
 /* The operator submits what they physically counted; the server holds what
    it believes and reports every disagreement. */

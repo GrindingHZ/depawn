@@ -22,13 +22,13 @@ function isDriftKind(value: string): value is DriftRow['kind'] {
 export class ReconciliationHistoryQuery {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(): Promise<readonly ReconciliationRunReadModel[]> {
+  async latest(): Promise<ReconciliationRunReadModel | null> {
     const rows = await this.prisma.reconciliationRun.findMany({
       include: { drift: { orderBy: { id: 'asc' } } },
       orderBy: { id: 'desc' },
-      take: 25,
+      take: 1,
     });
-    return rows.map((row) => ({
+    const runs: ReconciliationRunReadModel[] = rows.map((row) => ({
       id: row.id,
       vaultId: row.vaultId,
       startedAt: row.startedAt.toISOString(),
@@ -42,5 +42,6 @@ export class ReconciliationHistoryQuery {
           observed: entry.observed,
         })),
     }));
+    return runs[0] ?? null;
   }
 }

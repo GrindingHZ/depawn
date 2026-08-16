@@ -6,7 +6,7 @@ import type {
   LoanBookResponse,
   PauseSystemRequest,
   ReconcileRequest,
-  ReconciliationListResponse,
+  LatestReconciliationResponse,
   ReconciliationRunResponse,
   SystemStateResponse,
 } from '@depawn/contracts';
@@ -102,7 +102,7 @@ export class AdminController {
   }
 
   @Roles('OPERATIONS')
-  @Post('reconciliations')
+  @Post('reconciliation/run')
   @UseInterceptors(IdempotencyInterceptor)
   async reconcile(
     @CurrentAccount() account: Account,
@@ -121,11 +121,14 @@ export class AdminController {
     };
   }
 
+  /* The contract asks for the latest run rather than a list, which is what
+     an operator opening the screen wants: the state of the last count, not a
+     history to page through. */
   @Roles('OPERATIONS')
-  @Get('reconciliations')
-  async reconciliations(): Promise<ReconciliationListResponse> {
-    const items = await this.reconciliationHistory.list();
-    return { items: items.map((run) => ({ ...run, drift: [...run.drift] })) };
+  @Get('reconciliation/latest')
+  async latestReconciliation(): Promise<LatestReconciliationResponse> {
+    const latest = await this.reconciliationHistory.latest();
+    return { run: latest === null ? null : { ...latest, drift: [...latest.drift] } };
   }
 
   @Roles('OPERATIONS')
