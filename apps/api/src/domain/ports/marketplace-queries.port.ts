@@ -28,8 +28,25 @@ export interface ListingsPage {
   readonly nextCursor: string | null;
 }
 
+/* Newest is the default and pages on the id alone. The other two order by a
+   value that repeats across listings, so their cursor has to carry that value
+   as well as the id or a page boundary would skip or repeat rows. */
+export type BrowseSort = 'newest' | 'rate' | 'closing';
+
+export interface BrowseFilter {
+  readonly cursor: string | null;
+  readonly limit: number;
+  readonly now: Instant;
+  readonly category: ItemCategory | null;
+  /* Show only listings asking for this share of the appraisal or less, so a
+     lender can say what risk they are willing to look at rather than reading
+     past what they are not. */
+  readonly maximumLoanToValueBasisPoints: number | null;
+  readonly sort: BrowseSort;
+}
+
 export interface MarketplaceQueries {
-  browseActive(cursor: string | null, limit: number, now: Instant): Promise<ListingsPage>;
+  browseActive(filter: BrowseFilter): Promise<ListingsPage>;
   /* Whether a servable photograph exists for the item behind a receipt. The
      bytes are behind their own authorisation; this only says whether asking
      is worthwhile, so a screen can reserve the space or not. */

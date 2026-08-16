@@ -62,11 +62,31 @@ export function cancelListing(
   });
 }
 
-export function browseListings(cursor?: string): Promise<ListingsPageResponse> {
-  const query = cursor === undefined ? '' : `?cursor=${cursor}`;
+export interface BrowseOptions {
+  readonly cursor?: string;
+  readonly category?: string;
+  readonly maxLoanToValueBasisPoints?: number;
+  readonly sort?: 'newest' | 'rate' | 'closing';
+}
+
+export function browseListings(options: BrowseOptions = {}): Promise<ListingsPageResponse> {
+  const query = new URLSearchParams();
+  if (options.cursor !== undefined) {
+    query.set('cursor', options.cursor);
+  }
+  if (options.category !== undefined) {
+    query.set('category', options.category);
+  }
+  if (options.maxLoanToValueBasisPoints !== undefined) {
+    query.set('maxLoanToValueBasisPoints', String(options.maxLoanToValueBasisPoints));
+  }
+  if (options.sort !== undefined && options.sort !== 'newest') {
+    query.set('sort', options.sort);
+  }
+  const suffix = query.size === 0 ? '' : `?${query.toString()}`;
   return requestJson({
     method: 'GET',
-    path: `${basePath}/listings${query}`,
+    path: `${basePath}/listings${suffix}`,
     responseSchema: listingsPageResponseSchema,
   });
 }

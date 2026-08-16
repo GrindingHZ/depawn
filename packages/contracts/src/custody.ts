@@ -5,6 +5,10 @@ export const itemCategorySchema = z.enum(['BULLION', 'WATCH', 'JEWELLERY', 'COLL
 
 export type ItemCategoryDto = z.infer<typeof itemCategorySchema>;
 
+/* The order a person reads them in, most liquid first, which is also the
+   order the loan to value caps run. */
+export const itemCategories = itemCategorySchema.options;
+
 export const intakeStatusSchema = z.enum(['DRAFT', 'SEALED']);
 
 export const receiptStatusSchema = z.enum(['IN_VAULT', 'ENCUMBERED', 'RELEASED', 'LIQUIDATED']);

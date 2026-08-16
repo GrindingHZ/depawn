@@ -1,4 +1,4 @@
-import { browseListings, nameForCategory } from '@depawn/contracts';
+import { browseListings, itemCategories, nameForCategory } from '@depawn/contracts';
 import type { ListingSummary } from '@depawn/contracts';
 import {
   Card,
@@ -8,10 +8,12 @@ import {
   LoanToValue,
   Money,
   Rate,
+  Select,
   Skeleton,
 } from '@depawn/ui';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { MarketShell } from '../market-shell';
 import { marketKeys } from '../market-keys';
@@ -43,8 +45,23 @@ function BrowsePage(): ReactElement | null {
   );
 }
 
+/* The filters go to the api rather than being applied to a page already
+   fetched. Filtering what happens to have loaded would hide rows from the
+   reader while telling them they have seen everything. */
 function BrowseCard(): ReactElement {
-  const browseQuery = useQuery({ queryKey: marketKeys.browse, queryFn: () => browseListings() });
+  const [category, setCategory] = useState('');
+  const [maxLoanToValue, setMaxLoanToValue] = useState('');
+  const [sort, setSort] = useState<'newest' | 'rate' | 'closing'>('newest');
+
+  const browseQuery = useQuery({
+    queryKey: marketKeys.browseWith(category, maxLoanToValue, sort),
+    queryFn: () =>
+      browseListings({
+        ...(category === '' ? {} : { category }),
+        ...(maxLoanToValue === '' ? {} : { maxLoanToValueBasisPoints: Number(maxLoanToValue) }),
+        sort,
+      }),
+  });
 
   if (browseQuery.isPending) {
     return (
@@ -65,7 +82,15 @@ function BrowseCard(): ReactElement {
 
   return (
     <Card title="Live listings">
-      <div data-testid="browse-table" className="flex flex-col gap-3">
+      <BrowseControls
+        category={category}
+        onCategory={setCategory}
+        maxLoanToValue={maxLoanToValue}
+        onMaxLoanToValue={setMaxLoanToValue}
+        sort={sort}
+        onSort={setSort}
+      />
+      <div data-testid="browse-table" className="mt-4 flex flex-col gap-3">
         {browseQuery.data.items.length === 0 ? (
           <EmptyState
             title="No live listings right now"
@@ -132,6 +157,62 @@ function ListingRow({ listing }: { readonly listing: ListingSummary }): ReactEle
           <Explain termId="loanToValue" audience="lender" />
         </span>
       </div>
+    </div>
+  );
+}
+
+interface BrowseControlsProps {
+  readonly category: string;
+  readonly onCategory: (value: string) => void;
+  readonly maxLoanToValue: string;
+  readonly onMaxLoanToValue: (value: string) => void;
+  readonly sort: 'newest' | 'rate' | 'closing';
+  readonly onSort: (value: 'newest' | 'rate' | 'closing') => void;
+}
+
+function BrowseControls({
+  category,
+  onCategory,
+  maxLoanToValue,
+  onMaxLoanToValue,
+  sort,
+  onSort,
+}: BrowseControlsProps): ReactElement {
+  return (
+    <div data-testid="browse-controls" className="flex flex-wrap items-end gap-4">
+      <Select
+        label="Category"
+        data-testid="filter-category"
+        value={category}
+        onChange={(event) => onCategory(event.target.value)}
+      >
+        <option value="">Anything</option>
+        {itemCategories.map((value) => (
+          <option key={value} value={value}>
+            {nameForCategory(value)}
+          </option>
+        ))}
+      </Select>
+      <Select
+        label="Loan to value at most"
+        data-testid="filter-ltv"
+        value={maxLoanToValue}
+        onChange={(event) => onMaxLoanToValue(event.target.value)}
+      >
+        <option value="">Any</option>
+        <option value="3000">30% or less</option>
+        <option value="5000">50% or less</option>
+      </Select>
+      <Select
+        label="Sort by"
+        data-testid="sort-listings"
+        value={sort}
+        onChange={(event) => onSort(event.target.value as 'newest' | 'rate' | 'closing')}
+      >
+        <option value="newest">Newest first</option>
+        <option value="rate">Lowest rate ceiling</option>
+        <option value="closing">Closing soonest</option>
+      </Select>
     </div>
   );
 }

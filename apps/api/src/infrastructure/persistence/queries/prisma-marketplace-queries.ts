@@ -3,6 +3,8 @@ import type { ItemCategory } from '../../../domain/custody/item-category';
 import type { ListingStatus } from '../../../domain/marketplace/listing';
 import type { Offer } from '../../../domain/marketplace/offer';
 import type {
+  BrowseFilter,
+  BrowseSort,
   ListingsPage,
   ListingSummaryReadModel,
   MarketplaceQueries,
@@ -34,8 +36,17 @@ interface BrowseRow {
 export class PrismaMarketplaceQueries implements MarketplaceQueries {
   constructor(private readonly prisma: PrismaService) {}
 
-  async browseActive(cursor: string | null, limit: number, now: Instant): Promise<ListingsPage> {
-    const nowDate = new Date(Number(now.epochMilliseconds));
+  /* Filters and sorting run in the database, not over a page already
+     fetched. Filtering what happens to have loaded is theatre: it hides rows
+     from the reader while telling them they have seen everything.
+
+     The cursor carries the sort value as well as the id, because rate and
+     closing time both repeat across listings and a cursor on the id alone
+     would skip or repeat rows at a page boundary. Postgres row comparison
+     does the work. */
+  async browseActive(filter: BrowseFilter): Promise<ListingsPage> {
+    const nowDate = new Date(Number(filter.now.epochMilliseconds));
+    const cursor = decodeCursor(filter.cursor);
     const rows = await this.prisma.$queryRaw<BrowseRow[]>`
       SELECT l.id, l.borrower_account_id, l.receipt_id, l.requested_principal_minor_units,
              l.currency, l.max_annual_percentage_rate_basis_points, l.requested_duration_ms,
@@ -53,15 +64,35 @@ export class PrismaMarketplaceQueries implements MarketplaceQueries {
       JOIN custody_receipt r ON r.id = l.receipt_id
       WHERE l.status = 'ACTIVE'
         AND l.expires_at > ${nowDate}
-        AND (${cursor}::text IS NULL OR l.id < ${cursor})
-      ORDER BY l.id DESC
-      LIMIT ${limit + 1}
+        AND (${filter.category}::text IS NULL OR r.item_category::text = ${filter.category})
+        AND (
+          ${filter.maximumLoanToValueBasisPoints}::int IS NULL
+          OR r.appraised_value_minor_units > 0
+             AND l.requested_principal_minor_units * 10000 / r.appraised_value_minor_units
+                 <= ${filter.maximumLoanToValueBasisPoints}
+        )
+        AND (
+          ${cursor.id}::text IS NULL
+          OR (${filter.sort} = 'newest' AND l.id < ${cursor.id})
+          OR (${filter.sort} = 'rate'
+              AND (l.max_annual_percentage_rate_basis_points, l.id) > (${cursor.value}::int, ${cursor.id}))
+          OR (${filter.sort} = 'closing'
+              AND (l.expires_at, l.id) > (${cursor.at}::timestamp, ${cursor.id}))
+        )
+      ORDER BY
+        CASE WHEN ${filter.sort} = 'newest' THEN l.id END DESC,
+        CASE WHEN ${filter.sort} = 'rate' THEN l.max_annual_percentage_rate_basis_points END ASC,
+        CASE WHEN ${filter.sort} = 'closing' THEN l.expires_at END ASC,
+        l.id ASC
+      LIMIT ${filter.limit + 1}
     `;
 
-    const page = rows.slice(0, limit);
+    const page = rows.slice(0, filter.limit);
+    const last = page[page.length - 1];
     return {
       items: page.map(toSummary),
-      nextCursor: rows.length > limit ? (page[page.length - 1]?.id ?? null) : null,
+      nextCursor:
+        rows.length > filter.limit && last !== undefined ? encodeCursor(filter.sort, last) : null,
     };
   }
 
@@ -102,4 +133,41 @@ function toSummary(row: BrowseRow): ListingSummaryReadModel {
     itemDescription: row.item_description,
     hasPhotograph: row.has_photograph,
   };
+}
+
+interface DecodedCursor {
+  readonly id: string | null;
+  readonly value: number | null;
+  readonly at: Date | null;
+}
+
+/* The cursor is opaque to the client and carries whatever the sort needs to
+   resume exactly where it stopped. A malformed one reads as no cursor: a
+   reader who has hand edited the query string gets the first page, not an
+   error page. */
+function decodeCursor(cursor: string | null): DecodedCursor {
+  if (cursor === null) {
+    return { id: null, value: null, at: null };
+  }
+  const [id, tail] = cursor.split('|');
+  if (id === undefined || id === '') {
+    return { id: null, value: null, at: null };
+  }
+  const numeric = tail === undefined ? Number.NaN : Number(tail);
+  const at = tail === undefined ? Number.NaN : Date.parse(tail);
+  return {
+    id,
+    value: Number.isNaN(numeric) ? null : numeric,
+    at: Number.isNaN(at) ? null : new Date(at),
+  };
+}
+
+function encodeCursor(sort: BrowseSort, row: BrowseRow): string {
+  if (sort === 'rate') {
+    return `${row.id}|${row.max_annual_percentage_rate_basis_points}`;
+  }
+  if (sort === 'closing') {
+    return `${row.id}|${row.expires_at.toISOString()}`;
+  }
+  return row.id;
 }

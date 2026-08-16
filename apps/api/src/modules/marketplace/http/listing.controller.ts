@@ -30,6 +30,8 @@ import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { DomainErrorHttpException } from '../../shared/http/domain-error-http.exception';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
 import { toMoney, toMoneyDto, toSettlementRefDto } from '../../shared/http/money.mapper';
+import { isItemCategory } from '../../../domain/custody/item-category';
+import type { BrowseSort } from '../../../domain/ports/marketplace-queries.port';
 import { Public } from '../../shared/http/public.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { CancelListingUseCase } from '../application/cancel-listing.use-case';
@@ -118,8 +120,20 @@ export class ListingController {
 
   @Public()
   @Get()
-  async browse(@Query('cursor') cursor?: string): Promise<ListingsPageResponse> {
-    const page = await this.queries.browseActive(cursor ?? null, 25, this.clock.now());
+  async browse(
+    @Query('cursor') cursor?: string,
+    @Query('category') category?: string,
+    @Query('maxLoanToValueBasisPoints') maxLoanToValue?: string,
+    @Query('sort') sort?: string,
+  ): Promise<ListingsPageResponse> {
+    const page = await this.queries.browseActive({
+      cursor: cursor ?? null,
+      limit: 25,
+      now: this.clock.now(),
+      category: category !== undefined && isItemCategory(category) ? category : null,
+      maximumLoanToValueBasisPoints: parseBasisPoints(maxLoanToValue),
+      sort: parseSort(sort),
+    });
     return { items: page.items.map(toListingSummary), nextCursor: page.nextCursor };
   }
 
@@ -183,4 +197,19 @@ export class ListingController {
     }
     return { settlementRef: toSettlementRefDto(result.value) };
   }
+}
+
+/* An unreadable filter is ignored rather than refused. These come from a
+   query string a reader can edit, and the worst outcome of a typo should be
+   seeing everything, not an error page. */
+function parseBasisPoints(value: string | undefined): number | null {
+  if (value === undefined) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 10_000 ? parsed : null;
+}
+
+function parseSort(value: string | undefined): BrowseSort {
+  return value === 'rate' || value === 'closing' ? value : 'newest';
 }

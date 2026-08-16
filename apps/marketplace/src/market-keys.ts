@@ -1,5 +1,7 @@
 export const marketKeys = {
   browse: ['listings', 'browse'] as const,
+  browseWith: (category: string, maxLtv: string, sort: string) =>
+    ['listings', 'browse', category, maxLtv, sort] as const,
   detail: (listingId: string) => ['listings', 'detail', listingId] as const,
   myListings: ['listings', 'mine'] as const,
   myOffers: ['offers', 'mine'] as const,
