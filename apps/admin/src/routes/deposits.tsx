@@ -1,10 +1,11 @@
 import { ApiError, deposit } from '@depawn/contracts';
 import { AppShell, Button, Card, Field, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useMutation } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
+import { AdminNavigation } from '../admin-navigation';
 
 export const Route = createFileRoute('/deposits')({
   component: DepositsPage,
@@ -45,15 +46,7 @@ function DepositsPage(): ReactElement | null {
       productName="depawn admin"
       navigation={
         <>
-          <Link to="/" className="font-body text-sm text-ink-secondary">
-            Home
-          </Link>
-          <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
-            Reconciliation
-          </Link>
-          <Link to="/deposits" className="font-body text-sm text-ink-primary">
-            Deposits
-          </Link>
+          <AdminNavigation current="/deposits" />
         </>
       }
     >

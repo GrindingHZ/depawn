@@ -83,3 +83,19 @@ export const deadLettersResponseSchema = z.object({
 
 export type DeadLetterRowResponse = z.infer<typeof deadLetterRowSchema>;
 export type DeadLettersResponse = z.infer<typeof deadLettersResponseSchema>;
+
+export const requestMetricRowSchema = z.object({
+  route: z.string(),
+  count: z.number().int(),
+  errorCount: z.number().int(),
+  totalDurationMs: z.number().int(),
+  maxDurationMs: z.number().int(),
+  averageDurationMs: z.number().int(),
+});
+
+export const requestMetricsResponseSchema = z.object({
+  routes: z.array(requestMetricRowSchema),
+});
+
+export type RequestMetricRowResponse = z.infer<typeof requestMetricRowSchema>;
+export type RequestMetricsResponse = z.infer<typeof requestMetricsResponseSchema>;

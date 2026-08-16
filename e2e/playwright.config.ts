@@ -71,6 +71,13 @@ export default defineConfig({
       dependencies: ['admin-liquidation'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
+    /* Reads every primary route and changes nothing, so it can run alongside
+       the base projects rather than waiting in the ordered chain. */
+    {
+      name: 'accessibility',
+      testMatch: /accessibility\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
+    },
     /* The runbook walks the clock, so it runs alone and puts it back. It goes
        before the parameters spec, which is the only thing later than it. */
     {

@@ -2,10 +2,11 @@ import { fetchAuditPage, fetchSystemState, pauseSystem, unpauseSystem } from '@d
 import type { AuditEntryResponse } from '@depawn/contracts';
 import { AppShell, Button, Card, DataTable, Field, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
+import { AdminNavigation } from '../admin-navigation';
 
 export const Route = createFileRoute('/operations')({
   component: OperationsPage,
@@ -44,21 +45,7 @@ function OperationsPage(): ReactElement | null {
       productName="depawn admin"
       navigation={
         <>
-          <Link to="/" className="font-body text-sm text-ink-secondary">
-            Home
-          </Link>
-          <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
-            Liquidations
-          </Link>
-          <Link to="/operations" className="font-body text-sm text-ink-primary">
-            Operations
-          </Link>
-          <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
-            Reconciliation
-          </Link>
-          <Link to="/deposits" className="font-body text-sm text-ink-secondary">
-            Deposits
-          </Link>
+          <AdminNavigation current="/operations" />
         </>
       }
     >

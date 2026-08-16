@@ -9,6 +9,7 @@ import {
   exposureByVaultResponseSchema,
   loanBookResponseSchema,
   latestReconciliationResponseSchema,
+  requestMetricsResponseSchema,
   reconciliationRunResponseSchema,
 } from '../operations';
 import type {
@@ -18,6 +19,7 @@ import type {
   ReconcileRequest,
   LatestReconciliationResponse,
   ReconciliationRunResponse,
+  RequestMetricsResponse,
 } from '../operations';
 import type {
   AdvanceClockRequest,
@@ -167,5 +169,13 @@ export function advanceClock(body: AdvanceClockRequest): Promise<AdvanceClockRes
     path: `${basePath}/test/clock/advance`,
     body,
     responseSchema: advanceClockResponseSchema,
+  });
+}
+
+export function fetchRequestMetrics(): Promise<RequestMetricsResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/metrics`,
+    responseSchema: requestMetricsResponseSchema,
   });
 }

@@ -1,9 +1,10 @@
 import { logout } from '@depawn/contracts';
 import { AppShell, Button, EmptyState, Skeleton } from '@depawn/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
 import { currentAccountKeys, useCurrentAccount } from '../current-account';
+import { AdminNavigation } from '../admin-navigation';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -50,18 +51,7 @@ function HomePage(): ReactElement | null {
         productName="depawn admin"
         navigation={
           <>
-            <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
-              Liquidations
-            </Link>
-            <Link to="/operations" className="font-body text-sm text-ink-secondary">
-              Operations
-            </Link>
-            <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
-              Reconciliation
-            </Link>
-            <Link to="/deposits" className="font-body text-sm text-ink-secondary">
-              Deposits
-            </Link>
+            <AdminNavigation current="/" />
             <span data-testid="account-email">{currentAccount.data.email}</span>
           </>
         }

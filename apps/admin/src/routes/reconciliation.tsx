@@ -7,10 +7,11 @@ import {
 import type { DriftRowResponse, ReconciliationRunResponse } from '@depawn/contracts';
 import { AppShell, Button, Card, DataTable, Field, Money, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
+import { AdminNavigation } from '../admin-navigation';
 
 export const Route = createFileRoute('/reconciliation')({
   component: ReconciliationPage,
@@ -52,21 +53,7 @@ function ReconciliationPage(): ReactElement | null {
       productName="depawn admin"
       navigation={
         <>
-          <Link to="/" className="font-body text-sm text-ink-secondary">
-            Home
-          </Link>
-          <Link to="/reconciliation" className="font-body text-sm text-ink-primary">
-            Reconciliation
-          </Link>
-          <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
-            Liquidations
-          </Link>
-          <Link to="/operations" className="font-body text-sm text-ink-secondary">
-            Operations
-          </Link>
-          <Link to="/deposits" className="font-body text-sm text-ink-secondary">
-            Deposits
-          </Link>
+          <AdminNavigation current="/reconciliation" />
         </>
       }
     >

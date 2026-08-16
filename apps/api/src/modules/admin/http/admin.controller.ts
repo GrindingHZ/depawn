@@ -7,6 +7,7 @@ import {
 import type {
   AuditPageResponse,
   DeadLettersResponse,
+  RequestMetricsResponse,
   ExposureByVaultResponse,
   LoanBookResponse,
   PauseSystemRequest,
@@ -23,6 +24,7 @@ import { receiptIdOf, vaultIdOf } from '../../../domain/shared/identifiers';
 import { toMoneyDto } from '../../shared/http/money.mapper';
 import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
+import { RequestMetrics } from '../../shared/http/request-metrics';
 import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { Instant } from '../../../domain/shared/instant';
@@ -58,6 +60,7 @@ export class AdminController {
     private readonly loanBook: LoanBookQuery,
     private readonly protocolParameters: UpdateProtocolParametersUseCase,
     private readonly deadLetters: DeadLetterQuery,
+    private readonly requestMetrics: RequestMetrics,
   ) {}
 
   /* Readable by any signed in account, because a member who cannot place an
@@ -170,6 +173,14 @@ export class AdminController {
         receiptCount: row.receiptCount,
       })),
     };
+  }
+
+  /* What every route costs and how often it fails, counted in the serving
+     process rather than shipped to a backend nobody has running yet. */
+  @Roles('OPERATIONS')
+  @Get('metrics')
+  readMetrics(): RequestMetricsResponse {
+    return { routes: [...this.requestMetrics.snapshot()] };
   }
 
   /* Events that gave up on delivery. Reading them is how an operator learns

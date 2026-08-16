@@ -3,15 +3,21 @@ import {
   fetchDeadLetters,
   fetchHealth,
   fetchProtocolParameters,
+  fetchRequestMetrics,
   updateProtocolParameters,
 } from '@depawn/contracts';
-import type { DeadLetterRowResponse, ParameterVersionResponse } from '@depawn/contracts';
+import type {
+  DeadLetterRowResponse,
+  ParameterVersionResponse,
+  RequestMetricRowResponse,
+} from '@depawn/contracts';
 import { AppShell, Button, Card, DataTable, Field, Skeleton } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useCurrentAccount } from '../current-account';
+import { AdminNavigation } from '../admin-navigation';
 
 export const Route = createFileRoute('/parameters')({
   component: ParametersPage,
@@ -21,6 +27,7 @@ const parameterKeys = {
   parameters: ['protocol-parameters'] as const,
   deadLetters: ['dead-letters'] as const,
   health: ['health'] as const,
+  metrics: ['request-metrics'] as const,
 };
 
 function ParametersPage(): ReactElement | null {
@@ -51,24 +58,7 @@ function ParametersPage(): ReactElement | null {
       productName="depawn admin"
       navigation={
         <>
-          <Link to="/" className="font-body text-sm text-ink-secondary">
-            Home
-          </Link>
-          <Link to="/liquidations" className="font-body text-sm text-ink-secondary">
-            Liquidations
-          </Link>
-          <Link to="/operations" className="font-body text-sm text-ink-secondary">
-            Operations
-          </Link>
-          <Link to="/parameters" className="font-body text-sm text-ink-primary">
-            Parameters
-          </Link>
-          <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
-            Reconciliation
-          </Link>
-          <Link to="/deposits" className="font-body text-sm text-ink-secondary">
-            Deposits
-          </Link>
+          <AdminNavigation current="/parameters" />
         </>
       }
     >
@@ -76,6 +66,7 @@ function ParametersPage(): ReactElement | null {
         <ClockCard />
         <ParametersCard />
         <DeadLetterCard />
+        <MetricsCard />
       </div>
     </AppShell>
   );
@@ -342,6 +333,43 @@ function DeadLetterCard(): ReactElement {
             rows={deadLetterQuery.data.items}
             rowKey={(row) => row.id}
             emptyTitle="Nothing has given up on delivery."
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* Counted in the serving process, so the figures reset when it restarts.
+   Enough to answer which route is slow and which is failing, which is the
+   only observability question a demo ever has to answer. */
+function MetricsCard(): ReactElement {
+  const metricsQuery = useQuery({
+    queryKey: parameterKeys.metrics,
+    queryFn: fetchRequestMetrics,
+  });
+
+  return (
+    <Card title="Request metrics">
+      {metricsQuery.isPending ? (
+        <Skeleton lineCount={3} />
+      ) : metricsQuery.isError || metricsQuery.data === undefined ? (
+        <p role="alert" className="font-body text-sm text-status-danger">
+          The metrics could not be loaded.
+        </p>
+      ) : (
+        <div data-testid="request-metrics">
+          <DataTable<RequestMetricRowResponse>
+            columns={[
+              { key: 'route', header: 'Route', render: (row) => row.route },
+              { key: 'count', header: 'Requests', render: (row) => row.count },
+              { key: 'average', header: 'Average', render: (row) => `${row.averageDurationMs} ms` },
+              { key: 'slowest', header: 'Slowest', render: (row) => `${row.maxDurationMs} ms` },
+              { key: 'errors', header: 'Faults', render: (row) => row.errorCount },
+            ]}
+            rows={metricsQuery.data.routes}
+            rowKey={(row) => row.route}
+            emptyTitle="Nothing has been served yet."
           />
         </div>
       )}
