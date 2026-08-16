@@ -9,6 +9,7 @@ import { AppModule } from '../src/app.module';
 import { CLOCK_PORT } from '../src/domain/ports/clock.port';
 import { Instant } from '../src/domain/shared/instant';
 import { FixedClockAdapter } from '../src/infrastructure/clock/fixed-clock.adapter';
+import { ProtocolParametersRegistry } from '../src/infrastructure/parameters/protocol-parameters.registry';
 import { PrismaService } from '../src/infrastructure/persistence/prisma.service';
 
 export interface TestApplication {
@@ -70,6 +71,10 @@ export async function createTestApplication(): Promise<TestApplication> {
       }
       const tables = rows.map((row) => `"public"."${row.tablename}"`).join(', ');
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE`);
+      // The parameters registry holds the versions in memory, so emptying
+      // the tables underneath it would otherwise leave it answering with
+      // versions that no longer exist.
+      await app.get(ProtocolParametersRegistry).refresh();
     },
     async close(): Promise<void> {
       await app.close();

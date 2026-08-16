@@ -13,6 +13,8 @@ import type {
   ReconciliationRunResponse,
 } from '../operations';
 import type { AuditPageResponse, PauseSystemRequest, SystemStateResponse } from '../admin';
+import { protocolParametersResponseSchema } from '../parameters';
+import type { ProtocolParametersResponse, UpdateParametersRequest } from '../parameters';
 import { requestJson } from './http';
 import type { RequestOptions } from './http';
 
@@ -103,5 +105,26 @@ export function fetchExposureByVault(): Promise<ExposureByVaultResponse> {
     method: 'GET',
     path: `${basePath}/admin/exposure-by-vault`,
     responseSchema: exposureByVaultResponseSchema,
+  });
+}
+
+export function fetchProtocolParameters(): Promise<ProtocolParametersResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/protocol-parameters`,
+    responseSchema: protocolParametersResponseSchema,
+  });
+}
+
+export function updateProtocolParameters(
+  body: UpdateParametersRequest,
+  options: RequestOptions,
+): Promise<ProtocolParametersResponse> {
+  return requestJson({
+    method: 'PUT',
+    path: `${basePath}/admin/protocol-parameters`,
+    body,
+    options,
+    responseSchema: protocolParametersResponseSchema,
   });
 }

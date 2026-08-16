@@ -6,7 +6,7 @@ export interface RequestOptions {
 }
 
 interface RequestInput {
-  readonly method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   readonly path: string;
   readonly body?: unknown;
   readonly options?: RequestOptions;

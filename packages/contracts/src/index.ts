@@ -17,5 +17,6 @@ export * from './lending';
 export * from './liquidation';
 export * from './money';
 export * from './operations';
+export * from './parameters';
 export * from './redemption';
 export * from './wallet';
