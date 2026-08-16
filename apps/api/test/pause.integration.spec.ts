@@ -251,7 +251,9 @@ describe('pause', () => {
   });
 
   describe('blocks a sale that has not opened', () => {
-    it('refuses to open a liquidation and to bid on one', async () => {
+    /* Reaching a scheduled sale takes a whole loan lifecycle, so the setup is
+       shared while each blocked entrance keeps its own assertion. */
+    async function scheduledSale(): Promise<{ liquidationId: string; ops: Party }> {
       const suffix = randomUUID().slice(0, 8);
       const borrower = await loginAs(`borrower-${suffix}@pause.test`, 'MEMBER');
       const lender = await loginAs(`lender-${suffix}@pause.test`, 'MEMBER');
@@ -283,41 +285,46 @@ describe('pause', () => {
         .set('Idempotency-Key', randomUUID())
         .send({ reservePrice: amount('200000') })
         .expect(201);
+      return { liquidationId: scheduled.body.id, ops };
+    }
 
-      await pauseSystem(ops);
-      const refusedOpen = await server()
-        .post(`/api/v1/liquidations/${scheduled.body.id}/open`)
-        .set('Cookie', ops.cookies)
+    it('refuses to open a liquidation', async () => {
+      const sale = await scheduledSale();
+      await pauseSystem(sale.ops);
+
+      const rejected = await server()
+        .post(`/api/v1/liquidations/${sale.liquidationId}/open`)
+        .set('Cookie', sale.ops.cookies)
         .set('Idempotency-Key', randomUUID())
         .send({ biddingWindowMs: Number(7n * oneDay) })
         .expect(422);
-      expect(refusedOpen.body.error.code).toBe('SYSTEM_PAUSED');
+      expect(rejected.body.error.code).toBe('SYSTEM_PAUSED');
+      const row = await harness.prisma.liquidation.findUnique({
+        where: { id: sale.liquidationId },
+      });
+      expect(row?.status).toBe('SCHEDULED');
+    });
 
-      // Open it while running, then pause again to prove bidding stops too.
+    it('refuses to bid on a sale', async () => {
+      const sale = await scheduledSale();
       await server()
-        .post('/api/v1/admin/unpause')
-        .set('Cookie', ops.cookies)
-        .set('Idempotency-Key', randomUUID())
-        .send({})
-        .expect(201);
-      await server()
-        .post(`/api/v1/liquidations/${scheduled.body.id}/open`)
-        .set('Cookie', ops.cookies)
+        .post(`/api/v1/liquidations/${sale.liquidationId}/open`)
+        .set('Cookie', sale.ops.cookies)
         .set('Idempotency-Key', randomUUID())
         .send({ biddingWindowMs: Number(7n * oneDay) })
         .expect(201);
-      const bidder = await loginAs(`bidder-${suffix}@pause.test`, 'MEMBER');
-      await fund(ops, bidder.email, '300000');
-      await pauseSystem(ops);
+      const bidder = await loginAs(`bidder-${randomUUID().slice(0, 8)}@pause.test`, 'MEMBER');
+      await fund(sale.ops, bidder.email, '300000');
+      await pauseSystem(sale.ops);
 
       await signInAgain(bidder);
-      const refusedBid = await server()
-        .post(`/api/v1/liquidations/${scheduled.body.id}/bids`)
+      const rejected = await server()
+        .post(`/api/v1/liquidations/${sale.liquidationId}/bids`)
         .set('Cookie', bidder.cookies)
         .set('Idempotency-Key', randomUUID())
         .send({ amount: amount('300000') })
         .expect(422);
-      expect(refusedBid.body.error.code).toBe('SYSTEM_PAUSED');
+      expect(rejected.body.error.code).toBe('SYSTEM_PAUSED');
       expect(await harness.prisma.liquidationBid.count()).toBe(0);
     });
   });
@@ -387,10 +394,11 @@ describe('pause', () => {
       expect(requested.body.status).toBe('REQUESTED');
     });
 
-    it('lets staff verify and release a redemption', async () => {
-      const borrower = await loginAs('borrower@pause.test', 'MEMBER');
-      const staff = await loginAs('staff@pause.test', 'VAULT_STAFF');
-      const ops = await loginAs('ops@pause.test', 'OPERATIONS');
+    async function requestedRedemption(): Promise<{ requestId: string; staff: Party; ops: Party }> {
+      const suffix = randomUUID().slice(0, 8);
+      const borrower = await loginAs(`borrower-${suffix}@pause.test`, 'MEMBER');
+      const staff = await loginAs(`staff-${suffix}@pause.test`, 'VAULT_STAFF');
+      const ops = await loginAs(`ops-${suffix}@pause.test`, 'OPERATIONS');
       const receiptId = await receiptFor(borrower.accountId);
       const requested = await server()
         .post(`/api/v1/receipts/${receiptId}/redemption-requests`)
@@ -398,18 +406,37 @@ describe('pause', () => {
         .set('Idempotency-Key', randomUUID())
         .send({})
         .expect(201);
-      await pauseSystem(ops);
+      return { requestId: requested.body.id, staff, ops };
+    }
 
-      await signInAgain(staff);
-      await server()
-        .post(`/api/v1/redemption-requests/${requested.body.id}/verify`)
-        .set('Cookie', staff.cookies)
+    it('lets staff verify a redemption', async () => {
+      const redemption = await requestedRedemption();
+      await pauseSystem(redemption.ops);
+
+      await signInAgain(redemption.staff);
+      const verified = await server()
+        .post(`/api/v1/redemption-requests/${redemption.requestId}/verify`)
+        .set('Cookie', redemption.staff.cookies)
         .set('Idempotency-Key', randomUUID())
         .send({})
         .expect(201);
+      expect(verified.body.status).toBe('VERIFIED');
+    });
+
+    it('lets staff release a verified redemption', async () => {
+      const redemption = await requestedRedemption();
+      await server()
+        .post(`/api/v1/redemption-requests/${redemption.requestId}/verify`)
+        .set('Cookie', redemption.staff.cookies)
+        .set('Idempotency-Key', randomUUID())
+        .send({})
+        .expect(201);
+      await pauseSystem(redemption.ops);
+
+      await signInAgain(redemption.staff);
       const released = await server()
-        .post(`/api/v1/redemption-requests/${requested.body.id}/release`)
-        .set('Cookie', staff.cookies)
+        .post(`/api/v1/redemption-requests/${redemption.requestId}/release`)
+        .set('Cookie', redemption.staff.cookies)
         .set('Idempotency-Key', randomUUID())
         .send({ sealNumberBroken: 'SEAL-9' })
         .expect(201);
@@ -471,7 +498,7 @@ describe('pause', () => {
       expect(balance.body.available).toEqual(amount('250000'));
     });
 
-    it('lets a note holder mark a default and claim the receipt', async () => {
+    it('lets a note holder mark a default', async () => {
       const loan = await liveLoan();
       harness.clock.advanceBy(30n * oneDay + 7n * oneDay + oneDay);
       await pauseSystem(loan.ops);
@@ -484,7 +511,21 @@ describe('pause', () => {
         .send({})
         .expect(201);
       expect(defaulted.body.status).toBe('DEFAULTED');
+    });
 
+    it('lets a note holder claim the receipt', async () => {
+      const loan = await liveLoan();
+      harness.clock.advanceBy(30n * oneDay + 7n * oneDay + oneDay);
+      await signInAgain(loan.lender);
+      await server()
+        .post(`/api/v1/loans/${loan.loanId}/default`)
+        .set('Cookie', loan.lender.cookies)
+        .set('Idempotency-Key', randomUUID())
+        .send({})
+        .expect(201);
+      await pauseSystem(loan.ops);
+
+      await signInAgain(loan.lender);
       await server()
         .post(`/api/v1/loans/${loan.loanId}/claim-receipt`)
         .set('Cookie', loan.lender.cookies)
