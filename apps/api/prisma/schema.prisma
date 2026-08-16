@@ -463,6 +463,38 @@ model SystemState {
   @@map("system_state")
 }
 
+model ReconciliationRun {
+  id        String               @id
+  vaultId   String?              @map("vault_id")
+  startedAt DateTime             @map("started_at")
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+
+  drift     ReconciliationDrift[]
+
+  @@index([vaultId, startedAt])
+  @@map("reconciliation_run")
+}
+
+/* One row per disagreement, naming what to look at rather than a total,
+   because drift is an incident routed to a human (docs/10 flow 10). */
+model ReconciliationDrift {
+  id        String             @id
+  runId     String             @map("run_id")
+  kind      String
+  subject   String
+  field     String
+  expected  String
+  observed  String
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  run       ReconciliationRun  @relation(fields: [runId], references: [id])
+
+  @@index([runId])
+  @@map("reconciliation_drift")
+}
+
 model OutboxEvent {
   id          String    @id
   type        String

@@ -16,5 +16,6 @@ export * from './error-codes';
 export * from './lending';
 export * from './liquidation';
 export * from './money';
+export * from './operations';
 export * from './redemption';
 export * from './wallet';

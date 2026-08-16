@@ -1,13 +1,27 @@
 import { Body, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
-import { pauseSystemRequestSchema } from '@depawn/contracts';
-import type { AuditPageResponse, PauseSystemRequest, SystemStateResponse } from '@depawn/contracts';
+import { pauseSystemRequestSchema, reconcileRequestSchema } from '@depawn/contracts';
+import type {
+  AuditPageResponse,
+  ExposureByVaultResponse,
+  LoanBookResponse,
+  PauseSystemRequest,
+  ReconcileRequest,
+  ReconciliationListResponse,
+  ReconciliationRunResponse,
+  SystemStateResponse,
+} from '@depawn/contracts';
 import type { Account } from '../../../domain/accounts/account';
 import type { SystemState } from '../../../domain/ports/system-state.port';
+import { receiptIdOf, vaultIdOf } from '../../../domain/shared/identifiers';
+import { toMoneyDto } from '../../shared/http/money.mapper';
 import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
 import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { AuditSearchQuery } from '../application/audit-search.query';
+import { LoanBookQuery } from '../application/loan-book.query';
+import { ReconcileVaultUseCase } from '../application/reconcile-vault.use-case';
+import { ReconciliationHistoryQuery } from '../application/reconciliation-history.query';
 import { PauseSystemUseCase } from '../application/pause-system.use-case';
 
 function toSystemStateResponse(state: SystemState): SystemStateResponse {
@@ -27,6 +41,9 @@ export class AdminController {
   constructor(
     private readonly pauseSystem: PauseSystemUseCase,
     private readonly auditSearch: AuditSearchQuery,
+    private readonly reconcileVault: ReconcileVaultUseCase,
+    private readonly reconciliationHistory: ReconciliationHistoryQuery,
+    private readonly loanBook: LoanBookQuery,
   ) {}
 
   /* Readable by any signed in account, because a member who cannot place an
@@ -81,6 +98,60 @@ export class AdminController {
         after: entry.after ?? null,
       })),
       nextCursor: page.nextCursor,
+    };
+  }
+
+  @Roles('OPERATIONS')
+  @Post('reconciliations')
+  @UseInterceptors(IdempotencyInterceptor)
+  async reconcile(
+    @CurrentAccount() account: Account,
+    @Body(new ZodValidationPipe(reconcileRequestSchema)) body: ReconcileRequest,
+  ): Promise<ReconciliationRunResponse> {
+    const run = await this.reconcileVault.execute({
+      vaultId: vaultIdOf(body.vaultId),
+      countedReceiptIds: body.countedReceiptIds.map(receiptIdOf),
+      requestedBy: account.id,
+    });
+    return {
+      id: run.id,
+      vaultId: run.vaultId,
+      startedAt: new Date(Number(run.startedAt.epochMilliseconds)).toISOString(),
+      drift: [...run.drift],
+    };
+  }
+
+  @Roles('OPERATIONS')
+  @Get('reconciliations')
+  async reconciliations(): Promise<ReconciliationListResponse> {
+    const items = await this.reconciliationHistory.list();
+    return { items: items.map((run) => ({ ...run, drift: [...run.drift] })) };
+  }
+
+  @Roles('OPERATIONS')
+  @Get('loan-book')
+  async readLoanBook(): Promise<LoanBookResponse> {
+    const book = await this.loanBook.read();
+    return {
+      outstandingCount: book.outstandingCount,
+      outstandingPrincipal: toMoneyDto(book.outstandingPrincipal),
+      overdueCount: book.overdueCount,
+      atRiskCount: book.atRiskCount,
+      defaultedCount: book.defaultedCount,
+    };
+  }
+
+  @Roles('OPERATIONS')
+  @Get('exposure-by-vault')
+  async exposureByVault(): Promise<ExposureByVaultResponse> {
+    const items = await this.loanBook.exposureByVault();
+    return {
+      items: items.map((row) => ({
+        vaultId: row.vaultId,
+        exposure: toMoneyDto(row.exposure),
+        insuredLimit: toMoneyDto(row.insuredLimit),
+        receiptCount: row.receiptCount,
+      })),
     };
   }
 }
