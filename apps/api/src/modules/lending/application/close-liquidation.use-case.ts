@@ -94,6 +94,12 @@ export class CloseLiquidationUseCase {
           this.parameters,
         );
 
+        // The waterfall always computes all four lines so the parts provably
+        // sum to the whole, but the ledger refuses a zero amount entry: a
+        // movement of nothing is not a movement. Dropping the empty lines
+        // leaves the total untouched (Q-019).
+        const movements = distributions.filter((distribution) => !distribution.amount.isZero());
+
         const settlementRef = await this.settlement.releaseHold(
           {
             id: closed.value.winningBid.fundsHoldId,
@@ -105,7 +111,7 @@ export class CloseLiquidationUseCase {
               settledAt: now,
             },
           },
-          [...distributions],
+          movements,
           'SETTLE_LIQUIDATION',
           context,
         );

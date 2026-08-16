@@ -169,3 +169,14 @@ loan that closed before the claim answers LOAN_NOT_ACTIVE as flow 7 names
 still healthy and inside its term. Reusing LOAN_NOT_ACTIVE for a live loan would be false, so the
 narrowest reading added a code rather than stretching one. The canonical list in docs/04 does not
 carry it yet.
+
+## Q-019: the rounding line and the ledger's positive amount rule
+**Blocks:** the liquidation settlement
+**Currently implemented:** the waterfall always computes all four lines, including a rounding line
+that is usually zero, and the close use case drops the zero valued ones before settling
+**Needs:** whoever owns docs/03
+**Notes:** docs/03 says the remainder line must never be omitted, while the ledger has forbidden a
+non positive entry amount since P1 and enforces it in the entity, in a database trigger, and in a
+property test. Reading the two together, never omitted means never forgotten in the arithmetic
+rather than always written as an entry: a movement of zero is not a movement, and the four line
+calculation is what proves the parts still sum to the whole.
