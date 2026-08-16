@@ -183,7 +183,8 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
 
   // Step 6. The tools that keep it honest are where the runbook says.
   await adminPage.getByRole('link', { name: 'Reconciliation' }).click();
-  await expect(adminPage.getByTestId('reconcile-vault')).toBeVisible();
+  await expect(adminPage.getByTestId('run-reconciliation')).toBeVisible();
+  await expect(adminPage.getByTestId('loan-book')).toBeVisible();
   await adminPage.getByRole('link', { name: 'Parameters' }).click();
   await expect(adminPage.getByTestId('origination-fee')).toContainText('bps');
   await expect(adminPage.getByTestId('parameter-history')).toBeVisible();
