@@ -1,4 +1,4 @@
-import { fetchMyOffers, reclaimOffer } from '@depawn/contracts';
+import { fetchMyOffers, nameForOfferStatus, reclaimOffer } from '@depawn/contracts';
 import type { OfferResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Explain, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -101,7 +101,10 @@ function MyOffersCard(): ReactElement {
                 </span>
               ),
               render: (offer: OfferResponse) => (
-                <StatusBadge tone={offerStatusTone(offer.status)} label={offer.status} />
+                <StatusBadge
+                  tone={offerStatusTone(offer.status)}
+                  label={nameForOfferStatus(offer.status)}
+                />
               ),
             },
             {

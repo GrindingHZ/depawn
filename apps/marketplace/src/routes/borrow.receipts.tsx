@@ -5,6 +5,8 @@ import {
   fetchMyRedemptionRequests,
   messageForError,
   nameForCategory,
+  nameForRedemptionStatus,
+  nameForReceiptStatus,
   publishListing,
   requestRedemption,
 } from '@depawn/contracts';
@@ -53,7 +55,7 @@ function BorrowReceiptsPage(): ReactElement | null {
 
   return (
     <MarketShell>
-      <div className="max-w-3xl">
+      <div className="max-w-5xl">
         <ReceiptsCard />
       </div>
     </MarketShell>
@@ -175,7 +177,10 @@ function ReceiptsCard(): ReactElement {
               key: 'status',
               header: 'Status',
               render: (receipt: ReceiptResponse) => (
-                <StatusBadge tone={receiptStatusTone(receipt.status)} label={receipt.status} />
+                <StatusBadge
+                  tone={receiptStatusTone(receipt.status)}
+                  label={nameForReceiptStatus(receipt.status)}
+                />
               ),
             },
             {
@@ -189,7 +194,7 @@ function ReceiptsCard(): ReactElement {
                   <span data-testid={`redemption-${receipt.id}`}>
                     <StatusBadge
                       tone={redemption.status === 'RELEASED' ? 'success' : 'active'}
-                      label={redemption.status}
+                      label={nameForRedemptionStatus(redemption.status)}
                     />
                   </span>
                 );
@@ -210,6 +215,7 @@ function ReceiptsCard(): ReactElement {
                     </Button>
                     <Button
                       variant="secondary"
+                      className="whitespace-nowrap"
                       data-testid={`redeem-${receipt.id}`}
                       onClick={() => redemptionMutation.mutate(receipt.id)}
                       disabled={redemptionMutation.isPending}

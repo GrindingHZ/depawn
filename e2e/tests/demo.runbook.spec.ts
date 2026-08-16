@@ -115,7 +115,7 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await borrowerPage.getByRole('button', { name: 'List' }).click();
   await borrowerPage.getByTestId('list-principal').fill('1500.00');
   await borrowerPage.getByTestId('list-submit').click();
-  await expect(borrowerPage.getByTestId('my-listings')).toContainText('ACTIVE');
+  await expect(borrowerPage.getByTestId('my-listings')).toContainText('Taking offers');
   const listingId = (
     await borrowerPage.getByTestId('my-listings').getByRole('link').first().innerText()
   ).trim();
@@ -139,7 +139,7 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await expect(topRow).toContainText('18.00% p.a.');
   await topRow.getByRole('button', { name: 'Accept' }).click();
   await borrowerPage.getByRole('link', { name: 'My loans' }).click();
-  await expect(borrowerPage.getByTestId('my-loans')).toContainText('ACTIVE');
+  await expect(borrowerPage.getByTestId('my-loans')).toContainText('Running');
 
   // Step 3. Operations pushes the clock past maturity from the admin screen.
   const adminPage = await openApp(browser, adminBase, '/login');
@@ -173,11 +173,11 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await expect(borrowerPage.getByTestId('payoff-total')).toContainText('AUD');
   await expect(borrowerPage.getByTestId('payoff-interest')).toContainText('AUD');
   await borrowerPage.getByRole('button', { name: 'Repay and release the item' }).click();
-  await expect(borrowerPage.getByTestId('my-loans')).toContainText('REPAID');
+  await expect(borrowerPage.getByTestId('my-loans')).toContainText('Repaid');
 
   await borrowerPage.getByRole('link', { name: 'My receipts' }).click();
   await borrowerPage.getByTestId(`redeem-${receiptId}`).click();
-  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('REQUESTED');
+  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('Requested');
 
   await vaultPage.goto(`${vaultConsoleBase}/releases`);
   await expect(vaultPage.getByTestId('release-queue')).toContainText(receiptId);
@@ -190,7 +190,7 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await vaultPage.getByTestId('seal-number-broken').fill(`SEAL-BROKEN-${stamp}`);
   await vaultPage.getByTestId('confirm-release').click();
   await borrowerPage.reload();
-  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('RELEASED');
+  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('Handed over');
 
   // Step 6. The tools that keep it honest are where the runbook says.
   await adminPage.getByRole('link', { name: 'Reconciliation' }).click();
@@ -319,9 +319,9 @@ test('the runbook can settle a sale that is already taking bids', async ({ brows
   const adminPage = await openApp(browser, adminBase, '/login');
   await signIn(adminPage, 'ops@demo.test', staffPassword);
   await adminPage.getByRole('link', { name: 'Liquidations' }).click();
-  await expect(adminPage.getByTestId('liquidations-table')).toContainText('BIDDING');
+  await expect(adminPage.getByTestId('liquidations-table')).toContainText('Taking bids');
   await adminPage.getByTestId(`close-${liquidationId}`).click();
-  await expect(adminPage.getByTestId('liquidations-table')).toContainText('SETTLED');
+  await expect(adminPage.getByTestId('liquidations-table')).toContainText('Settled');
 
   // The runbook then reads the audit trail for that sale.
   await adminPage.getByRole('link', { name: 'Operations' }).click();

@@ -21,4 +21,5 @@ export * from './money';
 export * from './operations';
 export * from './parameters';
 export * from './redemption';
+export * from './status-copy';
 export * from './wallet';

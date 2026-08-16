@@ -84,10 +84,10 @@ test('a borrower asks for an item back and the counter hands it over', async ({
   await signIn(borrowerPage, borrowerEmail, password);
   await borrowerPage.getByRole('link', { name: 'My receipts' }).click();
   await borrowerPage.getByTestId(`redeem-${receiptId}`).click();
-  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('REQUESTED');
+  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('Requested');
   // The burn is the entitlement proof, so the receipt is spent the moment
   // the request is made, before anyone visits the counter.
-  await expect(borrowerPage.getByTestId('my-receipts')).toContainText('RELEASED');
+  await expect(borrowerPage.getByTestId('my-receipts')).toContainText('Collected');
 
   await page.goto('/login');
   await signIn(page, 'staff@demo.test', 'demo-password-123');
@@ -110,6 +110,6 @@ test('a borrower asks for an item back and the counter hands it over', async ({
   await expect(page.getByTestId('release-queue')).not.toContainText(receiptId);
 
   await borrowerPage.reload();
-  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('RELEASED');
+  await expect(borrowerPage.getByTestId(`redemption-${receiptId}`)).toContainText('Handed over');
   await borrowerContext.close();
 });

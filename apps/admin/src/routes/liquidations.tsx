@@ -3,6 +3,7 @@ import {
   closeLiquidation,
   fetchLiquidations,
   messageForError,
+  nameForLiquidationStatus,
   openLiquidation,
 } from '@depawn/contracts';
 import type { LiquidationResponse } from '@depawn/contracts';
@@ -176,7 +177,10 @@ function LiquidationsCard(): ReactElement {
               key: 'status',
               header: 'Status',
               render: (item: LiquidationResponse) => (
-                <StatusBadge tone={liquidationTone(item.status)} label={item.status} />
+                <StatusBadge
+                  tone={liquidationTone(item.status)}
+                  label={nameForLiquidationStatus(item.status)}
+                />
               ),
             },
             {

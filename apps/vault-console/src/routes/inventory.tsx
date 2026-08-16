@@ -1,4 +1,4 @@
-import { fetchInventory } from '@depawn/contracts';
+import { fetchInventory, nameForReceiptStatus } from '@depawn/contracts';
 import type { ReceiptResponse } from '@depawn/contracts';
 import { Card, DataTable, Money, Select, Skeleton, StatusBadge } from '@depawn/ui';
 import { useQuery } from '@tanstack/react-query';
@@ -91,7 +91,10 @@ function InventoryCard(): ReactElement {
                 key: 'status',
                 header: 'Status',
                 render: (receipt: ReceiptResponse) => (
-                  <StatusBadge tone={receiptStatusTone(receipt.status)} label={receipt.status} />
+                  <StatusBadge
+                    tone={receiptStatusTone(receipt.status)}
+                    label={nameForReceiptStatus(receipt.status)}
+                  />
                 ),
               },
             ]}

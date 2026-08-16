@@ -1,3 +1,4 @@
+import { nameForLoanStatus } from '@depawn/contracts';
 import type { LoanResponse, LoanStatusDto } from '@depawn/contracts';
 import type { StatusTone } from '@depawn/ui';
 
@@ -28,7 +29,7 @@ export function loanStatusTone(status: LoanStatusDto): StatusTone {
    past the end of grace while nobody has marked it defaulted (Q-014). */
 export function loanBadgeFor(loan: LoanResponse, nowMilliseconds: number): LoanBadge {
   if (loan.status === 'ACTIVE' && Date.parse(loan.maturesAt) <= nowMilliseconds) {
-    return { tone: 'warning', label: 'PAST MATURITY' };
+    return { tone: 'warning', label: 'Past maturity' };
   }
-  return { tone: loanStatusTone(loan.status), label: loan.status };
+  return { tone: loanStatusTone(loan.status), label: nameForLoanStatus(loan.status) };
 }

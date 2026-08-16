@@ -69,7 +69,7 @@ test('an item goes from intake to a receipt the borrower can see', async ({
   expect(receiptId).toBeTruthy();
 
   await page.getByRole('link', { name: 'Inventory' }).click();
-  await expect(page.getByTestId('inventory-table')).toContainText('IN_VAULT');
+  await expect(page.getByTestId('inventory-table')).toContainText('In the vault');
 
   await page.getByRole('link', { name: 'Exposure' }).click();
   const exposureAfter = await request.get(`${apiBase}/vaults/VAULT-DEMO-1/exposure`);
@@ -94,7 +94,7 @@ test('an item goes from intake to a receipt the borrower can see', async ({
 
   await borrowerPage.getByRole('link', { name: 'My receipts' }).click();
   await expect(borrowerPage.getByTestId(`receipt-${receiptId}`)).toBeVisible();
-  await expect(borrowerPage.getByTestId('my-receipts')).toContainText('IN_VAULT');
+  await expect(borrowerPage.getByTestId('my-receipts')).toContainText('In the vault');
   await borrowerContext.close();
 });
 

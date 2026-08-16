@@ -1,4 +1,10 @@
-import { ApiError, cancelListing, fetchMyListings, messageForError } from '@depawn/contracts';
+import {
+  ApiError,
+  cancelListing,
+  fetchMyListings,
+  messageForError,
+  nameForListingStatus,
+} from '@depawn/contracts';
 import type { ListingResponse } from '@depawn/contracts';
 import { Button, Card, DataTable, Explain, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -122,7 +128,10 @@ function MyListingsCard(): ReactElement {
               key: 'status',
               header: 'Status',
               render: (listing: ListingResponse) => (
-                <StatusBadge tone={listingStatusTone(listing.status)} label={listing.status} />
+                <StatusBadge
+                  tone={listingStatusTone(listing.status)}
+                  label={nameForListingStatus(listing.status)}
+                />
               ),
             },
             {

@@ -125,7 +125,7 @@ test('a borrower accepts an offer and both sides see the loan', async ({
   await page.getByRole('button', { name: 'List' }).click();
   await page.getByTestId('list-principal').fill('2500.00');
   await page.getByTestId('list-submit').click();
-  await expect(page.getByTestId('my-listings')).toContainText('ACTIVE');
+  await expect(page.getByTestId('my-listings')).toContainText('Taking offers');
 
   await page.getByRole('link', { name: 'My listings' }).click();
   const listingLink = page.getByTestId('my-listings').getByRole('link').first();
@@ -143,14 +143,14 @@ test('a borrower accepts an offer and both sides see the loan', async ({
   await expect(winnerPage.getByRole('button', { name: 'Accept' })).toHaveCount(0);
   await page.getByTestId('offer-book').getByRole('button', { name: 'Accept' }).first().click();
 
-  await expect(page.getByTestId('my-loans')).toContainText('ACTIVE');
+  await expect(page.getByTestId('my-loans')).toContainText('Running');
   await expect(page.getByTestId('my-loans')).toContainText('AUD 2,500.00');
   await expect(page.getByTestId('my-loans')).toContainText('18.00% p.a.');
 
   // A full load rather than a client side hop, because this page has been
   // sitting on the listing while another context originated the loan.
   await winnerPage.goto('/lend/loans');
-  await expect(winnerPage.getByTestId('funded-loans')).toContainText('ACTIVE');
+  await expect(winnerPage.getByTestId('funded-loans')).toContainText('Running');
   await expect(winnerPage.getByTestId('funded-loans')).toContainText('AUD 2,500.00');
 
   // The losing hold is committed until its lender pulls it back (rule M8).

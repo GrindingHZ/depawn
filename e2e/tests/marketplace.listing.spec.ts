@@ -99,7 +99,7 @@ test('a receipt becomes a listing and takes a funded offer', async ({ page, brow
   await page.getByRole('button', { name: 'List' }).click();
   await page.getByTestId('list-principal').fill('2500.00');
   await page.getByTestId('list-submit').click();
-  await expect(page.getByTestId('my-listings')).toContainText('ACTIVE');
+  await expect(page.getByTestId('my-listings')).toContainText('Taking offers');
   await page.getByRole('link', { name: 'My listings' }).click();
   const listingId = (
     await page.getByTestId('my-listings').getByRole('link').first().innerText()
@@ -149,7 +149,7 @@ test('the offer form blocks a principal above the ceiling', async ({ page, reque
   await page.getByRole('button', { name: 'List' }).click();
   await page.getByTestId('list-principal').fill('2500.00');
   await page.getByTestId('list-submit').click();
-  await expect(page.getByTestId('my-listings')).toContainText('ACTIVE');
+  await expect(page.getByTestId('my-listings')).toContainText('Taking offers');
   const ceilingListingId = (
     await page.getByTestId('my-listings').getByRole('link').first().innerText()
   ).trim();

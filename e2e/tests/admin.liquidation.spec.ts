@@ -156,12 +156,12 @@ test('operations run a defaulted loan through to settlement', async ({ page, req
   await expect(page.getByTestId('authenticated-home')).toBeVisible();
 
   await page.getByRole('link', { name: 'Liquidations' }).click();
-  await expect(page.getByTestId('liquidations-table')).toContainText('SCHEDULED');
+  await expect(page.getByTestId('liquidations-table')).toContainText('Scheduled');
   // Nobody has bid, so there is nothing to settle yet.
   await expect(page.getByTestId(`close-${liquidationId}`)).toHaveCount(0);
 
   await page.getByTestId(`open-${liquidationId}`).click();
-  await expect(page.getByTestId('liquidations-table')).toContainText('BIDDING');
+  await expect(page.getByTestId('liquidations-table')).toContainText('Taking bids');
 
   await signInApi(request, bidderEmail, password);
   const bid = await request.post(`${apiBase}/liquidations/${liquidationId}/bids`, {
@@ -173,7 +173,7 @@ test('operations run a defaulted loan through to settlement', async ({ page, req
   await page.reload();
   await expect(page.getByTestId('liquidations-table')).toContainText('AUD 3,000.00');
   await page.getByTestId(`close-${liquidationId}`).click();
-  await expect(page.getByTestId('liquidations-table')).toContainText('SETTLED');
+  await expect(page.getByTestId('liquidations-table')).toContainText('Settled');
 
   // The lender is made whole and the borrower keeps what is left over.
   await signInApi(request, lenderEmail, password);

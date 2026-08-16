@@ -1,4 +1,4 @@
-import { fetchRedemptionQueue } from '@depawn/contracts';
+import { fetchRedemptionQueue, nameForRedemptionStatus } from '@depawn/contracts';
 import type { RedemptionRequestResponse } from '@depawn/contracts';
 import { Card, DataTable, Skeleton, StatusBadge } from '@depawn/ui';
 import { useQuery } from '@tanstack/react-query';
@@ -81,7 +81,10 @@ function ReleaseQueueCard(): ReactElement {
               key: 'status',
               header: 'Status',
               render: (item: RedemptionRequestResponse) => (
-                <StatusBadge tone={redemptionStatusTone(item.status)} label={item.status} />
+                <StatusBadge
+                  tone={redemptionStatusTone(item.status)}
+                  label={nameForRedemptionStatus(item.status)}
+                />
               ),
             },
           ]}
