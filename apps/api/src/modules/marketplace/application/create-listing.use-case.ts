@@ -3,6 +3,7 @@ import { CUSTODY_RECEIPT_REPOSITORY } from '../../../domain/custody/custody-rece
 import type { CustodyReceiptRepository } from '../../../domain/custody/custody-receipt-repository';
 import { ReceiptNotInVault } from '../../../domain/custody/receipt-not-in-vault';
 import { Listing } from '../../../domain/marketplace/listing';
+import type { ListingExpired } from '../../../domain/marketplace/listing-expired';
 import { LISTING_REPOSITORY } from '../../../domain/marketplace/listing-repository';
 import type { ListingRepository } from '../../../domain/marketplace/listing-repository';
 import { assertWithinLoanToValue } from '../../../domain/marketplace/loan-to-value-policy';
@@ -24,7 +25,6 @@ import { ID_GENERATOR } from '../../../domain/shared/id-generator';
 import type { IdGenerator } from '../../../domain/shared/id-generator';
 import { listingIdOf } from '../../../domain/shared/identifiers';
 import type { AccountId, ReceiptId } from '../../../domain/shared/identifiers';
-import type { Instant } from '../../../domain/shared/instant';
 import type { Money } from '../../../domain/shared/money';
 import { SystemPaused } from '../../../domain/shared/system-paused';
 import { failure, ok } from '../../../domain/shared/result';
@@ -37,7 +37,7 @@ export interface CreateListingCommand {
   readonly requestedPrincipal: Money;
   readonly maxAnnualPercentageRateBasisPoints: number;
   readonly requestedDurationMs: bigint;
-  readonly expiresAt: Instant;
+  readonly requestedLifetimeMs: bigint;
 }
 
 type CreateListingRejection =
@@ -47,6 +47,7 @@ type CreateListingRejection =
   | ReceiptAlreadyListed
   | LoanToValueExceeded
   | RateAboveMaximum
+  | ListingExpired
   | SystemPaused;
 
 @Injectable()
@@ -101,15 +102,25 @@ export class CreateListingUseCase {
         return withinLoanToValue;
       }
 
-      const listing = Listing.draft({
-        id: listingIdOf(this.idGenerator.generate()),
-        borrowerAccountId: command.requestedBy,
-        receiptId: command.receiptId,
-        requestedPrincipal: command.requestedPrincipal,
-        maxAnnualPercentageRateBasisPoints: command.maxAnnualPercentageRateBasisPoints,
-        requestedDurationMs: command.requestedDurationMs,
-        expiresAt: command.expiresAt,
-      });
+      // The expiry is derived from the server clock, so a borrower whose
+      // browser disagrees about the date still gets a listing they can publish.
+      const now = this.clock.now();
+      const drafted = Listing.draft(
+        {
+          id: listingIdOf(this.idGenerator.generate()),
+          borrowerAccountId: command.requestedBy,
+          receiptId: command.receiptId,
+          requestedPrincipal: command.requestedPrincipal,
+          maxAnnualPercentageRateBasisPoints: command.maxAnnualPercentageRateBasisPoints,
+          requestedDurationMs: command.requestedDurationMs,
+          expiresAt: now.plusMilliseconds(command.requestedLifetimeMs),
+        },
+        now,
+      );
+      if (!drafted.ok) {
+        return drafted;
+      }
+      const listing = drafted.value;
       await this.listings.save(listing, context);
       await this.audit.record(
         {

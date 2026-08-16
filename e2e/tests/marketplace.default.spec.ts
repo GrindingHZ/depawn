@@ -94,7 +94,7 @@ async function originateLoan(
       requestedPrincipal: { minorUnits: '250000', currency: 'AUD' },
       maxAnnualPercentageRateBasisPoints: 2400,
       requestedDurationMs: 30 * oneDay,
-      expiresAt,
+      requestedLifetimeMs: 3_600_000,
     },
   });
   expect(listing.status()).toBe(201);

@@ -105,7 +105,7 @@ describe('marketplace', () => {
         requestedPrincipal: amount('250000'),
         maxAnnualPercentageRateBasisPoints: 2400,
         requestedDurationMs: 2_592_000_000,
-        expiresAt: inAnHour,
+        requestedLifetimeMs: 3_600_000,
       })
       .expect(201);
     await server()
@@ -301,7 +301,7 @@ describe('marketplace', () => {
         requestedPrincipal: amount('100000'),
         maxAnnualPercentageRateBasisPoints: 2400,
         requestedDurationMs: 2_592_000_000,
-        expiresAt: inAnHour,
+        requestedLifetimeMs: 3_600_000,
       })
       .expect(409);
     expect(duplicate.body.error.code).toBe('RECEIPT_ALREADY_LISTED');

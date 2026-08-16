@@ -106,8 +106,18 @@ export class Listing {
     return this.fields.version;
   }
 
-  static draft(input: Omit<ListingFields, 'status' | 'offers' | 'version'>): Listing {
-    return new Listing({ ...input, status: 'DRAFT', offers: [], version: 0 });
+  /* A draft past its expiry can never be published, so it is refused at
+     construction rather than left in the borrower's list as a row that fails
+     on the next call. */
+  static draft(
+    input: Omit<ListingFields, 'status' | 'offers' | 'version'>,
+    now: Instant,
+  ): Result<Listing, ListingExpired> {
+    const listing = new Listing({ ...input, status: 'DRAFT', offers: [], version: 0 });
+    if (listing.isExpired(now)) {
+      return failure(new ListingExpired());
+    }
+    return ok(listing);
   }
 
   static restore(fields: ListingFields): Listing {

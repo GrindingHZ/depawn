@@ -66,7 +66,9 @@ the `Config` object.
 ### Steps
 
 1. `POST /listings` with `receiptId`, `requestedPrincipal`, `maxAnnualPercentageRateBasisPoints`,
-   `requestedDurationMs`, `expiresAt`. Created as `DRAFT`. Server validates the requested principal
+   `requestedDurationMs`, `requestedLifetimeMs`. Created as `DRAFT`, expiring one lifetime after the
+   server clock, because a client that dates the expiry from its own clock disagrees with the server
+   whenever the two drift. Server validates the requested principal
    against the LTV cap for the item's category and rejects immediately if it exceeds it; better to
    fail here than to let the borrower publish something no lender can legally fund.
 

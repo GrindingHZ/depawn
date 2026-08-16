@@ -102,7 +102,7 @@ test('a pause stops new lending without trapping a borrower', async ({
       requestedPrincipal: { minorUnits: '250000', currency: 'AUD' },
       maxAnnualPercentageRateBasisPoints: 2400,
       requestedDurationMs: 30 * oneDay,
-      expiresAt,
+      requestedLifetimeMs: 3_600_000,
     },
   });
   const listingId = ((await listing.json()) as { id: string }).id;

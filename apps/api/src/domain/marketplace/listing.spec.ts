@@ -103,6 +103,29 @@ describe('listing transitions', () => {
     }
   });
 
+  /* A draft that is already past its expiry can never be published, so
+     refusing it here keeps an unpublishable row out of the borrower's list
+     rather than letting the failure land on the next call. */
+  it('drafts only into the future', () => {
+    const fields = {
+      id: listingIdOf('LST2'),
+      borrowerAccountId: accountIdOf('BORROWER'),
+      receiptId: receiptIdOf('R1'),
+      requestedPrincipal: Money.of(250_000n, aud),
+      maxAnnualPercentageRateBasisPoints: 2400,
+      requestedDurationMs: 2_592_000_000n,
+    };
+
+    const ahead = Listing.draft({ ...fields, expiresAt: later }, now);
+    expect(ahead.ok).toBe(true);
+
+    const behind = Listing.draft({ ...fields, expiresAt: now }, later);
+    expect(behind.ok).toBe(false);
+    if (!behind.ok) {
+      expect(behind.error.code).toBe('LISTING_EXPIRED');
+    }
+  });
+
   it('keeps terminal states terminal', () => {
     expect(allowedListingTransitions.MATCHED).toHaveLength(0);
     expect(allowedListingTransitions.CANCELLED).toHaveLength(0);

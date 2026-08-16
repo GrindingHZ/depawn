@@ -103,7 +103,7 @@ test('operations run a defaulted loan through to settlement', async ({ page, req
       requestedPrincipal: { minorUnits: '250000', currency: 'AUD' },
       maxAnnualPercentageRateBasisPoints: 2400,
       requestedDurationMs: 30 * oneDay,
-      expiresAt,
+      requestedLifetimeMs: 3_600_000,
     },
   });
   const listingId = ((await listing.json()) as { id: string }).id;

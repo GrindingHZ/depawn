@@ -456,7 +456,7 @@ async function publishListing(
     requestedPrincipal: money(receipt.ask),
     maxAnnualPercentageRateBasisPoints: maxRateBasisPoints,
     requestedDurationMs: durationDays * oneDay,
-    expiresAt: new Date(serverNow() + 14 * oneDay).toISOString(),
+    requestedLifetimeMs: 14 * oneDay,
   });
   const listingId = identifierOf(listing);
   await borrower.call('POST', `/listings/${listingId}/publish`, {});

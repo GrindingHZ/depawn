@@ -238,6 +238,11 @@ function ReceiptsCard(): ReactElement {
   );
 }
 
+/* How long the listing stays open for offers. Sent as a duration so the
+   server dates it from its own clock; a date computed here would be wrong
+   whenever the two clocks disagree. */
+const listingLifetimeMs = 7 * 24 * 60 * 60 * 1000;
+
 function listMessageFor(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === 'LOAN_TO_VALUE_EXCEEDED') {
@@ -281,7 +286,7 @@ function ListReceiptDialog({
           requestedPrincipal: { minorUnits: input.minorUnits, currency: 'AUD' },
           maxAnnualPercentageRateBasisPoints: input.maxRateBasisPoints,
           requestedDurationMs: input.durationDays * 24 * 60 * 60 * 1000,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          requestedLifetimeMs: listingLifetimeMs,
         },
         { idempotencyKey: createKey },
       );

@@ -118,9 +118,7 @@ describe('receipt photographs', () => {
         requestedPrincipal: { minorUnits: '200000', currency: 'AUD' },
         maxAnnualPercentageRateBasisPoints: 2400,
         requestedDurationMs: 30 * oneDay,
-        expiresAt: new Date(
-          Number(harness.clock.now().epochMilliseconds) + 14 * oneDay,
-        ).toISOString(),
+        requestedLifetimeMs: 14 * oneDay,
       })
       .expect(201);
     await server()

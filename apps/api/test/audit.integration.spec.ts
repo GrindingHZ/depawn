@@ -87,7 +87,7 @@ describe('audit trail', () => {
         requestedPrincipal: amount('250000'),
         maxAnnualPercentageRateBasisPoints: 2400,
         requestedDurationMs: Number(30n * oneDay),
-        expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+        requestedLifetimeMs: 3_600_000,
       })
       .expect(201);
     await server()

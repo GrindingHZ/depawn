@@ -17,7 +17,10 @@ export const createListingRequestSchema = z.object({
   requestedPrincipal: positiveMoneySchema,
   maxAnnualPercentageRateBasisPoints: z.number().int().min(1).max(10_000),
   requestedDurationMs: z.number().int().positive(),
-  expiresAt: z.iso.datetime(),
+  /* A lifetime rather than an instant, because only the server knows what
+     time it is. A client computing an expiry from its own clock disagrees
+     with the server whenever the two drift (docs/01-architecture.md). */
+  requestedLifetimeMs: z.number().int().positive(),
 });
 
 export type CreateListingRequest = z.infer<typeof createListingRequestSchema>;

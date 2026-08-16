@@ -78,7 +78,7 @@ export class ListingController {
       requestedPrincipal: toMoney(body.requestedPrincipal),
       maxAnnualPercentageRateBasisPoints: body.maxAnnualPercentageRateBasisPoints,
       requestedDurationMs: BigInt(body.requestedDurationMs),
-      expiresAt: instantOfIso(body.expiresAt),
+      requestedLifetimeMs: BigInt(body.requestedLifetimeMs),
     });
     if (!result.ok) {
       throw new DomainErrorHttpException(result.error, marketplaceStatusFor(result.error.code));

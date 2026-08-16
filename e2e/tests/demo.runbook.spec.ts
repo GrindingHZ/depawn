@@ -267,7 +267,7 @@ test('the runbook can settle a sale that is already taking bids', async ({ brows
       requestedPrincipal: { minorUnits: '250000', currency: 'AUD' },
       maxAnnualPercentageRateBasisPoints: 2400,
       requestedDurationMs: 14 * oneDay,
-      expiresAt,
+      requestedLifetimeMs: 3_600_000,
     },
   });
   const listingId = ((await listing.json()) as { id: string }).id;
