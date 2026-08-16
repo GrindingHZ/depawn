@@ -45,7 +45,8 @@ Every account uses the password `demo-password-123`.
 
 ### What the seed leaves behind
 
-- Eight receipts: one already released, four pledged against loans, three still free
+- Eight receipts across all five categories, each with a photograph: one already released, four
+  pledged against loans, three still free
 - Three live listings, each with two competing offers on it
 - Three active loans, maturing in a fortnight, in six weeks, and in three months
 - One loan repaid and its item already walked back out of the vault
@@ -68,7 +69,8 @@ Sign in as `staff@demo.test`. You are on **Intake**.
 1. Start an intake for `ada@demo.test`, category bullion, description "One ounce gold coin".
    The screen shows a draft with an empty evidence list.
 2. Record the seal number. The draft now shows it and still refuses to be sealed.
-3. Attach a photo. The evidence list has one item.
+3. Attach a photo. It has to be a real JPEG or PNG: the bytes are checked rather than the file
+   name, so a renamed script is refused. The evidence list then has one item.
 4. Record an appraisal of AUD 3,000.00. One appraisal is enough below the dual appraisal threshold,
    and the screen says so.
 5. Seal the intake, then issue the receipt. You land on a receipt with a status of **IN VAULT**.
@@ -86,7 +88,9 @@ Sign in as `ada@demo.test` in the marketplace window.
 
 Sign in as `gita@demo.test` in a second marketplace window.
 
-3. Open the listing from Browse. Offer the full amount at 18.00 percent for thirty days.
+3. Open the listing from Browse. Each row leads with the item and its photograph, and carries a
+   loan to value chip: the same money against a gold bar and against a painting are different
+   propositions, and the chip says which. Offer the full amount at 18.00 percent for thirty days.
 4. Offer again from a third account, or point at one of the seeded listings, which already has two
    offers on it. The offer table ranks by rate, and the lowest rate is on top.
 
@@ -148,7 +152,9 @@ Still as `ops@demo.test`:
 
 1. **Reconciliation**: run one against the Sydney vault. It compares the physical count to the
    records and the ledger to itself, and reports drift rather than fixing it quietly.
-2. **Parameters**: the fees, with a full history of every edit and who made it. An edit writes a new
+2. **Parameters**: the fees, with a full history of every edit and who made it. Loan to value is
+   set per category, which is why the vault lends against 60 percent of bullion and 30 percent of
+   art. An edit writes a new
    version from a date you choose. A loan already originated keeps the terms it was originated
    under, including the fee its liquidation will pay.
 3. **Operations**: the pause switch. Pausing stops new listings, offers, acceptances, and sales. It
