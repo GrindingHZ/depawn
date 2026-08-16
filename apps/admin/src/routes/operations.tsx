@@ -53,6 +53,9 @@ function OperationsPage(): ReactElement | null {
           <Link to="/operations" className="font-body text-sm text-ink-primary">
             Operations
           </Link>
+          <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
+            Reconciliation
+          </Link>
           <Link to="/deposits" className="font-body text-sm text-ink-secondary">
             Deposits
           </Link>

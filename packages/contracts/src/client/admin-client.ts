@@ -1,4 +1,17 @@
 import { auditPageResponseSchema, systemStateResponseSchema } from '../admin';
+import {
+  exposureByVaultResponseSchema,
+  loanBookResponseSchema,
+  reconciliationListResponseSchema,
+  reconciliationRunResponseSchema,
+} from '../operations';
+import type {
+  ExposureByVaultResponse,
+  LoanBookResponse,
+  ReconcileRequest,
+  ReconciliationListResponse,
+  ReconciliationRunResponse,
+} from '../operations';
 import type { AuditPageResponse, PauseSystemRequest, SystemStateResponse } from '../admin';
 import { requestJson } from './http';
 import type { RequestOptions } from './http';
@@ -53,5 +66,42 @@ export function fetchAuditPage(filters: {
     method: 'GET',
     path: `${basePath}/admin/audit-log${suffix}`,
     responseSchema: auditPageResponseSchema,
+  });
+}
+
+export function runReconciliation(
+  body: ReconcileRequest,
+  options: RequestOptions,
+): Promise<ReconciliationRunResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/admin/reconciliations`,
+    body,
+    options,
+    responseSchema: reconciliationRunResponseSchema,
+  });
+}
+
+export function fetchReconciliations(): Promise<ReconciliationListResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/reconciliations`,
+    responseSchema: reconciliationListResponseSchema,
+  });
+}
+
+export function fetchLoanBook(): Promise<LoanBookResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/loan-book`,
+    responseSchema: loanBookResponseSchema,
+  });
+}
+
+export function fetchExposureByVault(): Promise<ExposureByVaultResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/exposure-by-vault`,
+    responseSchema: exposureByVaultResponseSchema,
   });
 }

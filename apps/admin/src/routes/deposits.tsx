@@ -48,6 +48,9 @@ function DepositsPage(): ReactElement | null {
           <Link to="/" className="font-body text-sm text-ink-secondary">
             Home
           </Link>
+          <Link to="/reconciliation" className="font-body text-sm text-ink-secondary">
+            Reconciliation
+          </Link>
           <Link to="/deposits" className="font-body text-sm text-ink-primary">
             Deposits
           </Link>

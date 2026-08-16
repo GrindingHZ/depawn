@@ -14,6 +14,7 @@ import { Route as DepositsRouteImport } from './routes/deposits'
 import { Route as LiquidationsRouteImport } from './routes/liquidations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OperationsRouteImport } from './routes/operations'
+import { Route as ReconciliationRouteImport } from './routes/reconciliation'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const OperationsRoute = OperationsRouteImport.update({
   path: '/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReconciliationRoute = ReconciliationRouteImport.update({
+  id: '/reconciliation',
+  path: '/reconciliation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,14 +70,33 @@ export interface FileRoutesById {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/deposits' | '/liquidations' | '/login' | '/operations'
+  fullPaths:
+    | '/'
+    | '/deposits'
+    | '/liquidations'
+    | '/login'
+    | '/operations'
+    | '/reconciliation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/deposits' | '/liquidations' | '/login' | '/operations'
+  to:
+    | '/'
+    | '/deposits'
+    | '/liquidations'
+    | '/login'
+    | '/operations'
+    | '/reconciliation'
   id:
-    '__root__' | '/' | '/deposits' | '/liquidations' | '/login' | '/operations'
+    | '__root__'
+    | '/'
+    | '/deposits'
+    | '/liquidations'
+    | '/login'
+    | '/operations'
+    | '/reconciliation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,6 +105,7 @@ export interface RootRouteChildren {
   LiquidationsRoute: typeof LiquidationsRoute
   LoginRoute: typeof LoginRoute
   OperationsRoute: typeof OperationsRoute
+  ReconciliationRoute: typeof ReconciliationRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reconciliation': {
+      id: '/reconciliation'
+      path: '/reconciliation'
+      fullPath: '/reconciliation'
+      preLoaderRoute: typeof ReconciliationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -126,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   LiquidationsRoute: LiquidationsRoute,
   LoginRoute: LoginRoute,
   OperationsRoute: OperationsRoute,
+  ReconciliationRoute: ReconciliationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
