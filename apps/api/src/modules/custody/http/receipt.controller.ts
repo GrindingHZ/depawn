@@ -18,7 +18,12 @@ export class ReceiptController {
   @Get('me/receipts')
   async listMine(@CurrentAccount() account: Account): Promise<ReceiptListResponse> {
     const receipts = await this.receipts.listFor(account.id);
-    return { items: receipts.map(toReceiptResponse) };
+    const photographed = await this.photographs.whichHavePhotographs(
+      receipts.map((receipt) => receipt.id),
+    );
+    return {
+      items: receipts.map((receipt) => toReceiptResponse(receipt, photographed.has(receipt.id))),
+    };
   }
 
   /* The bytes of the item, for whoever is entitled to look at them. Not
@@ -59,6 +64,7 @@ export class ReceiptController {
     ) {
       throw new NotFoundException();
     }
-    return toReceiptResponse(receipt);
+    const photographed = await this.photographs.whichHavePhotographs([receipt.id]);
+    return toReceiptResponse(receipt, photographed.has(receipt.id));
   }
 }

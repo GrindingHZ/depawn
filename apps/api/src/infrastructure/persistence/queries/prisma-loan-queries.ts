@@ -57,12 +57,25 @@ export class PrismaLoanQueries implements LoanQueries {
     const holderByLoanId = new Map(
       lenderNotes.map((note) => [note.loanId, accountIdOf(note.holderAccountId)]),
     );
+    // One more query for the whole page rather than one per row, for the
+    // same reason the note holders are resolved in a batch above.
+    const receipts = await this.prisma.custodyReceipt.findMany({
+      where: { id: { in: rows.map((row) => row.receiptId) } },
+      select: { id: true, itemDescription: true },
+    });
+    const descriptionByReceiptId = new Map(
+      receipts.map((receipt) => [receipt.id, receipt.itemDescription]),
+    );
     return rows.map((row) => {
       const holder = holderByLoanId.get(row.id);
       if (holder === undefined) {
         throw new Error(`Loan ${row.id} has no lender note`);
       }
-      return { loan: toLoan(row), lenderNoteHolderAccountId: holder };
+      return {
+        loan: toLoan(row),
+        lenderNoteHolderAccountId: holder,
+        itemDescription: descriptionByReceiptId.get(row.receiptId) ?? '',
+      };
     });
   }
 }

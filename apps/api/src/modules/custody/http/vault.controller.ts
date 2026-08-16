@@ -26,6 +26,7 @@ import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { BeginIntakeUseCase } from '../application/begin-intake.use-case';
 import { VaultExposureQuery } from '../application/vault-exposure.query';
+import { ReceiptPhotographQuery } from '../application/receipt-photograph.query';
 import { VaultInventoryQuery } from '../application/vault-inventory.query';
 import { custodyStatusFor, toIntakeResponse, toReceiptResponse } from './custody-response.mapper';
 
@@ -47,6 +48,7 @@ export class VaultController {
     private readonly beginIntake: BeginIntakeUseCase,
     private readonly inventoryQuery: VaultInventoryQuery,
     private readonly exposureQuery: VaultExposureQuery,
+    private readonly photographs: ReceiptPhotographQuery,
   ) {}
 
   @Post(':vaultId/intakes')
@@ -75,7 +77,12 @@ export class VaultController {
     @Query('status') status?: string,
   ): Promise<ReceiptListResponse> {
     const receipts = await this.inventoryQuery.read(vaultIdOf(vaultId), parseReceiptStatus(status));
-    return { items: receipts.map(toReceiptResponse) };
+    const photographed = await this.photographs.whichHavePhotographs(
+      receipts.map((receipt) => receipt.id),
+    );
+    return {
+      items: receipts.map((receipt) => toReceiptResponse(receipt, photographed.has(receipt.id))),
+    };
   }
 
   @Get(':vaultId/exposure')

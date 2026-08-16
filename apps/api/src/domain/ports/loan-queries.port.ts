@@ -6,6 +6,7 @@ import type { AccountId, LoanId } from '../shared/identifiers';
 export interface LoanReadModel {
   readonly loan: Loan;
   readonly lenderNoteHolderAccountId: AccountId;
+  readonly itemDescription: string;
 }
 
 export type LoanParticipantRole = 'borrower' | 'lender';

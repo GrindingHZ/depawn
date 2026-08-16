@@ -86,6 +86,11 @@ export const receiptResponseSchema = z.object({
   appraisedValue: moneySchema,
   appraisedAt: z.string(),
   itemCategory: itemCategorySchema,
+  itemDescription: z.string(),
+  /* Whether a photograph can be fetched from
+     `/receipts/{id}/photo`. The bytes have their own authorisation; this only
+     says whether asking is worthwhile. */
+  hasPhotograph: z.boolean(),
   insurancePolicyReference: z.string(),
   status: receiptStatusSchema,
   encumberedByLoanId: z.string().nullable(),

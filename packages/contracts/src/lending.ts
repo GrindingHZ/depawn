@@ -13,6 +13,9 @@ export type LoanRole = z.infer<typeof loanRoleSchema>;
 export const loanResponseSchema = z.object({
   id: z.string(),
   receiptId: z.string(),
+  /* What the loan is secured against, so a row can name the thing rather
+     than only the receipt it lives on. */
+  itemDescription: z.string(),
   borrowerAccountId: z.string(),
   principal: moneySchema,
   annualPercentageRateBasisPoints: z.number().int(),

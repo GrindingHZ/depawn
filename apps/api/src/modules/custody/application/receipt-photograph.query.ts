@@ -33,6 +33,23 @@ export class ReceiptPhotographQuery {
     @Inject(OBJECT_STORAGE_PORT) private readonly storage: ObjectStoragePort,
   ) {}
 
+  /* Which of these receipts have a photograph worth asking for. One query
+     for a whole page rather than one per row, and the same rule the media
+     endpoint applies: evidence with no verified type is not servable. */
+  async whichHavePhotographs(receiptIds: readonly string[]): Promise<ReadonlySet<string>> {
+    if (receiptIds.length === 0) {
+      return new Set();
+    }
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT r.id
+      FROM custody_receipt r
+      JOIN intake_record i ON i.sealed_hash = r.intake_record_hash
+      WHERE r.id = ANY(${receiptIds}::text[])
+        AND jsonb_path_exists(i.evidence, '$[*].contentType')
+    `;
+    return new Set(rows.map((row) => row.id));
+  }
+
   async findVisibleTo(receiptId: ReceiptId, viewer: Account): Promise<ReceiptPhotograph | null> {
     const receipt = await this.prisma.custodyReceipt.findUnique({
       where: { id: receiptId },

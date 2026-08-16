@@ -13,6 +13,7 @@ export function toLoanResponse(readModel: LoanReadModel): LoanResponse {
   return {
     id: loan.id,
     receiptId: loan.receiptId,
+    itemDescription: readModel.itemDescription,
     borrowerAccountId: loan.borrowerAccountId,
     principal: toMoneyDto(loan.principal),
     annualPercentageRateBasisPoints: loan.annualPercentageRateBasisPoints,

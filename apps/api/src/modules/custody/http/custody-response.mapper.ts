@@ -48,7 +48,10 @@ export function toIntakeResponse(
   };
 }
 
-export function toReceiptResponse(receipt: CustodyReceipt): ReceiptResponse {
+export function toReceiptResponse(
+  receipt: CustodyReceipt,
+  hasPhotograph: boolean,
+): ReceiptResponse {
   return {
     id: receipt.id,
     vaultId: receipt.vaultId,
@@ -57,6 +60,8 @@ export function toReceiptResponse(receipt: CustodyReceipt): ReceiptResponse {
     appraisedValue: toMoneyDto(receipt.appraisedValue),
     appraisedAt: new Date(Number(receipt.appraisedAt.epochMilliseconds)).toISOString(),
     itemCategory: receipt.itemCategory,
+    itemDescription: receipt.itemDescription,
+    hasPhotograph,
     insurancePolicyReference: receipt.insurancePolicyReference,
     status: receipt.status,
     encumberedByLoanId: receipt.encumberedByLoanId,

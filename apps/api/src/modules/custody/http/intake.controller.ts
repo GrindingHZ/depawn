@@ -35,6 +35,7 @@ import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
 import { AttachPhotoUseCase } from '../application/attach-photo.use-case';
 import { IntakeDetailQuery } from '../application/intake-detail.query';
+import { ReceiptPhotographQuery } from '../application/receipt-photograph.query';
 import { IssueReceiptUseCase } from '../application/issue-receipt.use-case';
 import { RecordAppraisalUseCase } from '../application/record-appraisal.use-case';
 import { SealIntakeUseCase } from '../application/seal-intake.use-case';
@@ -59,6 +60,7 @@ export class IntakeController {
     private readonly recordAppraisal: RecordAppraisalUseCase,
     private readonly sealIntake: SealIntakeUseCase,
     private readonly issueReceipt: IssueReceiptUseCase,
+    private readonly photographs: ReceiptPhotographQuery,
   ) {}
 
   @Get(':intakeId')
@@ -165,7 +167,10 @@ export class IntakeController {
     if (!result.ok) {
       throw new DomainErrorHttpException(result.error, custodyStatusFor(result.error.code));
     }
-    return toReceiptResponse(result.value);
+    // A receipt cannot be issued without evidence, but evidence recorded
+    // before uploads were verified carries no type and is not servable.
+    const photographed = await this.photographs.whichHavePhotographs([result.value.id]);
+    return toReceiptResponse(result.value, photographed.has(result.value.id));
   }
 
   private async readDetail(intakeId: string): Promise<IntakeResponse> {
