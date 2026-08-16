@@ -10,6 +10,7 @@ export * from './client/liquidation-client';
 export * from './client/marketplace-client';
 export * from './client/redemption-client';
 export * from './client/wallet-client';
+export * from './category-copy';
 export * from './custody';
 export * from './marketplace';
 export * from './error-codes';
