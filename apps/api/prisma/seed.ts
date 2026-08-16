@@ -101,6 +101,20 @@ class DemoClient {
   }
 }
 
+/* The seed wipes what it finds, so it refuses to run against anything that
+   looks like it is not a development or demo database. A wrong DATABASE_URL
+   is the one mistake this script could make that could not be undone. */
+function refuseToWipeAnythingImportant(databaseUrl: string): void {
+  const host = new URL(databaseUrl).hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (!isLocal && process.env.SEED_ANY_DATABASE !== 'true') {
+    throw new Error(
+      `refusing to empty a database on ${host}. The seed only ever runs locally; ` +
+        'set SEED_ANY_DATABASE=true if you truly mean a remote one.',
+    );
+  }
+}
+
 async function emptyEveryTable(prisma: PrismaClient): Promise<void> {
   const rows = await prisma.$queryRaw<{ tablename: string }[]>`
     SELECT tablename FROM pg_tables
@@ -143,7 +157,9 @@ const accountsOnly = process.argv.includes('--accounts-only');
 
 async function main(): Promise<void> {
   process.env.DEMO_MODE = 'true';
-  const prisma = new PrismaClient({ datasourceUrl: loadConfiguration().databaseUrl });
+  const databaseUrl = loadConfiguration().databaseUrl;
+  refuseToWipeAnythingImportant(databaseUrl);
+  const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
 
   /* The dataset is a story with a fixed cast, so it starts from an empty
      database. Seeding on top of a previous run would double the loan book

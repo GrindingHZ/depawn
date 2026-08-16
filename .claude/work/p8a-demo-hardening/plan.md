@@ -24,6 +24,14 @@ at each point, and resets it at the end, so it hands back a clock at real time w
 history is spread across weeks. This means the seed runs with the advanceable clock, which is the
 same switch the demo clock control needs.
 
+> **This turned out to be wrong, and the reversal is recorded here rather than quietly fixed.**
+> A clock that only runs forwards cannot be reset without stranding the dataset: the seed finishes
+> weeks ahead, and a serving process born at real time would read every loan it wrote as starting in
+> the future. The seed therefore leaves the offset in place, and the offset is written to a
+> `demo_clock` row so the serving process inherits it. What made this visible was task 4's own test,
+> which asserted the clock was back where it started and failed. The consequence for routine
+> development is recorded as Q-024.
+
 **Demo mode is an explicit flag, not NODE_ENV.** `DEMO_MODE=true` selects the advanceable clock and
 mounts the test support module. Today both are keyed off `NODE_ENV === 'test'`, which is the wrong
 key for a demo process. The flag defaults to false, so a deployed process is unchanged and the route
@@ -45,9 +53,13 @@ way "executes without deviation" can be an exit criterion rather than a hope.
    grace period and mid liquidation with two bids, and one completed cycle from deposit to redemption.
 4. `test(seed): the seeded dataset holds the invariants`: an integration test that runs the seed
    against a Testcontainers database and asserts the ledger nets to zero, every loan is in the status
-   the dataset claims, and the clock is back where it started.
+   the dataset claims, and the dataset makes sense against the clock the seed leaves behind. A second
+   suite starts the real `pnpm dev` entry point against that database and reads the book back over
+   HTTP, which is the only way the one command exit criterion can be checked rather than assumed.
 5. `feat(admin): move the clock from the operations screen`: a demo only control that advances the
-   clock by a day or to the next maturity, hidden when the API reports demo mode off.
+   clock by a day or to the next maturity, hidden when the API reports demo mode off. Shipped with
+   fixed jumps of one, seven, and thirty one days and no jump to next maturity: the runbook only
+   ever needs to cross a maturity or a holding period, and both are fixed lengths.
 6. `test(admin): the clock control advances a loan to maturity`: component test plus the endpoint.
 7. `docs(demo): write the runbook`: `docs/DEMO.md`, the click path, the expected screen at each step,
    the credentials, and what to say.

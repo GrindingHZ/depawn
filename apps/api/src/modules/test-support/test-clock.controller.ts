@@ -17,8 +17,9 @@ export interface AdvanceClockResponse {
 }
 
 /* Mounted only by TestSupportModule, which the application graph imports
-   only under NODE_ENV=test, so this route cannot exist in a deployed
-   process (docs/06-testing.md). */
+   only when the process has a clock it can move: under test, or in a demo.
+   A deployed process has neither, so this route is absent from the graph
+   rather than present and refusing (docs/06-testing.md). */
 @Controller('test/clock')
 export class TestClockController {
   constructor(@Inject(CLOCK_PORT) private readonly clock: ClockPort) {}

@@ -530,3 +530,43 @@ nothing. Q-023 records that a chain submission is a different matter.
 The handler becomes the chain submission and the indexer feeds events back the other way. The
 claiming, the retry, and the dead letter table are already here, which is the point of building the
 outbox before there is anywhere to publish to.
+
+---
+
+## Flow 15: moving the clock in a demo
+
+**Actor:** operations, in a demo process only
+
+A loan book with history cannot be built at one instant, and a clock cannot be asked to run
+backwards, so the demo seed builds its story by moving time forwards and leaves it where it
+finished. Two processes are involved, the seed and the one that serves the demo, so the offset has
+to survive between them.
+
+### Steps
+
+1. `pnpm db:seed` empties the database, boots the application, and drives the whole story through
+   the same endpoints the apps use, advancing the clock between acts.
+2. Each advance writes the accumulated offset to the single `demo_clock` row.
+3. `pnpm dev` starts the api in demo mode. `DemoClockAdapter` reads that row once at startup and
+   adds the offset to the system clock from then on.
+4. The parameters screen shows a clock control, because the health endpoint reports demo mode. An
+   advance moves the process clock and writes the new offset down.
+
+### What this is not
+
+Three clocks exist and only one of them can be moved by whoever is holding it. Under test the
+process gets an offset held in memory, so a suite leaves nothing behind. In a demo the offset is
+written down. Everywhere else the system clock is the only source of time and the route that would
+move it is absent from the application graph, not merely refused.
+
+### Consequences worth naming
+
+Sessions are measured against the same clock as everything else, so a jump longer than the session
+lifetime signs everyone out. The runbook says so at the step where it happens rather than treating
+it as a glitch. Ordinary development inherits the demo offset, which is recorded as Q-024.
+
+### Phase 3
+
+The chain has its own clock and nothing can move it. The seed becomes a set of transactions against
+a local network, and a demo that needs time to pass either waits or uses the network's own
+facilities. The domain is unaffected either way: it reads a `ClockPort` and always has.

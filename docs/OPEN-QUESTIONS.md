@@ -222,3 +222,15 @@ delivered again
 chain submission is a different matter. The usual answer is an idempotency key carried into the
 submission so the chain itself rejects the second copy, which is closer to how the rest of this
 system already works than trying to make the queue exactly once.
+
+## Q-024: whether ordinary development should share the demo clock
+**Blocks:** nothing today
+**Currently implemented:** `pnpm dev` runs the api in demo mode, so it reads the offset the seed
+left in `demo_clock` and starts weeks ahead of the wall clock
+**Needs:** whoever owns docs/11
+**Notes:** The demo needs this, because the seed and the serving process are two processes and the
+loan book only makes sense against the clock it was written under. Ordinary development inherits it
+as a side effect: after a seed, a developer's api is dated two months out. That is harmless while
+every date on every screen comes from the same clock, and it is what the demo is going to do
+anyway, so running development in the same mode is at least honest. The alternative is a third
+mode, which is a mode nobody would remember to use. Resetting is one call to the clock route.
