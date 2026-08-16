@@ -99,7 +99,10 @@ describe('distributeLiquidationProceeds', () => {
     expect(sumOf(distributions)).toBe(250_001n);
   });
 
-  it('sums to the proceeds for any sale against any debt', () => {
+  /* The sum holding is nearly free, because the rounding line is computed as
+     the difference. What is worth proving is that each recipient gets the
+     share rule L7 promises, for every arrangement of sale, debt, and fee. */
+  it('splits any sale against any debt by the waterfall rule', () => {
     fc.assert(
       fc.property(
         fc.bigInt({ min: 0n, max: 1_000_000_000_000n }),
@@ -112,6 +115,20 @@ describe('distributeLiquidationProceeds', () => {
             recipients,
             { liquidationFeeBasisPoints: feeBasisPoints } as ProtocolParameters,
           );
+
+          const toLender = amountFor(distributions, 'LENDER-1');
+          const fee = amountFor(distributions, platformAccountIds.feeRevenue);
+          const surplus = amountFor(distributions, 'BORROWER-1');
+          const rounding = amountFor(distributions, platformAccountIds.rounding);
+
+          // The lender is paid first, capped by what the sale raised.
+          expect(toLender).toBe(proceeds < owed ? proceeds : owed);
+          const remainder = proceeds - toLender;
+          // The fee is taken from what is left, truncated downwards.
+          expect(fee).toBe((remainder * BigInt(feeBasisPoints)) / 10_000n);
+          // Everything still standing goes back to the borrower.
+          expect(surplus).toBe(remainder - fee);
+          expect(rounding).toBe(0n);
           expect(sumOf(distributions)).toBe(proceeds);
           for (const distribution of distributions) {
             expect(distribution.amount.isNegative()).toBe(false);

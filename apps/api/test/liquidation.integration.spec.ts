@@ -344,7 +344,7 @@ describe('liquidation', () => {
     );
   });
 
-  it('leaves a beaten bidder able to reclaim', async () => {
+  it('lets a beaten bidder pull their funds back', async () => {
     const loan = await defaultedLoan();
     harness.clock.advanceBy(31n * oneDay);
     const liquidationId = await biddingLiquidation(loan, '200000');
@@ -355,12 +355,23 @@ describe('liquidation', () => {
     await fund(loan.ops, first.email, '400000');
     await fund(loan.ops, second.email, '400000');
 
-    await server()
+    const firstBid = await server()
       .post(`/api/v1/liquidations/${liquidationId}/bids`)
       .set('Cookie', first.cookies)
       .set('Idempotency-Key', randomUUID())
       .send({ amount: amount('250000') })
       .expect(201);
+    const beatenBidId = firstBid.body.bids[0].id;
+
+    // The standing high bid is still in play, so it cannot be pulled.
+    const tooEarly = await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${beatenBidId}/reclaim`)
+      .set('Cookie', first.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(422);
+    expect(tooEarly.body.error.code).toBe('HOLD_NOT_RECLAIMABLE');
+
     await server()
       .post(`/api/v1/liquidations/${liquidationId}/bids`)
       .set('Cookie', second.cookies)
@@ -368,12 +379,65 @@ describe('liquidation', () => {
       .send({ amount: amount('300000') })
       .expect(201);
 
-    // Pull not push: the beaten bid stays held until its owner asks for it.
-    const heldRows = await harness.prisma.fundsHold.findMany({
-      where: { accountId: first.accountId, status: 'HELD' },
-    });
-    expect(heldRows).toHaveLength(1);
+    // Pull not push: being beaten does not move the money, asking does.
+    expect(BigInt(await balanceOf(first))).toBe(150_000n);
+    const reclaimed = await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${beatenBidId}/reclaim`)
+      .set('Cookie', first.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+    expect(reclaimed.body.settlementRef.reference).toBeTruthy();
+    expect(BigInt(await balanceOf(first))).toBe(400_000n);
 
+    // A repeat is a no op rather than a second refund.
+    const again = await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${beatenBidId}/reclaim`)
+      .set('Cookie', first.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+    expect(again.body.settlementRef.reference).toBe(reclaimed.body.settlementRef.reference);
+    expect(BigInt(await balanceOf(first))).toBe(400_000n);
+    expect(await harness.prisma.ledgerTransaction.count({ where: { kind: 'REFUND_HOLD' } })).toBe(
+      1,
+    );
+
+    // Nobody else may pull it for them.
+    const stranger = await loginAs(`stranger-${randomUUID().slice(0, 8)}@liq.test`, 'MEMBER');
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${beatenBidId}/reclaim`)
+      .set('Cookie', stranger.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(403);
+  });
+
+  it('lets the losing bidder pull back after the sale settles', async () => {
+    const loan = await defaultedLoan();
+    harness.clock.advanceBy(31n * oneDay);
+    const liquidationId = await biddingLiquidation(loan, '200000');
+
+    const loser = await loginAs(`loser-${randomUUID().slice(0, 8)}@liq.test`, 'MEMBER');
+    const winner = await loginAs(`winner-${randomUUID().slice(0, 8)}@liq.test`, 'MEMBER');
+    await signInAgain(loan.ops);
+    await fund(loan.ops, loser.email, '400000');
+    await fund(loan.ops, winner.email, '400000');
+
+    const losing = await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids`)
+      .set('Cookie', loser.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ amount: amount('250000') })
+      .expect(201);
+    const losingBidId = losing.body.bids[0].id;
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids`)
+      .set('Cookie', winner.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ amount: amount('300000') })
+      .expect(201);
+    await signInAgain(loan.ops);
     await server()
       .post(`/api/v1/liquidations/${liquidationId}/close`)
       .set('Cookie', loan.ops.cookies)
@@ -381,13 +445,28 @@ describe('liquidation', () => {
       .send({})
       .expect(201);
 
-    const stillHeld = await harness.prisma.fundsHold.findMany({
-      where: { accountId: first.accountId, status: 'HELD' },
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${losingBidId}/reclaim`)
+      .set('Cookie', loser.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+    expect(BigInt(await balanceOf(loser))).toBe(400_000n);
+
+    // The winner's money went to the waterfall and is not theirs to reclaim.
+    const winningBid = await harness.prisma.liquidationBid.findFirst({
+      where: { bidderAccountId: winner.accountId },
     });
-    expect(stillHeld).toHaveLength(1);
+    const refused = await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids/${winningBid?.id ?? 'missing'}/reclaim`)
+      .set('Cookie', winner.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(422);
+    expect(refused.body.error.code).toBe('HOLD_NOT_RECLAIMABLE');
   });
 
-  it('keeps scheduling and closing away from members', async () => {
+  it('keeps scheduling, opening, and closing away from members', async () => {
     const loan = await defaultedLoan();
     harness.clock.advanceBy(31n * oneDay);
     await signInAgain(loan.lender);
@@ -397,5 +476,36 @@ describe('liquidation', () => {
       .set('Idempotency-Key', randomUUID())
       .send({ reservePrice: amount('200000') })
       .expect(403);
+
+    const liquidationId = await biddingLiquidation(loan, '200000');
+    await signInAgain(loan.lender);
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/open`)
+      .set('Cookie', loan.lender.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ biddingWindowMs: 1000 })
+      .expect(403);
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/close`)
+      .set('Cookie', loan.lender.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(403);
+  });
+
+  it('refuses a second sale on the same loan', async () => {
+    const loan = await defaultedLoan();
+    harness.clock.advanceBy(31n * oneDay);
+    await biddingLiquidation(loan, '200000');
+
+    await signInAgain(loan.ops);
+    const again = await server()
+      .post(`/api/v1/loans/${loan.loanId}/liquidations`)
+      .set('Cookie', loan.ops.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ reservePrice: amount('200000') })
+      .expect(409);
+    expect(again.body.error.code).toBe('LIQUIDATION_ALREADY_SCHEDULED');
+    expect(await harness.prisma.liquidation.count()).toBe(1);
   });
 });
