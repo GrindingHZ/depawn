@@ -19,6 +19,8 @@ export interface ListingSummaryReadModel {
   readonly status: ListingStatus;
   readonly appraisedValue: Money;
   readonly itemCategory: ItemCategory;
+  readonly itemDescription: string;
+  readonly hasPhotograph: boolean;
 }
 
 export interface ListingsPage {
@@ -28,6 +30,10 @@ export interface ListingsPage {
 
 export interface MarketplaceQueries {
   browseActive(cursor: string | null, limit: number, now: Instant): Promise<ListingsPage>;
+  /* Whether a servable photograph exists for the item behind a receipt. The
+     bytes are behind their own authorisation; this only says whether asking
+     is worthwhile, so a screen can reserve the space or not. */
+  photographExists(receiptId: ReceiptId): Promise<boolean>;
   offersByLender(lender: AccountId): Promise<readonly Offer[]>;
 }
 

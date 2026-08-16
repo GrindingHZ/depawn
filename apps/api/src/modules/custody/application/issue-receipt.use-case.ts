@@ -93,6 +93,7 @@ export class IssueReceiptUseCase {
           appraisedAt: appraisal.appraisedAt,
           appraiserId: appraisal.appraiserId,
           itemCategory: intake.itemCategory,
+          itemDescription: intake.itemDescription,
           insurancePolicyReference: command.insurancePolicyReference,
         },
         context,

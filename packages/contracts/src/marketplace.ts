@@ -58,6 +58,17 @@ export type RankedOfferResponse = z.infer<typeof rankedOfferResponseSchema>;
 export const listingSummarySchema = listingResponseSchema.extend({
   appraisedValue: moneySchema,
   itemCategory: itemCategorySchema,
+  /* What the lender is actually lending against. Until P8b a listing carried
+     a value and a category and no way to know what the thing was. */
+  itemDescription: z.string(),
+  /* Whether a photograph exists to fetch from
+     `/receipts/{receiptId}/photo`. The bytes are behind their own
+     authorisation, so this only says whether asking is worthwhile. */
+  hasPhotograph: z.boolean(),
+  /* The loan the borrower is asking for, as a share of the appraisal, in
+     basis points. Computed here because it is the first thing a lender wants
+     and the last thing they should have to work out. */
+  loanToValueBasisPoints: z.number().int().nonnegative(),
 });
 
 export type ListingSummary = z.infer<typeof listingSummarySchema>;

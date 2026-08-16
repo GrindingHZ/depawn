@@ -115,6 +115,7 @@ describe('repayment', () => {
         appraisedAt: new Date(0),
         appraiserId: 'S1',
         itemCategory: 'BULLION',
+        itemDescription: 'One kilogram gold bar, cast',
         insurancePolicyReference: 'POL-1',
         status: 'IN_VAULT',
       },

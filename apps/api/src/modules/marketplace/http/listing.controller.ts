@@ -44,6 +44,7 @@ import {
   toListingSummary,
   toOfferResponse,
   toRankedOfferResponse,
+  loanToValueBasisPointsOf,
 } from './marketplace-response.mapper';
 
 function instantOfIso(value: string): Instant {
@@ -133,6 +134,12 @@ export class ListingController {
       ...toListingResponse(detail.listing),
       appraisedValue: toMoneyDto(detail.receipt.appraisedValue),
       itemCategory: detail.receipt.itemCategory,
+      itemDescription: detail.receipt.itemDescription,
+      hasPhotograph: detail.hasPhotograph,
+      loanToValueBasisPoints: loanToValueBasisPointsOf(
+        detail.listing.requestedPrincipal,
+        detail.receipt.appraisedValue,
+      ),
       maxPrincipal: toMoneyDto(detail.maxPrincipal),
       offerBook: detail.offerBook.map(toRankedOfferResponse),
     };

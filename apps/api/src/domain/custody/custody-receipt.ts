@@ -39,6 +39,10 @@ interface CustodyReceiptFields {
   readonly appraisedAt: Instant;
   readonly appraiserId: StaffId;
   readonly itemCategory: ItemCategory;
+  /* Copied from the intake at issuance rather than joined back to it. A
+     receipt that cannot say what it is a receipt for is incomplete, and in
+     Phase 3 it is an object on chain with nothing to join to. */
+  readonly itemDescription: string;
   readonly insurancePolicyReference: string;
   readonly status: ReceiptStatus;
   readonly encumberedByLoanId: LoanId | null;
@@ -75,6 +79,9 @@ export class CustodyReceipt {
   }
   get itemCategory(): ItemCategory {
     return this.fields.itemCategory;
+  }
+  get itemDescription(): string {
+    return this.fields.itemDescription;
   }
   get insurancePolicyReference(): string {
     return this.fields.insurancePolicyReference;

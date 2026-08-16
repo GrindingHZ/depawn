@@ -65,6 +65,7 @@ describe('redemption', () => {
         appraisedAt: new Date(0),
         appraiserId: 'S1',
         itemCategory: 'BULLION',
+        itemDescription: 'One kilogram gold bar, cast',
         insurancePolicyReference: 'POL-1',
         status: encumbered ? 'ENCUMBERED' : 'IN_VAULT',
         encumberedByLoanId: encumbered ? `LOAN-${suffix}` : null,

@@ -14,6 +14,7 @@ export interface IssueReceiptCommand {
   readonly appraisedAt: Instant;
   readonly appraiserId: StaffId;
   readonly itemCategory: ItemCategory;
+  readonly itemDescription: string;
   readonly insurancePolicyReference: string;
 }
 

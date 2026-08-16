@@ -8,6 +8,7 @@ import type { Listing } from '../../../domain/marketplace/listing';
 import type { Offer } from '../../../domain/marketplace/offer';
 import type { RankedOffer } from '../../../domain/marketplace/rank-offers';
 import type { ListingSummaryReadModel } from '../../../domain/ports/marketplace-queries.port';
+import type { Money } from '../../../domain/shared/money';
 import { toMoneyDto } from '../../shared/http/money.mapper';
 
 function isoOf(epochMilliseconds: bigint): string {
@@ -60,7 +61,24 @@ export function toListingSummary(summary: ListingSummaryReadModel): ListingSumma
     status: summary.status,
     appraisedValue: toMoneyDto(summary.appraisedValue),
     itemCategory: summary.itemCategory,
+    itemDescription: summary.itemDescription,
+    hasPhotograph: summary.hasPhotograph,
+    loanToValueBasisPoints: loanToValueBasisPointsOf(
+      summary.requestedPrincipal,
+      summary.appraisedValue,
+    ),
   };
+}
+
+/* The share of the appraisal the borrower is asking for. Integer basis points
+   throughout, because this is money and a float would drift. An appraisal of
+   nothing cannot be divided, and would be a data fault rather than a zero
+   risk loan, so it reads as the full ten thousand. */
+export function loanToValueBasisPointsOf(principal: Money, appraisedValue: Money): number {
+  if (appraisedValue.minorUnits <= 0n) {
+    return 10_000;
+  }
+  return Number((principal.minorUnits * 10_000n) / appraisedValue.minorUnits);
 }
 
 export { domainErrorStatusFor as marketplaceStatusFor } from '../../shared/http/domain-error-status';

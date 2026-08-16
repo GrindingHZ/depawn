@@ -81,6 +81,7 @@ export class PrismaCustodyReceiptRepository implements CustodyReceiptRepository 
       appraisedAt: new Date(Number(receipt.appraisedAt.epochMilliseconds)),
       appraiserId: receipt.appraiserId,
       itemCategory: receipt.itemCategory,
+      itemDescription: receipt.itemDescription,
       insurancePolicyReference: receipt.insurancePolicyReference,
       status: receipt.status,
       encumberedByLoanId: receipt.encumberedByLoanId,

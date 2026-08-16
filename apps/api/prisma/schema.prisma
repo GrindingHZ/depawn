@@ -219,6 +219,7 @@ model CustodyReceipt {
   appraisedAt               DateTime      @map("appraised_at")
   appraiserId               String        @map("appraiser_id")
   itemCategory              ItemCategory  @map("item_category")
+  itemDescription           String        @map("item_description")
   insurancePolicyReference  String        @map("insurance_policy_reference")
   status                    ReceiptStatus
   encumberedByLoanId        String?       @map("encumbered_by_loan_id")

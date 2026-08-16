@@ -9,6 +9,8 @@ import { PROTOCOL_PARAMETERS } from '../../../domain/marketplace/protocol-parame
 import type { ProtocolParameters } from '../../../domain/marketplace/protocol-parameters';
 import { rankOffers } from '../../../domain/marketplace/rank-offers';
 import type { RankedOffer } from '../../../domain/marketplace/rank-offers';
+import { MARKETPLACE_QUERIES } from '../../../domain/ports/marketplace-queries.port';
+import type { MarketplaceQueries } from '../../../domain/ports/marketplace-queries.port';
 import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
 import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import type { ListingId } from '../../../domain/shared/identifiers';
@@ -19,6 +21,7 @@ export interface ListingDetail {
   readonly receipt: CustodyReceipt;
   readonly maxPrincipal: Money;
   readonly offerBook: readonly RankedOffer[];
+  readonly hasPhotograph: boolean;
 }
 
 @Injectable()
@@ -28,6 +31,7 @@ export class ListingDetailQuery {
     @Inject(LISTING_REPOSITORY) private readonly listings: ListingRepository,
     @Inject(CUSTODY_RECEIPT_REPOSITORY) private readonly receipts: CustodyReceiptRepository,
     @Inject(PROTOCOL_PARAMETERS) private readonly parameters: ProtocolParameters,
+    @Inject(MARKETPLACE_QUERIES) private readonly queries: MarketplaceQueries,
   ) {}
 
   read(listingId: ListingId): Promise<ListingDetail | null> {
@@ -47,6 +51,7 @@ export class ListingDetailQuery {
         receipt,
         maxPrincipal: receipt.appraisedValue.multiplyByBasisPoints(capBasisPoints),
         offerBook: rankOffers(listing.offers, listing),
+        hasPhotograph: await this.queries.photographExists(listing.receiptId),
       };
     });
   }

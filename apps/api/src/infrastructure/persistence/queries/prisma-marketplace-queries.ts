@@ -8,7 +8,7 @@ import type {
   MarketplaceQueries,
 } from '../../../domain/ports/marketplace-queries.port';
 import { accountIdOf, listingIdOf, receiptIdOf } from '../../../domain/shared/identifiers';
-import type { AccountId } from '../../../domain/shared/identifiers';
+import type { AccountId, ReceiptId } from '../../../domain/shared/identifiers';
 import { Instant } from '../../../domain/shared/instant';
 import { Money, currencyOf } from '../../../domain/shared/money';
 import { toOffer } from '../mappers/marketplace.mapper';
@@ -26,6 +26,8 @@ interface BrowseRow {
   readonly status: ListingStatus;
   readonly appraised_value_minor_units: bigint;
   readonly item_category: ItemCategory;
+  readonly item_description: string;
+  readonly has_photograph: boolean;
 }
 
 @Injectable()
@@ -37,7 +39,16 @@ export class PrismaMarketplaceQueries implements MarketplaceQueries {
     const rows = await this.prisma.$queryRaw<BrowseRow[]>`
       SELECT l.id, l.borrower_account_id, l.receipt_id, l.requested_principal_minor_units,
              l.currency, l.max_annual_percentage_rate_basis_points, l.requested_duration_ms,
-             l.expires_at, l.status, r.appraised_value_minor_units, r.item_category
+             l.expires_at, l.status, r.appraised_value_minor_units, r.item_category,
+             r.item_description,
+             -- Any evidence carrying a verified content type is servable.
+             -- Evidence written before uploads were checked has none, and the
+             -- media endpoint refuses it, so the two agree.
+             EXISTS (
+               SELECT 1 FROM intake_record i
+               WHERE i.sealed_hash = r.intake_record_hash
+                 AND jsonb_path_exists(i.evidence, '$[*].contentType')
+             ) AS has_photograph
       FROM listing l
       JOIN custody_receipt r ON r.id = l.receipt_id
       WHERE l.status = 'ACTIVE'
@@ -52,6 +63,19 @@ export class PrismaMarketplaceQueries implements MarketplaceQueries {
       items: page.map(toSummary),
       nextCursor: rows.length > limit ? (page[page.length - 1]?.id ?? null) : null,
     };
+  }
+
+  async photographExists(receiptId: ReceiptId): Promise<boolean> {
+    const rows = await this.prisma.$queryRaw<{ present: boolean }[]>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM custody_receipt r
+        JOIN intake_record i ON i.sealed_hash = r.intake_record_hash
+        WHERE r.id = ${receiptId}
+          AND jsonb_path_exists(i.evidence, '$[*].contentType')
+      ) AS present
+    `;
+    return rows[0]?.present ?? false;
   }
 
   async offersByLender(lender: AccountId): Promise<readonly Offer[]> {
@@ -75,5 +99,7 @@ function toSummary(row: BrowseRow): ListingSummaryReadModel {
     status: row.status,
     appraisedValue: Money.of(row.appraised_value_minor_units, currencyOf(row.currency)),
     itemCategory: row.item_category,
+    itemDescription: row.item_description,
+    hasPhotograph: row.has_photograph,
   };
 }

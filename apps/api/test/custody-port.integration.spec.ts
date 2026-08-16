@@ -46,6 +46,7 @@ describeCustodyPortContract('database', async () => {
         appraisedAt: Instant.fromEpochMilliseconds(1_700_000_000_000n),
         appraiserId: staffIdOf('CONTRACT-APPRAISER'),
         itemCategory: 'BULLION',
+        itemDescription: 'One kilogram gold bar, cast',
         insurancePolicyReference: 'POL-CONTRACT',
       };
     },

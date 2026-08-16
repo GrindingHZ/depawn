@@ -41,6 +41,7 @@ export class DatabaseCustodyAdapter implements CustodyPort {
       appraisedAt: command.appraisedAt,
       appraiserId: command.appraiserId,
       itemCategory: command.itemCategory,
+      itemDescription: command.itemDescription,
       insurancePolicyReference: command.insurancePolicyReference,
     });
     await this.receipts.save(receipt, context);
