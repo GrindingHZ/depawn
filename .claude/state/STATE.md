@@ -2,7 +2,7 @@
 
 phase: P7
 slice: p7c-parameters-and-outbox
-stage: plan
-task: 0
-slice-base: pending
+stage: execute
+task: 1
+slice-base: 2012296
 status: running
