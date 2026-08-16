@@ -10,6 +10,7 @@ import type { ClockPort } from '../../domain/ports/clock.port';
 import type {
   FundsHold,
   HoldFundsCommand,
+  ReleaseReason,
   SettlementPort,
   TransferCommand,
 } from '../../domain/ports/settlement.port';
@@ -90,6 +91,7 @@ export class LedgerSettlementAdapter implements SettlementPort {
   async releaseHold(
     hold: FundsHold,
     distribution: Distribution[],
+    reason: ReleaseReason,
     context: UnitOfWorkContext,
   ): Promise<SettlementRef> {
     const row = await this.lockHold(hold.id, context);
@@ -123,9 +125,7 @@ export class LedgerSettlementAdapter implements SettlementPort {
       entries.push(credit(targetAccount, target.amount));
     }
 
-    // The only hold release in v1 is origination; the port carries no kind,
-    // so revisit this constant when liquidation bidding reuses holds.
-    const settlementRef = await this.write('ORIGINATE_LOAN', hold.id, entries, context);
+    const settlementRef = await this.write(reason, hold.id, entries, context);
     await this.settleHold(row.id, 'RELEASED', settlementRef.reference, context);
     return settlementRef;
   }

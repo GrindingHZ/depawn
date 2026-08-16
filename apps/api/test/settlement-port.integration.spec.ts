@@ -67,6 +67,15 @@ describeSettlementPortContract('ledger', async () => {
       });
       return row !== null;
     },
+    async transactionKindOf(reference): Promise<string> {
+      const row = await activeHarness.prisma.ledgerTransaction.findUnique({
+        where: { id: reference },
+      });
+      if (row === null) {
+        throw new Error(`No ledger transaction ${reference}`);
+      }
+      return row.kind;
+    },
     close: () => activeHarness.close(),
   };
 });

@@ -12,6 +12,9 @@ export interface SettlementPortTestSubject {
   availableBalanceOf(accountId: AccountId): Promise<bigint>;
   heldBalanceOf(accountId: AccountId): Promise<bigint>;
   referenceExists(settlementRef: SettlementRef): Promise<boolean>;
+  /* Phase 1 reads the ledger transaction kind; Phase 3 will read whatever
+     the chain calls the same distinction. */
+  transactionKindOf(reference: string): Promise<string>;
   close(): Promise<void>;
 }
 
@@ -108,6 +111,7 @@ export function describeSettlementPortContract(
             { accountId: borrower, amount: Money.of(9800n, aud) },
             { accountId: feeCollector, amount: Money.of(200n, aud) },
           ],
+          'ORIGINATE_LOAN',
           context,
         ),
       );
@@ -116,6 +120,30 @@ export function describeSettlementPortContract(
       expect(await subject.availableBalanceOf(feeCollector)).toBe(200n);
       expect(await subject.heldBalanceOf(lender)).toBe(0n);
       expect(await subject.availableBalanceOf(lender)).toBe(0n);
+    });
+
+    it('records the reason the caller named on the release', async () => {
+      const bidder = await subject.createAccountWithBalance(10_000n);
+      const seller = await subject.createAccountWithBalance(0n);
+      const hold = await subject.runInUnitOfWork((context) =>
+        subject.port.hold(
+          { accountId: bidder, amount: Money.of(10_000n, aud), reference: 'contract-reason' },
+          context,
+        ),
+      );
+
+      const settlementRef = await subject.runInUnitOfWork((context) =>
+        subject.port.releaseHold(
+          hold,
+          [{ accountId: seller, amount: Money.of(10_000n, aud) }],
+          'SETTLE_LIQUIDATION',
+          context,
+        ),
+      );
+
+      // A liquidation settlement must not be filed as an origination: the
+      // ledger kind is what an auditor reads to tell the two apart.
+      expect(await subject.transactionKindOf(settlementRef.reference)).toBe('SETTLE_LIQUIDATION');
     });
 
     it('releases a hold exactly once even if called twice', async () => {
@@ -130,10 +158,10 @@ export function describeSettlementPortContract(
       const distribution = [{ accountId: borrower, amount: Money.of(2000n, aud) }];
 
       const first = await subject.runInUnitOfWork((context) =>
-        subject.port.releaseHold(hold, distribution, context),
+        subject.port.releaseHold(hold, distribution, 'ORIGINATE_LOAN', context),
       );
       const second = await subject.runInUnitOfWork((context) =>
-        subject.port.releaseHold(hold, distribution, context),
+        subject.port.releaseHold(hold, distribution, 'ORIGINATE_LOAN', context),
       );
 
       expect(second.reference).toBe(first.reference);
@@ -156,6 +184,7 @@ export function describeSettlementPortContract(
           subject.port.releaseHold(
             hold,
             [{ accountId: borrower, amount: Money.of(999n, aud) }],
+            'ORIGINATE_LOAN',
             context,
           ),
         ),

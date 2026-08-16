@@ -106,6 +106,7 @@ export class AcceptOfferUseCase {
             { accountId: listing.borrowerAccountId, amount: disbursement },
             { accountId: platformAccountIds.feeRevenue, amount: originationFee },
           ],
+          'ORIGINATE_LOAN',
           context,
         );
 

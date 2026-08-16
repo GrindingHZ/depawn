@@ -82,8 +82,12 @@ the package and lists no fitting scope; the commit hook accepts any lowercase sc
 
 ## Q-010: ledger transaction kind for hold releases
 **Blocks:** the `SETTLE_LIQUIDATION` entry shape in P6
-**Currently implemented:** `SettlementPort.releaseHold` writes kind `ORIGINATE_LOAN`, the only
-release in scope through P5; the port signature from docs/01 carries no kind parameter
+**Answered in p6b:** `releaseHold` now takes a `ReleaseReason`, so the caller names why the hold is
+being released and the adapter writes that as the ledger kind. The alternative, deriving the kind
+from the shape of a distribution, would have made the ledger's account of itself depend on how many
+recipients a settlement happened to have.
+**Previously:** `releaseHold` wrote kind `ORIGINATE_LOAN`, the only release in scope through P5; the
+port signature from docs/01 carried no kind parameter
 **Needs:** whoever owns docs/01 and docs/03
 **Notes:** When liquidation bidding reuses holds, either the port gains a kind, the adapter
 derives it from the distribution shape, or bids get their own port method.

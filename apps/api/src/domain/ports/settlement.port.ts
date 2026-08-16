@@ -23,11 +23,17 @@ export interface TransferCommand {
   readonly reference: string;
 }
 
+/* Why a hold is being released, which the ledger records as the kind of the
+   transaction. Naming it at the call site keeps the adapter from guessing
+   from the shape of a distribution (Q-010). */
+export type ReleaseReason = 'ORIGINATE_LOAN' | 'SETTLE_LIQUIDATION';
+
 export interface SettlementPort {
   hold(command: HoldFundsCommand, unitOfWork: UnitOfWorkContext): Promise<FundsHold>;
   releaseHold(
     hold: FundsHold,
     distribution: Distribution[],
+    reason: ReleaseReason,
     unitOfWork: UnitOfWorkContext,
   ): Promise<SettlementRef>;
   refundHold(hold: FundsHold, unitOfWork: UnitOfWorkContext): Promise<SettlementRef>;
