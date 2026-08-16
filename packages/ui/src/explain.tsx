@@ -82,8 +82,12 @@ export function Explain({ termId, audience = 'any' }: ExplainProps): ReactElemen
           aria-label={entry.term}
           data-testid={`explanation-${termId}`}
           className={[
-            'absolute left-0 top-full z-40 mt-2 w-72 rounded-lg border border-edge',
+            /* Anchored to the right edge, because the terms that carry one of
+               these are usually the last thing in a row and a left anchored
+               panel would run off the screen. */
+            'absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-edge',
             'bg-surface-raised p-4 text-left shadow-lg',
+            'max-w-[calc(100vw-2rem)]',
           ].join(' ')}
         >
           <span className="block font-body text-sm font-semibold text-ink-primary">

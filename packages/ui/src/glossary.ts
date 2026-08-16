@@ -33,7 +33,7 @@ export const glossary: Record<string, GlossaryEntry> = {
       'The loan divided by the appraised value of the item behind it. Lower means more security behind every dollar lent.',
     matters: {
       lender:
-        'At 20%, the item would have to lose four fifths of its value before your principal is at risk.',
+        'It is the margin protecting you. At 25% the item would have to lose three quarters of its value before your principal is touched; at 60% it only has to lose two fifths.',
       borrower: 'The lower this is, the more comfortably your item covers what you are borrowing.',
     },
   },

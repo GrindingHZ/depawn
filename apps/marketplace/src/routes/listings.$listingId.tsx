@@ -2,11 +2,25 @@ import {
   ApiError,
   acceptOffer,
   fetchListing,
+  liquidityNoteForCategory,
   messageForError,
+  nameForCategory,
   placeOffer,
 } from '@depawn/contracts';
-import type { ListingDetailResponse, RankedOfferResponse } from '@depawn/contracts';
-import { Button, Card, DataTable, Field, Money, Rate, Skeleton, toMinorUnits } from '@depawn/ui';
+import type { ListingDetailResponse, MoneyDto, RankedOfferResponse } from '@depawn/contracts';
+import {
+  Button,
+  Card,
+  DataTable,
+  Explain,
+  Field,
+  ItemPhotograph,
+  LoanToValue,
+  Money,
+  Rate,
+  Skeleton,
+  toMinorUnits,
+} from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -74,32 +88,76 @@ function ListingDetail({
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <Card title="The item">
-        <dl className="flex flex-wrap gap-8">
-          <div>
-            <dt className="font-body text-sm text-ink-secondary">Appraised value</dt>
-            <dd>
-              <Money value={detail.appraisedValue} />
-            </dd>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <ItemPhotograph
+            src={detail.hasPhotograph ? `/api/v1/receipts/${detail.receiptId}/photo` : null}
+            alt={detail.itemDescription}
+            size="detail"
+            testId="item-photograph"
+          />
+          <div className="min-w-0 flex-1">
+            <h3
+              data-testid="item-description"
+              className="font-heading text-lg font-semibold text-ink-primary"
+            >
+              {detail.itemDescription}
+            </h3>
+            <p className="mt-1 font-body text-sm text-ink-secondary">
+              {nameForCategory(detail.itemCategory)}
+              {liquidityNoteForCategory(detail.itemCategory) === null
+                ? null
+                : `. ${liquidityNoteForCategory(detail.itemCategory) ?? ''}`}
+            </p>
+
+            <dl className="mt-5 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+              <div>
+                <dt className="flex items-center font-body text-xs text-ink-secondary">
+                  Appraised value
+                  <Explain termId="appraisedValue" audience="lender" />
+                </dt>
+                <dd className="mt-0.5 font-mono text-base font-semibold tabular-nums text-ink-primary">
+                  <Money value={detail.appraisedValue} />
+                </dd>
+              </div>
+              <div>
+                <dt className="font-body text-xs text-ink-secondary">Requested principal</dt>
+                <dd
+                  data-testid="requested-principal"
+                  className="mt-0.5 font-mono text-base font-semibold tabular-nums text-ink-primary"
+                >
+                  <Money value={detail.requestedPrincipal} />
+                </dd>
+              </div>
+              <div>
+                <dt className="flex items-center font-body text-xs text-ink-secondary">
+                  Loan to value
+                  <Explain termId="loanToValue" audience="lender" />
+                </dt>
+                <dd className="mt-1.5">
+                  <LoanToValue basisPoints={detail.loanToValueBasisPoints} testId="detail-ltv" />
+                </dd>
+              </div>
+              <div>
+                <dt className="flex items-center font-body text-xs text-ink-secondary">
+                  Lending ceiling
+                  <Explain termId="lendingCeiling" audience="lender" />
+                </dt>
+                <dd
+                  data-testid="max-principal"
+                  className="mt-0.5 font-mono text-base tabular-nums text-ink-primary"
+                >
+                  <Money value={detail.maxPrincipal} />
+                </dd>
+              </div>
+              <div>
+                <dt className="font-body text-xs text-ink-secondary">Maximum rate</dt>
+                <dd className="mt-0.5 font-mono text-base tabular-nums text-ink-primary">
+                  <Rate basisPoints={detail.maxAnnualPercentageRateBasisPoints} />
+                </dd>
+              </div>
+            </dl>
           </div>
-          <div>
-            <dt className="font-body text-sm text-ink-secondary">Requested principal</dt>
-            <dd data-testid="requested-principal">
-              <Money value={detail.requestedPrincipal} />
-            </dd>
-          </div>
-          <div>
-            <dt className="font-body text-sm text-ink-secondary">Lending ceiling</dt>
-            <dd data-testid="max-principal">
-              <Money value={detail.maxPrincipal} />
-            </dd>
-          </div>
-          <div>
-            <dt className="font-body text-sm text-ink-secondary">Maximum rate</dt>
-            <dd>
-              <Rate basisPoints={detail.maxAnnualPercentageRateBasisPoints} />
-            </dd>
-          </div>
-        </dl>
+        </div>
       </Card>
       <OfferBookCard detail={detail} isBorrower={isBorrower} />
       {detail.status === 'ACTIVE' && !isBorrower ? <PlaceOfferCard detail={detail} /> : null}
@@ -120,6 +178,15 @@ function acceptMessageFor(error: unknown): string {
     }
   }
   return messageForError(error, 'The offer could not be accepted.');
+}
+
+/* Money is minor units in a string, so the addition is bigint and never a
+   float. Two amounts on one loan always share a currency. */
+function sumOf(left: MoneyDto, right: MoneyDto): MoneyDto {
+  return {
+    minorUnits: (BigInt(left.minorUnits) + BigInt(right.minorUnits)).toString(),
+    currency: left.currency,
+  };
 }
 
 function OfferBookCard({
@@ -175,10 +242,22 @@ function OfferBookCard({
               header: 'Principal',
               render: (offer: RankedOfferResponse) => <Money value={offer.principal} />,
             },
+            /* Two columns rather than one. "Total cost" sitting beside a
+               principal reads as the total to repay, which it is not, and
+               the two figures differ by two orders of magnitude. */
             {
-              key: 'cost',
-              header: 'Total cost to borrower',
+              key: 'interest',
+              header: 'Interest',
               render: (offer: RankedOfferResponse) => <Money value={offer.totalCostToBorrower} />,
+            },
+            {
+              key: 'repayable',
+              header: 'Total repayable',
+              render: (offer: RankedOfferResponse) => (
+                <span className="font-semibold">
+                  <Money value={sumOf(offer.principal, offer.totalCostToBorrower)} />
+                </span>
+              ),
             },
             ...(canAccept
               ? [
