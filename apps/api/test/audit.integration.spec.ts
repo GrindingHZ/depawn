@@ -105,7 +105,7 @@ describe('audit trail', () => {
     const listingId = await seedListing(borrower, ops);
 
     const page = await server()
-      .get(`/api/v1/admin/audit?subjectId=${listingId}`)
+      .get(`/api/v1/admin/audit-log?subject=${listingId}`)
       .set('Cookie', ops.cookies)
       .expect(200);
 
@@ -131,7 +131,7 @@ describe('audit trail', () => {
     await seedListing(other, ops);
 
     const byActor = await server()
-      .get(`/api/v1/admin/audit?actorId=${borrower.accountId}`)
+      .get(`/api/v1/admin/audit-log?actor=${borrower.accountId}`)
       .set('Cookie', ops.cookies)
       .expect(200);
     expect(
@@ -141,13 +141,13 @@ describe('audit trail', () => {
     ).toBe(true);
 
     const bySubjectType = await server()
-      .get('/api/v1/admin/audit?subjectType=listing')
+      .get('/api/v1/admin/audit-log?subjectType=listing')
       .set('Cookie', ops.cookies)
       .expect(200);
     expect(bySubjectType.body.items.length).toBeGreaterThanOrEqual(4);
 
     const both = await server()
-      .get(`/api/v1/admin/audit?subjectType=listing&subjectId=${mine}`)
+      .get(`/api/v1/admin/audit-log?subjectType=listing&subject=${mine}`)
       .set('Cookie', ops.cookies)
       .expect(200);
     expect(both.body.items).toHaveLength(2);
@@ -161,14 +161,14 @@ describe('audit trail', () => {
     }
 
     const first = await server()
-      .get('/api/v1/admin/audit?subjectType=listing')
+      .get('/api/v1/admin/audit-log?subjectType=listing')
       .set('Cookie', ops.cookies)
       .expect(200);
     expect(first.body.items).toHaveLength(25);
     expect(first.body.nextCursor).not.toBeNull();
 
     const second = await server()
-      .get(`/api/v1/admin/audit?subjectType=listing&cursor=${first.body.nextCursor}`)
+      .get(`/api/v1/admin/audit-log?subjectType=listing&cursor=${first.body.nextCursor}`)
       .set('Cookie', ops.cookies)
       .expect(200);
     expect(second.body.items).toHaveLength(3);
@@ -182,6 +182,6 @@ describe('audit trail', () => {
 
   it('keeps the trail away from members', async () => {
     const member = await loginAs('member@audit.test', 'MEMBER');
-    await server().get('/api/v1/admin/audit').set('Cookie', member.cookies).expect(403);
+    await server().get('/api/v1/admin/audit-log').set('Cookie', member.cookies).expect(403);
   });
 });

@@ -38,8 +38,8 @@ export function unpauseSystem(options: RequestOptions): Promise<SystemStateRespo
 
 export function fetchAuditPage(filters: {
   readonly subjectType?: string;
-  readonly subjectId?: string;
-  readonly actorId?: string;
+  readonly subject?: string;
+  readonly actor?: string;
   readonly cursor?: string;
 }): Promise<AuditPageResponse> {
   const query = new URLSearchParams();
@@ -51,7 +51,7 @@ export function fetchAuditPage(filters: {
   const suffix = query.toString() === '' ? '' : `?${query.toString()}`;
   return requestJson({
     method: 'GET',
-    path: `${basePath}/admin/audit${suffix}`,
+    path: `${basePath}/admin/audit-log${suffix}`,
     responseSchema: auditPageResponseSchema,
   });
 }

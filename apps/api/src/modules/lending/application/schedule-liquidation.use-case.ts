@@ -81,6 +81,7 @@ export class ScheduleLiquidationUseCase {
           subjectType: 'liquidation',
           subjectId: liquidation.id,
           action: 'schedule_liquidation',
+          before: { loanStatus: loan.status },
           after: {
             loanId: loan.id,
             reservePrice: command.reservePrice.minorUnits.toString(),

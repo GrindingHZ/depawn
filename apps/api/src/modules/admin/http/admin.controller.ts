@@ -57,18 +57,20 @@ export class AdminController {
     return toSystemStateResponse(await this.pauseSystem.unpause(account.id));
   }
 
+  /* Names from docs/04-api-contract.md: actor and subject, with subjectType
+     as an extra narrowing the contract does not name but the data supports. */
   @Roles('OPERATIONS')
-  @Get('audit')
+  @Get('audit-log')
   async audit(
     @Query('subjectType') subjectType?: string,
-    @Query('subjectId') subjectId?: string,
-    @Query('actorId') actorId?: string,
+    @Query('subject') subject?: string,
+    @Query('actor') actor?: string,
     @Query('cursor') cursor?: string,
   ): Promise<AuditPageResponse> {
     const page = await this.auditSearch.search({
       ...(subjectType === undefined ? {} : { subjectType }),
-      ...(subjectId === undefined ? {} : { subjectId }),
-      ...(actorId === undefined ? {} : { actorId }),
+      ...(subject === undefined ? {} : { subjectId: subject }),
+      ...(actor === undefined ? {} : { actorId: actor }),
       ...(cursor === undefined ? {} : { cursor }),
       limit: 25,
     });

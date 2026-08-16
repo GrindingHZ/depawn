@@ -190,3 +190,13 @@ closing time only governs whether further bids are accepted
 operations settle the moment a bid lands undercuts the point of advertising a window to bidders,
 while forcing them to wait leaves an item unsold when everyone has finished bidding. The narrowest
 reading keeps closesAt governing bids only.
+
+## Q-021: who may read the reason trading stopped
+**Blocks:** nothing today
+**Currently implemented:** any signed in account can read the pause state, including the free text
+reason and the account that pulled the switch
+**Needs:** whoever owns docs/10
+**Notes:** Flow 11 wants members to know trading is paused rather than guessing why an offer was
+refused, which argues for showing the reason. The same field is the audit record of why an operator
+stopped the market, and an operator writing an internal note into it would broadcast that note to
+every member. Splitting a public message from a private reason would settle it.

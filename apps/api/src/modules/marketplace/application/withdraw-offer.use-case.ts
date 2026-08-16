@@ -50,6 +50,11 @@ export class WithdrawOfferUseCase {
       }
 
       const now = this.clock.now();
+      // Read the prior status off the aggregate rather than restating the
+      // transition's precondition, so the record cannot drift from the rule.
+      const priorStatus = listing.offers.find(
+        (candidate) => candidate.id === command.offerId,
+      )?.status;
       const withdrawn = listing.withdrawOffer(
         command.offerId,
         command.requestedBy,
@@ -73,7 +78,7 @@ export class WithdrawOfferUseCase {
           subjectType: 'offer',
           subjectId: command.offerId,
           action: 'withdraw_offer',
-          before: { status: 'PENDING' },
+          before: { status: priorStatus },
           after: { settlementRef: settlementRef.reference },
         },
         context,

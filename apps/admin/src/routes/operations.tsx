@@ -180,7 +180,7 @@ function AuditCard(): ReactElement {
   const [searched, setSearched] = useState('');
   const auditQuery = useQuery({
     queryKey: operationsKeys.audit(searched),
-    queryFn: () => fetchAuditPage(searched === '' ? {} : { subjectId: searched }),
+    queryFn: () => fetchAuditPage(searched === '' ? {} : { subject: searched }),
   });
 
   return (
