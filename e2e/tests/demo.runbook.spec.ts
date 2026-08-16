@@ -145,12 +145,20 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
   await signIn(adminPage, 'ops@demo.test', staffPassword);
   await adminPage.getByRole('link', { name: 'Parameters' }).click();
   await expect(adminPage.getByTestId('demo-clock')).toBeVisible();
-  await adminPage.getByTestId('advance-31').click();
-  await expect(adminPage.getByTestId('clock-now')).toBeVisible();
+  await Promise.all([
+    // The click only dispatches the request; the page is about to be left, so
+    // the jump has to be known to have landed before anything else happens.
+    adminPage.waitForResponse(
+      (response) => response.url().includes('/test/clock/advance') && response.status() === 201,
+    ),
+    adminPage.getByTestId('advance-31').click(),
+  ]);
 
-  /* A month is longer than a session lasts, so everyone is signed out. The
-     runbook says so at this step, and this is what proves it still says the
-     truth: after a jump, signing in again is the next thing that happens. */
+  /* A month is longer than a session lasts, so the jump signs everyone out,
+     including the operator who made it. Nothing on the admin screen is worth
+     asserting after the click for that reason: the outcome to check is that
+     the loan is now past maturity, which the borrower sees below. The runbook
+     says so at this step, and this is what proves it still says the truth. */
   await adminPage.goto(`${adminBase}/login`);
   await signIn(adminPage, 'ops@demo.test', staffPassword);
   await vaultPage.goto(`${vaultConsoleBase}/login`);
@@ -160,7 +168,9 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
 
   // Step 4. The borrower repays and the item walks back out of the vault.
   await borrowerPage.getByRole('link', { name: 'My loans' }).click();
+  // Interest stopped at maturity, which the clock is now well past.
   await expect(borrowerPage.getByTestId('payoff-total')).toContainText('AUD');
+  await expect(borrowerPage.getByTestId('payoff-interest')).toContainText('AUD');
   await borrowerPage.getByRole('button', { name: 'Repay and release the item' }).click();
   await expect(borrowerPage.getByTestId('my-loans')).toContainText('REPAID');
 
