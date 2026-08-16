@@ -25,6 +25,7 @@ import type {
   RecordAppraisalRequest,
 } from '@depawn/contracts';
 import type { Account } from '../../../domain/accounts/account';
+import { maximumPhotographBytes } from '../../../domain/custody/photograph';
 import { intakeIdOf } from '../../../domain/shared/identifiers';
 import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { DomainErrorHttpException } from '../../shared/http/domain-error-http.exception';
@@ -85,8 +86,12 @@ export class IntakeController {
     return this.readDetail(intakeId);
   }
 
+  /* The limit is declared here as well as in the domain check, because the
+     domain check only runs once the bytes are already buffered in this
+     process. Multer refuses the stream at the boundary; the domain decides
+     whether what arrived is really a photograph. */
   @Post(':intakeId/photos')
-  @UseInterceptors(FileInterceptor('photo'))
+  @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: maximumPhotographBytes } }))
   async uploadPhoto(
     @Param('intakeId') intakeId: string,
     @CurrentAccount() account: Account,

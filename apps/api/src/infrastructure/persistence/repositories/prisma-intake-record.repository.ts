@@ -43,6 +43,8 @@ export class PrismaIntakeRecordRepository implements IntakeRecordRepository {
       evidence: record.evidence.map((item) => ({
         label: item.label,
         contentHash: item.contentHash,
+        ...(item.contentType === undefined ? {} : { contentType: item.contentType }),
+        ...(item.byteLength === undefined ? {} : { byteLength: item.byteLength }),
       })),
       status: record.status,
       sealedHash: record.sealedHash,

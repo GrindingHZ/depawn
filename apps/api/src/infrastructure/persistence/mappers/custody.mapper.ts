@@ -49,7 +49,23 @@ export function toEvidenceItems(value: unknown): EvidenceItem[] {
       'contentHash' in entry &&
       typeof entry.contentHash === 'string'
     ) {
-      items.push({ label: entry.label, contentHash: entry.contentHash });
+      /* Read back only what was written. Evidence recorded before uploads
+         were verified carries no type, and the media endpoint treats that as
+         a reason to refuse rather than a reason to guess. */
+      const contentType =
+        'contentType' in entry && typeof entry.contentType === 'string'
+          ? entry.contentType
+          : undefined;
+      const byteLength =
+        'byteLength' in entry && typeof entry.byteLength === 'number'
+          ? entry.byteLength
+          : undefined;
+      items.push({
+        label: entry.label,
+        contentHash: entry.contentHash,
+        ...(contentType === undefined ? {} : { contentType }),
+        ...(byteLength === undefined ? {} : { byteLength }),
+      });
     }
   }
   return items;

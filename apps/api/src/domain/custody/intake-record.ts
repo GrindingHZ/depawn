@@ -15,6 +15,11 @@ export type IntakeStatus = 'DRAFT' | 'SEALED';
 export interface EvidenceItem {
   readonly label: string;
   readonly contentHash: string;
+  /* Recorded at upload from the bytes themselves, so whatever serves the file
+     back never has to guess and never has to trust the uploader. Absent on
+     evidence written before photographs were verified. */
+  readonly contentType?: string;
+  readonly byteLength?: number;
 }
 
 interface IntakeRecordFields {

@@ -12,6 +12,11 @@ export const receiptStatusSchema = z.enum(['IN_VAULT', 'ENCUMBERED', 'RELEASED',
 export const evidenceItemSchema = z.object({
   label: z.string().min(1),
   contentHash: z.string().min(1),
+  /* Determined from the bytes at upload, not from what the uploader claimed.
+     Optional because evidence written before photographs were verified has
+     no recorded type. */
+  contentType: z.string().min(1).optional(),
+  byteLength: z.number().int().nonnegative().optional(),
 });
 
 export type EvidenceItemDto = z.infer<typeof evidenceItemSchema>;

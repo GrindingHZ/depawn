@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { ulid } from 'ulid';
 import { loadConfiguration } from '../src/config/configuration';
+import { solidPng } from '../src/infrastructure/storage/solid-png';
 
 export const demoPassword = 'demo-password-123';
 
@@ -31,22 +32,77 @@ const cast = {
   gita: 'gita@demo.test',
 } as const;
 
-/* Phase 1 takes bullion only (Q-003), so the inventory varies by form and
-   value rather than by category. */
+/* One of each category the vault takes, so the demo shows the loan to value
+   caps actually differing rather than five rows of gold. The tint stands in
+   for a photograph: the seed generates a real PNG per item, because the
+   upload check verifies the bytes and would refuse anything else. */
 interface Item {
   readonly description: string;
+  readonly category: 'BULLION' | 'WATCH' | 'JEWELLERY' | 'COLLECTIBLE' | 'ART';
   readonly appraisedMinorUnits: string;
+  readonly tint: readonly [number, number, number];
+  /* Comfortably inside the category cap, so the demo never has to explain a
+     refusal it did not mean to show. */
+  readonly askMinorUnits: string;
 }
 
 const items: readonly Item[] = [
-  { description: 'One kilogram gold bar, cast', appraisedMinorUnits: '500000' },
-  { description: 'Ten ounce gold bar, minted', appraisedMinorUnits: '900000' },
-  { description: 'Five ounce gold bar, minted', appraisedMinorUnits: '600000' },
-  { description: 'Two ounce gold bar, cast', appraisedMinorUnits: '400000' },
-  { description: 'One ounce gold coin, sealed', appraisedMinorUnits: '300000' },
-  { description: 'One kilogram silver bar, cast', appraisedMinorUnits: '250000' },
-  { description: 'Half kilogram gold bar, minted', appraisedMinorUnits: '700000' },
-  { description: 'Twenty ounce silver bar, cast', appraisedMinorUnits: '450000' },
+  {
+    description: 'One kilogram gold bar, cast',
+    category: 'BULLION',
+    appraisedMinorUnits: '500000',
+    askMinorUnits: '250000',
+    tint: [201, 153, 47],
+  },
+  {
+    description: 'Steel chronograph, box and papers',
+    category: 'WATCH',
+    appraisedMinorUnits: '900000',
+    askMinorUnits: '200000',
+    tint: [92, 105, 118],
+  },
+  {
+    description: 'Two carat solitaire ring, certificated',
+    category: 'JEWELLERY',
+    appraisedMinorUnits: '600000',
+    askMinorUnits: '150000',
+    tint: [176, 186, 201],
+  },
+  {
+    description: 'Sealed first print trading card, graded',
+    category: 'COLLECTIBLE',
+    appraisedMinorUnits: '300000',
+    askMinorUnits: '90000',
+    tint: [138, 106, 168],
+  },
+  {
+    description: 'Signed screenprint, edition of fifty',
+    category: 'ART',
+    appraisedMinorUnits: '400000',
+    askMinorUnits: '100000',
+    tint: [163, 106, 82],
+  },
+  {
+    description: 'Ten ounce gold bar, minted',
+    category: 'BULLION',
+    appraisedMinorUnits: '700000',
+    askMinorUnits: '150000',
+    tint: [212, 168, 68],
+  },
+  {
+    description: 'Titanium diver, service history',
+    category: 'WATCH',
+    appraisedMinorUnits: '450000',
+    askMinorUnits: '150000',
+    tint: [74, 88, 99],
+  },
+  {
+    description: 'Antique emerald brooch',
+    category: 'JEWELLERY',
+    appraisedMinorUnits: '250000',
+    askMinorUnits: '100000',
+    tint: [96, 140, 116],
+  },
 ];
 
 /* The seed drives the same HTTP surface the three apps drive rather than
@@ -79,13 +135,9 @@ class DemoClient {
     return text === '' ? {} : (JSON.parse(text) as Record<string, unknown>);
   }
 
-  async uploadPhoto(intakeId: string): Promise<void> {
+  async uploadPhoto(intakeId: string, bytes: Buffer): Promise<void> {
     const form = new FormData();
-    form.append(
-      'photo',
-      new Blob([`demo bytes ${randomUUID()}`], { type: 'image/jpeg' }),
-      'front.jpg',
-    );
+    form.append('photo', new Blob([new Uint8Array(bytes)], { type: 'image/png' }), 'front.png');
     const response = await fetch(`${this.origin}/api/v1/intakes/${intakeId}/photos`, {
       method: 'POST',
       headers: this.cookie === '' ? {} : { cookie: this.cookie },
@@ -217,6 +269,7 @@ async function main(): Promise<void> {
 interface Receipt {
   readonly id: string;
   readonly borrower: string;
+  readonly ask: string;
 }
 
 async function buildDataset(origin: string): Promise<void> {
@@ -234,7 +287,11 @@ async function buildDataset(origin: string): Promise<void> {
   const receipts: Receipt[] = [];
   for (const [index, item] of items.entries()) {
     const borrower = borrowers[index % borrowers.length] ?? cast.ada;
-    receipts.push({ id: await issueReceipt(staff, borrower, item), borrower });
+    receipts.push({
+      id: await issueReceipt(staff, borrower, item),
+      borrower,
+      ask: item.askMinorUnits,
+    });
   }
   const receiptAt = (index: number): Receipt => {
     const receipt = receipts[index];
@@ -261,7 +318,7 @@ async function buildDataset(origin: string): Promise<void> {
 
   /* The completed cycle: borrowed, repaid, and the item walked back out of
      the vault, so the demo can show the whole arc without waiting. */
-  const repaid = await originate(origin, receiptAt(0), '250000', 1800, 30);
+  const repaid = await originate(origin, receiptAt(0), 1800, 30);
   await advance(clock, 5 * oneDay, staffAndOperations);
   await repay(origin, repaid);
   await redeem(origin, staff, repaid.borrower, receiptAt(0).id);
@@ -269,7 +326,7 @@ async function buildDataset(origin: string): Promise<void> {
   /* The defaulted loan, mid sale with two bids against it. Fourteen days to
      maturity plus seven of grace plus the statutory holding period is what
      stands between origination and a sale that is allowed to happen. */
-  const defaulted = await originate(origin, receiptAt(1), '200000', 2400, 14);
+  const defaulted = await originate(origin, receiptAt(1), 2400, 14);
   await advance(clock, 22 * oneDay, staffAndOperations);
   const lender = new DemoClient(origin);
   await lender.signIn(defaulted.lender, demoPassword);
@@ -295,14 +352,12 @@ async function buildDataset(origin: string): Promise<void> {
      has a near term, a mid term, and a long one rather than a single date. */
   const active: SeededLoan[] = [];
   for (const [index, durationDays] of [14, 45, 90].entries()) {
-    active.push(
-      await originate(origin, receiptAt(2 + index), '150000', 1500 + index * 300, durationDays),
-    );
+    active.push(await originate(origin, receiptAt(2 + index), 1500 + index * 300, durationDays));
   }
 
   // Three listings taking offers, so the marketplace is not an empty table.
   for (const [index, receipt] of receipts.slice(5).entries()) {
-    const listingId = await publishListing(origin, receipt, '150000', 30);
+    const listingId = await publishListing(origin, receipt, 30);
     await placeOffer(
       origin,
       listingId,
@@ -346,14 +401,14 @@ async function advance(
 async function issueReceipt(staff: DemoClient, borrowerEmail: string, item: Item): Promise<string> {
   const begun = await staff.call('POST', `/vaults/${vaultId}/intakes`, {
     borrowerEmail,
-    itemCategory: 'BULLION',
+    itemCategory: item.category,
     itemDescription: item.description,
   });
   const intakeId = identifierOf(begun);
   await staff.call('PATCH', `/intakes/${intakeId}`, {
     sealNumber: `SEAL-${randomUUID().slice(0, 8)}`,
   });
-  await staff.uploadPhoto(intakeId);
+  await staff.uploadPhoto(intakeId, solidPng(160, 160, item.tint));
   await staff.call('POST', `/intakes/${intakeId}/appraisals`, {
     value: money(item.appraisedMinorUnits),
     method: 'comparable sales',
@@ -369,7 +424,6 @@ async function issueReceipt(staff: DemoClient, borrowerEmail: string, item: Item
 async function publishListing(
   origin: string,
   receipt: Receipt,
-  principal: string,
   durationDays: number,
   maxRateBasisPoints = 2400,
 ): Promise<string> {
@@ -377,7 +431,7 @@ async function publishListing(
   await borrower.signIn(receipt.borrower, demoPassword);
   const listing = await borrower.call('POST', '/listings', {
     receiptId: receipt.id,
-    requestedPrincipal: money(principal),
+    requestedPrincipal: money(receipt.ask),
     maxAnnualPercentageRateBasisPoints: maxRateBasisPoints,
     requestedDurationMs: durationDays * oneDay,
     expiresAt: new Date(serverNow() + 14 * oneDay).toISOString(),
@@ -416,14 +470,13 @@ interface SeededLoan {
 async function originate(
   origin: string,
   receipt: Receipt,
-  principal: string,
   rateBasisPoints: number,
   durationDays: number,
 ): Promise<SeededLoan> {
   /* The ceiling leaves room for the losing offer, so the demo shows a
      borrower choosing rather than accepting the only thing on the table. */
   const losingRate = rateBasisPoints + 300;
-  const listingId = await publishListing(origin, receipt, principal, durationDays, losingRate);
+  const listingId = await publishListing(origin, receipt, durationDays, losingRate);
   const lenderEmail = receipt.borrower === cast.ada ? cast.gita : cast.ada;
   await placeOffer(origin, listingId, cast.elena, losingRate);
   const offerId = await placeOffer(origin, listingId, lenderEmail, rateBasisPoints);
