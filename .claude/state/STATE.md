@@ -2,7 +2,7 @@
 
 phase: P7
 slice: p7b-reconciliation-and-parameters
-stage: execute
-task: 1
-slice-base: 9eab201
+stage: review
+task: 11
+slice-base: 29ac659
 status: running
