@@ -234,3 +234,25 @@ as a side effect: after a seed, a developer's api is dated two months out. That 
 every date on every screen comes from the same clock, and it is what the demo is going to do
 anyway, so running development in the same mode is at least honest. The alternative is a third
 mode, which is a mode nobody would remember to use. Resetting is one call to the clock route.
+
+## Q-025: where derived image sizes should come from
+**Blocks:** nothing today
+**Currently implemented:** the original bytes are served as uploaded, under a content hash key, with
+an immutable cache header and a size cap of eight megabytes at upload
+**Needs:** whoever owns docs/01
+**Notes:** A browse row shows a photograph at 56 pixels and is handed whatever the vault staff
+uploaded, which on a real phone is several megabytes. Deriving sizes at upload needs a native image
+dependency; deriving them on read needs the same dependency plus a cache. Neither is worth carrying
+while the bytes live on one machine's disk. The moment they move to a bucket, the bucket's own image
+service or a CDN in front of it does this properly, and the key is already a content hash so every
+derived size is safely cacheable forever. Until then the cap is what keeps it honest.
+
+## Q-026: whether a borrower may add their own photographs
+**Blocks:** nothing today
+**Currently implemented:** only vault staff can attach a photograph, and only to an intake they are
+recording, before it is sealed
+**Needs:** whoever owns docs/00
+**Notes:** The photograph is evidence that a named member of staff had the item in their hands on a
+given day, which is exactly what makes it worth showing to a lender. A borrower supplied image would
+be a different kind of thing wearing the same clothes. If borrowers ever do upload, the two need to
+be visibly distinct on screen, not merged into one gallery.

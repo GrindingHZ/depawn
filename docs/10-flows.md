@@ -570,3 +570,48 @@ it as a glitch. Ordinary development inherits the demo offset, which is recorded
 The chain has its own clock and nothing can move it. The seed becomes a set of transactions against
 a local network, and a demo that needs time to pass either waits or uses the network's own
 facilities. The domain is unaffected either way: it reads a `ClockPort` and always has.
+
+---
+
+## Flow 16: photographing an item and showing it
+
+**Actors:** vault staff at intake, then anyone entitled to look
+
+A collateralised marketplace that shows no collateral is asking for trust it has not earned. The
+photographs have always been taken; until P8b nothing served them back.
+
+### Taking one
+
+1. Staff attach a photograph to an intake before it is sealed. Nothing else may attach one: the
+   photograph is evidence that a named member of staff had the item in their hands on a given day,
+   and a borrower supplied image would be a different kind of thing wearing the same clothes
+   (Q-026).
+2. The bytes decide what the file is. The name and the declared content type are both attacker
+   controlled and neither is consulted. JPEG and PNG only, and SVG is deliberately refused: it is a
+   document that can carry script, and serving one back from our own origin would be a foothold.
+3. Nothing is hashed or written until the bytes pass. A refused upload leaves no file and no
+   evidence entry.
+4. What is accepted is stored under `intakes/{intakeId}/{sha256}` and the evidence item records the
+   verified content type alongside the hash.
+
+### Showing one
+
+`GET /receipts/{receiptId}/photo` answers the bytes to:
+
+- the holder, because the item is theirs
+- vault staff and operations, because custody is their job
+- any signed in account, but only while the item is on a published listing
+
+An item resting privately in the vault is nobody else's business, which is why this is not simply
+"any signed in account". Not visible answers exactly as not found does, so the status code cannot be
+used to discover which receipts exist.
+
+The response carries the type recorded at upload, `X-Content-Type-Options: nosniff` so no browser
+second guesses it, and an immutable cache header, which is safe because the key is a content hash
+and the answer for a given hash can never change.
+
+### Phase 3
+
+The receipt becomes an object on chain carrying the hash. The bytes stay off chain in every phase,
+which is why the intake record has only ever stored a hash: what goes on chain is the commitment,
+not the picture.
