@@ -1,14 +1,10 @@
 import type { ItemCategory } from '../../domain/custody/item-category';
 import type { ProtocolParameters } from '../../domain/marketplace/protocol-parameters';
+import type { ProtocolParameterVersion } from '../../domain/ports/protocol-parameters.port';
 import type { Instant } from '../../domain/shared/instant';
 import { Money, currencyOf } from '../../domain/shared/money';
 
-export interface ParameterVersion {
-  readonly id: string;
-  readonly effectiveAt: Instant;
-  readonly writtenByAccountId: string;
-  readonly parameters: ProtocolParameters;
-}
+export type ParameterVersion = ProtocolParameterVersion;
 
 /* Stored as JSON, so bigints and Money have to be written and read back
    deliberately rather than trusted to survive the round trip. */
@@ -21,6 +17,10 @@ export interface StoredParameters {
   readonly gracePeriodMs: string;
   readonly statutoryHoldingPeriodMs: string;
   readonly dualAppraisalThresholdMinorUnits: string;
+  /* Written from P7 onwards. Rows stored before it existed carry no
+     currency, and Phase 1 has only ever had one, so reading falls back to
+     AUD rather than refusing a row that was correct when it was written. */
+  readonly dualAppraisalThresholdCurrency?: string;
   readonly notesTransferable: boolean;
 }
 
@@ -34,6 +34,7 @@ export function toStoredParameters(parameters: ProtocolParameters): StoredParame
     gracePeriodMs: parameters.gracePeriodMs.toString(),
     statutoryHoldingPeriodMs: parameters.statutoryHoldingPeriodMs.toString(),
     dualAppraisalThresholdMinorUnits: parameters.dualAppraisalThreshold.minorUnits.toString(),
+    dualAppraisalThresholdCurrency: parameters.dualAppraisalThreshold.currency,
     notesTransferable: parameters.notesTransferable,
   };
 }
@@ -52,7 +53,7 @@ export function fromStoredParameters(stored: StoredParameters): ProtocolParamete
     statutoryHoldingPeriodMs: BigInt(stored.statutoryHoldingPeriodMs),
     dualAppraisalThreshold: Money.of(
       BigInt(stored.dualAppraisalThresholdMinorUnits),
-      currencyOf('AUD'),
+      currencyOf(stored.dualAppraisalThresholdCurrency ?? 'AUD'),
     ),
     notesTransferable: stored.notesTransferable,
   };

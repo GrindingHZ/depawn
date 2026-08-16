@@ -262,6 +262,65 @@ describe('liquidation', () => {
     ).toBe(1);
   });
 
+  /* The fee is the one term read long after origination, so it is the one
+     place an edit could reach an older loan. It cannot: the loan carries the
+     fee it was written under. */
+  it('takes the fee the loan was originated under, not the one edited in later', async () => {
+    const loan = await defaultedLoan();
+
+    await signInAgain(loan.ops);
+    const before = await server()
+      .get('/api/v1/admin/protocol-parameters')
+      .set('Cookie', loan.ops.cookies)
+      .expect(200);
+    expect(before.body.current.liquidationFeeBasisPoints).toBe(200);
+    await server()
+      .put('/api/v1/admin/protocol-parameters')
+      .set('Cookie', loan.ops.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({
+        // Dated now, so it is in force before the sale settles.
+        effectiveAt: new Date(Number(harness.clock.now().epochMilliseconds)).toISOString(),
+        parameters: { ...before.body.current, liquidationFeeBasisPoints: 5_000 },
+      })
+      .expect(200);
+
+    harness.clock.advanceBy(31n * oneDay);
+    const liquidationId = await biddingLiquidation(loan, '200000');
+    const bidder = await loginAs(`bidder-${randomUUID().slice(0, 8)}@liq.test`, 'MEMBER');
+    await signInAgain(loan.ops);
+    await fund(loan.ops, bidder.email, '400000');
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/bids`)
+      .set('Cookie', bidder.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({ amount: amount('300000') })
+      .expect(201);
+
+    const borrowerBefore = BigInt(await balanceOf(loan.borrower));
+    const feeBefore = await feeRevenue();
+    await server()
+      .post(`/api/v1/liquidations/${liquidationId}/close`)
+      .set('Cookie', loan.ops.cookies)
+      .set('Idempotency-Key', randomUUID())
+      .send({})
+      .expect(201);
+
+    const remainder = 300_000n - 253_698n;
+    const feeAtOrigination = (remainder * 200n) / 10_000n;
+    expect((await feeRevenue()) - feeBefore).toBe(feeAtOrigination);
+    expect(BigInt(await balanceOf(loan.borrower))).toBe(
+      borrowerBefore + (remainder - feeAtOrigination),
+    );
+
+    // The edit is in force all the same: the next loan would pay it.
+    const after = await server()
+      .get('/api/v1/admin/protocol-parameters')
+      .set('Cookie', loan.ops.cookies)
+      .expect(200);
+    expect(after.body.current.liquidationFeeBasisPoints).toBe(5_000);
+  });
+
   it('settles at a loss with the lender taking everything', async () => {
     const loan = await defaultedLoan();
     harness.clock.advanceBy(31n * oneDay);

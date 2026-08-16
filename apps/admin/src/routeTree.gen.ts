@@ -14,6 +14,7 @@ import { Route as DepositsRouteImport } from './routes/deposits'
 import { Route as LiquidationsRouteImport } from './routes/liquidations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OperationsRouteImport } from './routes/operations'
+import { Route as ParametersRouteImport } from './routes/parameters'
 import { Route as ReconciliationRouteImport } from './routes/reconciliation'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const OperationsRoute = OperationsRouteImport.update({
   path: '/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParametersRoute = ParametersRouteImport.update({
+  id: '/parameters',
+  path: '/parameters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReconciliationRoute = ReconciliationRouteImport.update({
   id: '/reconciliation',
   path: '/reconciliation',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/parameters': typeof ParametersRoute
   '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/parameters': typeof ParametersRoute
   '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/parameters': typeof ParametersRoute
   '/reconciliation': typeof ReconciliationRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/liquidations'
     | '/login'
     | '/operations'
+    | '/parameters'
     | '/reconciliation'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/liquidations'
     | '/login'
     | '/operations'
+    | '/parameters'
     | '/reconciliation'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/liquidations'
     | '/login'
     | '/operations'
+    | '/parameters'
     | '/reconciliation'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   LiquidationsRoute: typeof LiquidationsRoute
   LoginRoute: typeof LoginRoute
   OperationsRoute: typeof OperationsRoute
+  ParametersRoute: typeof ParametersRoute
   ReconciliationRoute: typeof ReconciliationRoute
 }
 
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OperationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parameters': {
+      id: '/parameters'
+      path: '/parameters'
+      fullPath: '/parameters'
+      preLoaderRoute: typeof ParametersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reconciliation': {
       id: '/reconciliation'
       path: '/reconciliation'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   LiquidationsRoute: LiquidationsRoute,
   LoginRoute: LoginRoute,
   OperationsRoute: OperationsRoute,
+  ParametersRoute: ParametersRoute,
   ReconciliationRoute: ReconciliationRoute,
 }
 export const routeTree = rootRouteImport

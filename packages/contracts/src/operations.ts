@@ -68,3 +68,18 @@ export const exposureByVaultResponseSchema = z.object({
 });
 
 export type ExposureByVaultResponse = z.infer<typeof exposureByVaultResponseSchema>;
+
+export const deadLetterRowSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  attempts: z.number().int(),
+  lastError: z.string(),
+  deadLetteredAt: z.string(),
+});
+
+export const deadLettersResponseSchema = z.object({
+  items: z.array(deadLetterRowSchema),
+});
+
+export type DeadLetterRowResponse = z.infer<typeof deadLetterRowSchema>;
+export type DeadLettersResponse = z.infer<typeof deadLettersResponseSchema>;

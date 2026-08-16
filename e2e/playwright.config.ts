@@ -25,7 +25,7 @@ export default defineConfig({
     {
       name: 'admin',
       testMatch: /admin\..*\.spec\.ts/,
-      testIgnore: /admin\.(liquidation|pause|reconciliation)\.spec\.ts/,
+      testIgnore: /admin\.(liquidation|pause|reconciliation|parameters)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     /* Redeeming burns a receipt, which is the only thing in the suite that
@@ -69,6 +69,15 @@ export default defineConfig({
       name: 'admin-pause',
       testMatch: /admin\.pause\.spec\.ts/,
       dependencies: ['admin-liquidation'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
+    },
+    /* Editing the parameters changes what every later origination pays, so
+       it runs last of all and writes the demo defaults back when it is
+       done. */
+    {
+      name: 'admin-parameters',
+      testMatch: /admin\.parameters\.spec\.ts/,
+      dependencies: ['admin-reconciliation'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     {

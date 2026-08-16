@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Put, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, UseInterceptors } from '@nestjs/common';
 import {
   pauseSystemRequestSchema,
   reconcileRequestSchema,
@@ -6,6 +6,7 @@ import {
 } from '@depawn/contracts';
 import type {
   AuditPageResponse,
+  DeadLettersResponse,
   ExposureByVaultResponse,
   LoanBookResponse,
   PauseSystemRequest,
@@ -24,20 +25,16 @@ import { CurrentAccount } from '../../shared/http/current-account.decorator';
 import { IdempotencyInterceptor } from '../../shared/http/idempotency.interceptor';
 import { Roles } from '../../shared/http/roles.decorator';
 import { ZodValidationPipe } from '../../shared/http/zod-validation.pipe';
-import { ProtocolParametersRegistry } from '../../../infrastructure/parameters/protocol-parameters.registry';
 import { Instant } from '../../../domain/shared/instant';
-import { ID_GENERATOR } from '../../../domain/shared/id-generator';
-import type { IdGenerator } from '../../../domain/shared/id-generator';
-import { AUDIT_PORT } from '../../../domain/ports/audit.port';
-import type { AuditPort } from '../../../domain/ports/audit.port';
-import { UNIT_OF_WORK } from '../../../domain/ports/unit-of-work';
-import type { UnitOfWork } from '../../../domain/ports/unit-of-work';
 import { fromParametersDto, toParametersDto } from './parameters.mapper';
 import { AuditSearchQuery } from '../application/audit-search.query';
+import { DeadLetterQuery } from '../application/dead-letter.query';
 import { LoanBookQuery } from '../application/loan-book.query';
 import { ReconcileVaultUseCase } from '../application/reconcile-vault.use-case';
 import { ReconciliationHistoryQuery } from '../application/reconciliation-history.query';
 import { PauseSystemUseCase } from '../application/pause-system.use-case';
+import { UpdateProtocolParametersUseCase } from '../application/update-protocol-parameters.use-case';
+import type { ProtocolParametersView } from '../application/update-protocol-parameters.use-case';
 
 function toSystemStateResponse(state: SystemState): SystemStateResponse {
   return {
@@ -59,10 +56,8 @@ export class AdminController {
     private readonly reconcileVault: ReconcileVaultUseCase,
     private readonly reconciliationHistory: ReconciliationHistoryQuery,
     private readonly loanBook: LoanBookQuery,
-    private readonly parameters: ProtocolParametersRegistry,
-    @Inject(UNIT_OF_WORK) private readonly unitOfWork: UnitOfWork,
-    @Inject(AUDIT_PORT) private readonly auditLog: AuditPort,
-    @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
+    private readonly protocolParameters: UpdateProtocolParametersUseCase,
+    private readonly deadLetters: DeadLetterQuery,
   ) {}
 
   /* Readable by any signed in account, because a member who cannot place an
@@ -177,14 +172,20 @@ export class AdminController {
     };
   }
 
+  /* Events that gave up on delivery. Reading them is how an operator learns
+     the queue lost something rather than finding out from a customer. */
+  @Roles('OPERATIONS')
+  @Get('dead-letters')
+  async readDeadLetters(): Promise<DeadLettersResponse> {
+    return { items: [...(await this.deadLetters.list())] };
+  }
+
   @Roles('OPERATIONS')
   @Get('protocol-parameters')
   readParameters(): ProtocolParametersResponse {
-    return this.parametersResponse();
+    return toParametersResponse(this.protocolParameters.read());
   }
 
-  /* An edit writes a version rather than changing the current one, so a loan
-     already originated keeps the terms it was originated under. */
   @Roles('OPERATIONS')
   @Put('protocol-parameters')
   @UseInterceptors(IdempotencyInterceptor)
@@ -192,36 +193,23 @@ export class AdminController {
     @CurrentAccount() account: Account,
     @Body(new ZodValidationPipe(updateParametersRequestSchema)) body: UpdateParametersRequest,
   ): Promise<ProtocolParametersResponse> {
-    const id = this.idGenerator.generate();
-    const effectiveAt = Instant.fromEpochMilliseconds(BigInt(new Date(body.effectiveAt).getTime()));
-    const before = toParametersDto(this.parameters.current());
-    await this.parameters.write(fromParametersDto(body.parameters), effectiveAt, account.id, id);
-    await this.unitOfWork.run((context) =>
-      this.auditLog.record(
-        {
-          actorType: 'ACCOUNT',
-          actorId: account.id,
-          subjectType: 'protocol_parameters',
-          subjectId: id,
-          action: 'update_protocol_parameters',
-          before,
-          after: { effectiveAt: body.effectiveAt, parameters: body.parameters },
-        },
-        context,
-      ),
-    );
-    return this.parametersResponse();
+    const view = await this.protocolParameters.execute({
+      requestedBy: account.id,
+      effectiveAt: Instant.fromEpochMilliseconds(BigInt(new Date(body.effectiveAt).getTime())),
+      parameters: fromParametersDto(body.parameters),
+    });
+    return toParametersResponse(view);
   }
+}
 
-  private parametersResponse(): ProtocolParametersResponse {
-    return {
-      current: toParametersDto(this.parameters.current()),
-      history: this.parameters.history().map((version) => ({
-        id: version.id,
-        effectiveAt: new Date(Number(version.effectiveAt.epochMilliseconds)).toISOString(),
-        writtenByAccountId: version.writtenByAccountId,
-        parameters: toParametersDto(version.parameters),
-      })),
-    };
-  }
+function toParametersResponse(view: ProtocolParametersView): ProtocolParametersResponse {
+  return {
+    current: toParametersDto(view.current),
+    history: view.history.map((version) => ({
+      id: version.id,
+      effectiveAt: new Date(Number(version.effectiveAt.epochMilliseconds)).toISOString(),
+      writtenByAccountId: version.writtenByAccountId,
+      parameters: toParametersDto(version.parameters),
+    })),
+  };
 }

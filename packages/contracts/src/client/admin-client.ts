@@ -1,11 +1,13 @@
 import { auditPageResponseSchema, systemStateResponseSchema } from '../admin';
 import {
+  deadLettersResponseSchema,
   exposureByVaultResponseSchema,
   loanBookResponseSchema,
   latestReconciliationResponseSchema,
   reconciliationRunResponseSchema,
 } from '../operations';
 import type {
+  DeadLettersResponse,
   ExposureByVaultResponse,
   LoanBookResponse,
   ReconcileRequest,
@@ -126,5 +128,13 @@ export function updateProtocolParameters(
     body,
     options,
     responseSchema: protocolParametersResponseSchema,
+  });
+}
+
+export function fetchDeadLetters(): Promise<DeadLettersResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/admin/dead-letters`,
+    responseSchema: deadLettersResponseSchema,
   });
 }

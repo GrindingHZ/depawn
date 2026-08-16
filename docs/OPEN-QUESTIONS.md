@@ -200,3 +200,25 @@ reason and the account that pulled the switch
 refused, which argues for showing the reason. The same field is the audit record of why an operator
 stopped the market, and an operator writing an internal note into it would broadcast that note to
 every member. Splitting a public message from a private reason would settle it.
+
+## Q-022: how a second api process learns a parameter edit landed
+**Blocks:** nothing in Phase 1
+**Currently implemented:** the registry holds the versions in memory and reloads after its own
+write, so a process that did not handle the PUT keeps serving the previous version until it restarts
+**Needs:** whoever owns docs/01
+**Notes:** Phase 1 runs one process, so the question is theoretical today. A second replica would
+need a poll, a notification, or a read through cache. Effective dates already work without a write,
+because the version in force is recomputed from the cached rows on every read; the gap is only the
+arrival of a brand new version. Phase 3 removes the question entirely: the parameters live in a
+shared Config object every reader sees.
+
+## Q-023: whether outbox delivery must become exactly once before Phase 3
+**Blocks:** the chain submission adapter
+**Currently implemented:** at least once. A crash between a successful publish and the published_at
+write leaves the row claimed, and the claim expires after the visibility window, so the event is
+delivered again
+**Needs:** whoever owns docs/08
+**Notes:** A duplicate log line costs nothing, which is why this is not a Phase 1 defect. A duplicate
+chain submission is a different matter. The usual answer is an idempotency key carried into the
+submission so the chain itself rejects the second copy, which is closer to how the rest of this
+system already works than trying to make the queue exactly once.

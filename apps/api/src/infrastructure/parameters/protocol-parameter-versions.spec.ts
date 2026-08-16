@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Instant } from '../../domain/shared/instant';
 import { Money, currencyOf } from '../../domain/shared/money';
+import { accountIdOf } from '../../domain/shared/identifiers';
 import { demoParameters } from './demo-parameters';
 import {
   fromStoredParameters,
@@ -16,7 +17,7 @@ function versionAt(id: string, effectiveAt: Instant, fee: number): ParameterVers
   return {
     id,
     effectiveAt,
-    writtenByAccountId: 'OPS-1',
+    writtenByAccountId: accountIdOf('OPS-1'),
     parameters: { ...demoParameters, originationFeeBasisPoints: fee },
   };
 }

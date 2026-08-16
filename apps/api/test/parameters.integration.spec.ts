@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { AUDIT_PORT } from '../src/domain/ports/audit.port';
+import type { AuditPort } from '../src/domain/ports/audit.port';
 import { createTestApplication } from './create-test-application';
 import type { TestApplication } from './create-test-application';
 
@@ -165,6 +167,34 @@ describe('protocol parameters', () => {
     });
     expect(audits).toHaveLength(1);
     expect(audits[0]?.action).toBe('update_protocol_parameters');
+  });
+
+  /* The edit and its audit entry are one transaction, so a failure cannot
+     leave a committed edit nobody can trace to an operator. Rolling back on
+     the audit write is the only way to see the two halves separately. */
+  it('writes no version when the audit entry cannot be written', async () => {
+    const ops = await loginAs('ops@param.test', 'OPERATIONS');
+    const current = await currentParameters(ops);
+    const audit = harness.app.get<AuditPort>(AUDIT_PORT);
+    const record = audit.record.bind(audit);
+    audit.record = () => Promise.reject(new Error('the audit log is unavailable'));
+
+    try {
+      await server()
+        .put('/api/v1/admin/protocol-parameters')
+        .set('Cookie', ops.cookies)
+        .set('Idempotency-Key', randomUUID())
+        .send({
+          effectiveAt: new Date(Number(harness.clock.now().epochMilliseconds)).toISOString(),
+          parameters: { ...current, originationFeeBasisPoints: 700 },
+        })
+        .expect(500);
+    } finally {
+      audit.record = record;
+    }
+
+    expect(await harness.prisma.protocolParameterVersion.count()).toBe(0);
+    expect((await currentParameters(ops)).originationFeeBasisPoints).toBe(200);
   });
 
   it('leaves a version dated in the future waiting', async () => {

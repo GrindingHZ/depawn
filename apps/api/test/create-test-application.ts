@@ -85,7 +85,9 @@ export async function createTestApplication(
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE`);
       // The parameters registry holds the versions in memory, so emptying
       // the tables underneath it would otherwise leave it answering with
-      // versions that no longer exist.
+      // versions that no longer exist. Nothing in production truncates, and
+      // the only writer reloads after its own commit, so there is no
+      // equivalent path outside the suite.
       await app.get(ProtocolParametersRegistry).refresh();
     },
     async close(): Promise<void> {

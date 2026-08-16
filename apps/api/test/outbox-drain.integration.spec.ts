@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   OUTBOX_HANDLER,
   OutboxDrainWorker,
+  claimVisibilityMs,
   maximumAttempts,
 } from '../src/infrastructure/events/outbox-drain.worker';
 import type { OutboxHandler } from '../src/infrastructure/events/outbox-drain.worker';
@@ -77,6 +78,31 @@ describe('outbox drain', () => {
     // disjoint sets rather than both taking the same one.
     expect(new Set(handler.published).size).toBe(10);
     expect(await harness.prisma.outboxEvent.count({ where: { publishedAt: null } })).toBe(0);
+  });
+
+  /* The visibility window is what stops a worker that died mid publish from
+     stranding its batch. Nothing else in the suite proves the claim actually
+     expires, so this stamps one by hand and walks past it. */
+  it('lets another drain reclaim a stamped event once the window expires', async () => {
+    await queueEvent('EV-STALE');
+    const claimedAt = new Date(Number(harness.clock.now().epochMilliseconds));
+    await harness.prisma.outboxEvent.update({
+      where: { id: 'EV-STALE' },
+      data: { claimedAt, attempts: 1 },
+    });
+
+    // Inside the window the row belongs to the worker that claimed it.
+    expect(await worker.drainOnce()).toBe(0);
+    expect(handler.published).toEqual([]);
+
+    harness.clock.advanceBy(BigInt(claimVisibilityMs) + 1n);
+    expect(await worker.drainOnce()).toBe(1);
+    expect(handler.published).toEqual(['EV-STALE']);
+    const row = await harness.prisma.outboxEvent.findUnique({ where: { id: 'EV-STALE' } });
+    expect(row?.publishedAt).not.toBeNull();
+    // The reclaim counts as an attempt, so a row that always dies mid publish
+    // still reaches the dead letter table rather than looping forever.
+    expect(row?.attempts).toBe(2);
   });
 
   it('retries a failing event and dead letters it once the attempts run out', async () => {

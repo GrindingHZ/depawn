@@ -2,10 +2,12 @@ import { Module } from '@nestjs/common';
 import { RECONCILIATION_REPOSITORY } from '../../domain/operations/reconciliation-repository';
 import { PrismaReconciliationRepository } from '../../infrastructure/persistence/repositories/prisma-reconciliation.repository';
 import { AuditSearchQuery } from './application/audit-search.query';
+import { DeadLetterQuery } from './application/dead-letter.query';
 import { LoanBookQuery } from './application/loan-book.query';
 import { ReconcileVaultUseCase } from './application/reconcile-vault.use-case';
 import { ReconciliationHistoryQuery } from './application/reconciliation-history.query';
 import { PauseSystemUseCase } from './application/pause-system.use-case';
+import { UpdateProtocolParametersUseCase } from './application/update-protocol-parameters.use-case';
 import { AdminController } from './http/admin.controller';
 
 @Module({
@@ -13,9 +15,11 @@ import { AdminController } from './http/admin.controller';
   providers: [
     PauseSystemUseCase,
     AuditSearchQuery,
+    DeadLetterQuery,
     ReconcileVaultUseCase,
     ReconciliationHistoryQuery,
     LoanBookQuery,
+    UpdateProtocolParametersUseCase,
     { provide: RECONCILIATION_REPOSITORY, useClass: PrismaReconciliationRepository },
   ],
 })
