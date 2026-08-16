@@ -66,7 +66,7 @@ export function Explain({ termId, audience = 'any' }: ExplainProps): ReactElemen
         className={[
           'ml-1 inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center',
           'rounded-full border font-body text-[10px] font-semibold italic leading-none',
-          'transition-colors duration-150',
+          'transition-colors duration-control ease-enter',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-status-active',
           isOpen
             ? 'border-accent bg-surface-sunken text-accent'
@@ -86,7 +86,7 @@ export function Explain({ termId, audience = 'any' }: ExplainProps): ReactElemen
                these are usually the last thing in a row and a left anchored
                panel would run off the screen. */
             'absolute right-0 top-full z-40 mt-2 w-72 rounded-lg border border-edge',
-            'bg-surface-raised p-4 text-left shadow-lg',
+            'bg-surface-raised p-4 text-left shadow-overlay',
             'max-w-[calc(100vw-2rem)]',
           ].join(' ')}
         >

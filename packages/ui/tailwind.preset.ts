@@ -3,6 +3,21 @@ import type { Config } from 'tailwindcss';
 const preset: Omit<Config, 'content'> = {
   theme: {
     extend: {
+      /* The motion and elevation tokens added in P8c, exposed as utilities so
+         a component never has to reach for a raw duration. */
+      transitionDuration: {
+        control: 'var(--motion-control)',
+        enter: 'var(--motion-enter)',
+        panel: 'var(--motion-panel)',
+      },
+      transitionTimingFunction: {
+        enter: 'var(--motion-ease-enter)',
+        exit: 'var(--motion-ease-exit)',
+      },
+      boxShadow: {
+        raised: 'var(--elevation-raised)',
+        overlay: 'var(--elevation-overlay)',
+      },
       colors: {
         surface: {
           base: 'var(--color-surface-base)',

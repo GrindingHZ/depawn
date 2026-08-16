@@ -23,7 +23,7 @@ export function Button({
       {...rest}
       className={[
         'inline-flex min-h-row cursor-pointer items-center justify-center rounded-md px-4',
-        'font-body text-sm font-medium transition-colors duration-150',
+        'font-body text-sm font-medium transition-colors duration-control ease-enter',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-status-active',
         'disabled:cursor-not-allowed disabled:opacity-50',
         classByVariant[variant],

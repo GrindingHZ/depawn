@@ -90,7 +90,8 @@ function ListingRow({ listing }: { readonly listing: ListingSummary }): ReactEle
     <div
       className={[
         'flex items-center gap-4 rounded-lg border border-edge bg-surface-raised p-4',
-        'transition-colors duration-150 focus-within:border-ink-secondary hover:border-ink-secondary',
+        'transition-colors duration-control ease-enter',
+        'focus-within:border-ink-secondary hover:border-ink-secondary hover:shadow-raised',
       ].join(' ')}
     >
       <ItemPhotograph

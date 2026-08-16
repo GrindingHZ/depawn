@@ -207,6 +207,34 @@ Every UI slice reads this file in Stage 0 instead of re-querying the skill for d
 - `scripts/check-design-tokens.sh` passing and wired into `pnpm check`
 - The three raw generator outputs archived under `.claude/work/p05-design-system/generated/`
 
+## Amendment, P8c: motion and elevation
+
+The freeze forbids regenerating the system. It does not forbid naming something the system never
+named, and the difference matters: regenerating drifts the values every screen already uses, while
+adding a token nobody has used yet cannot move anything.
+
+Motion, elevation and easing were never tokenised. Without them a slice that wants a transition has
+two choices, both bad: hardcode a duration, which the token check does not catch and which drifts
+between screens, or do without motion entirely. So P8c added, and only added:
+
+```
+--motion-control  --motion-enter  --motion-panel
+--motion-ease-enter  --motion-ease-exit
+--elevation-raised  --elevation-overlay
+```
+
+The conditions this amendment was made under, which any future one should meet too:
+
+- **Additive only.** No existing token changed value. Every screen renders identically to before.
+- **Semantic, like everything else.** `--motion-panel`, not `--duration-240`.
+- **Bounded on purpose.** Three durations, two easings, two elevations. A scale nobody can exhaust
+  is a scale nobody obeys.
+- **Reduced motion is part of the token, not left to each caller.** The durations collapse to zero
+  under `prefers-reduced-motion`, so a component cannot forget.
+
+The palette and the typography remain frozen. Wanting a different visual world is still a P0.6
+sized project: regenerate, reconcile once, re-freeze.
+
 ## Using the skill inside UI slices
 
 Allowed:

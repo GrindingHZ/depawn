@@ -38,6 +38,37 @@
   --radius-lg: 0.75rem;
 
   --density-row-height: 2.5rem;
+
+  /* Added in P8c under the amendment in docs/13-design-system.md. New
+     semantic tokens only: no colour, typeface or spacing value above this
+     line changed, so no existing screen moves.
+
+     Three durations and no more. Anything longer than the panel step is the
+     interface admiring itself rather than confirming something. */
+  --motion-control: 120ms;
+  --motion-enter: 180ms;
+  --motion-panel: 240ms;
+
+  /* Entering decelerates, leaving accelerates. Linear reads as mechanical
+     on anything a person is watching. */
+  --motion-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Depth is a hierarchy, not a decoration: raised is a thing sitting on the
+     page, overlay is a thing sitting above everything. */
+  --elevation-raised: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+  --elevation-overlay: 0 2px 6px rgb(15 23 42 / 0.08), 0 20px 40px -16px rgb(15 23 42 / 0.28);
+}
+
+/* Somebody who has asked their system not to animate things has asked for a
+   reason. Durations collapse rather than the animations being removed, so
+   nothing depends on a transition end that never arrives. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-control: 0ms;
+    --motion-enter: 0ms;
+    --motion-panel: 0ms;
+  }
 }
 
 /* The vault console runs on a fixed terminal: larger touch targets, tighter
