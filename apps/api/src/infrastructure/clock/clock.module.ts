@@ -1,12 +1,13 @@
 import { Global, Module } from '@nestjs/common';
+import { hasAdvanceableClock } from '../../config/runtime-mode';
 import { CLOCK_PORT } from '../../domain/ports/clock.port';
 import { OffsetClockAdapter } from './offset-clock.adapter';
 import { SystemClockAdapter } from './system-clock.adapter';
 
-/* Under test the process runs an advanceable clock so a Playwright run can
+/* Under test and in a demo the process runs an advanceable clock so a run can
    push a loan past maturity; everywhere else the system clock is the only
    source of time. */
-const clockClass = process.env.NODE_ENV === 'test' ? OffsetClockAdapter : SystemClockAdapter;
+const clockClass = hasAdvanceableClock() ? OffsetClockAdapter : SystemClockAdapter;
 
 @Global()
 @Module({

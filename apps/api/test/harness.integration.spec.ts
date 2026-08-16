@@ -21,7 +21,9 @@ describe('test harness', () => {
 
   it('boots the application against a fresh postgres', async () => {
     const response = await request(harness.app.getHttpServer()).get('/api/v1/health').expect(200);
-    expect(response.body).toEqual({ status: 'ok' });
+    // The suite runs under NODE_ENV=test, which is one of the two modes that
+    // hands the process a movable clock.
+    expect(response.body).toEqual({ status: 'ok', demoMode: true });
   });
 
   it('shapes unknown routes through the error filter', async () => {

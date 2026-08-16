@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { hasAdvanceableClock } from './config/runtime-mode';
 import { ClockModule } from './infrastructure/clock/clock.module';
 import { CustodyModule } from './infrastructure/custody/custody.module';
 import { ProtocolParametersModule } from './infrastructure/parameters/protocol-parameters.module';
@@ -20,9 +21,9 @@ import { TestSupportModule } from './modules/test-support/test-support.module';
 import { ApiExceptionFilter } from './modules/shared/http/api-exception.filter';
 import { RequestLoggingMiddleware } from './modules/shared/http/request-logging.middleware';
 
-/* The test support routes exist in the graph only under NODE_ENV=test, so a
-   deployed process has no way to move its own clock. */
-const testOnlyModules = process.env.NODE_ENV === 'test' ? [TestSupportModule] : [];
+/* The test support routes exist in the graph only under test or in a demo, so
+   a deployed process has no way to move its own clock. */
+const testOnlyModules = hasAdvanceableClock() ? [TestSupportModule] : [];
 
 @Module({
   imports: [
