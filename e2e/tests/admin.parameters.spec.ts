@@ -59,10 +59,9 @@ test('the dead letter table is empty on a healthy queue', async ({ page }) => {
   await expect(page.getByTestId('dead-letters')).toContainText('Nothing has given up');
 });
 
-/* The admin app refuses a member at the door, so there is no session to carry
-   to the parameters screen and the screen sends them back to the login form.
-   The api refuses them too, which is the half that matters: the screen is a
-   courtesy, the status code is the rule. */
+/* A member can sign in to the admin app and gets told, on every screen, that
+   the tools are not theirs. The api refuses them too, which is the half that
+   matters: the screen is a courtesy, the status code is the rule. */
 test('a member cannot reach the parameters', async ({ page, request }) => {
   await page.goto('/login');
   await page.getByTestId('email-input').fill('member@demo.test');
@@ -71,7 +70,8 @@ test('a member cannot reach the parameters', async ({ page, request }) => {
   await expect(page.getByTestId('access-denied')).toBeVisible();
 
   await page.goto('/parameters');
-  await expect(page.getByTestId('login-submit')).toBeVisible();
+  await expect(page.getByTestId('access-denied')).toBeVisible();
+  await expect(page.getByTestId('current-parameters')).toHaveCount(0);
 
   await request.post('http://localhost:3000/api/v1/auth/login', {
     data: { email: 'member@demo.test', password },
