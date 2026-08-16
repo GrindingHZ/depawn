@@ -3,7 +3,9 @@ import { EmptyState } from './empty-state';
 
 export interface DataTableColumn<Row> {
   readonly key: string;
-  readonly header: string;
+  /* A node rather than a string, so a column can carry an explain next to
+     its name without every table inventing its own header markup. */
+  readonly header: ReactNode;
   readonly render: (row: Row) => ReactNode;
 }
 

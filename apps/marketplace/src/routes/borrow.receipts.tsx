@@ -4,6 +4,7 @@ import {
   fetchMyReceipts,
   fetchMyRedemptionRequests,
   messageForError,
+  nameForCategory,
   publishListing,
   requestRedemption,
 } from '@depawn/contracts';
@@ -13,7 +14,9 @@ import {
   Card,
   DataTable,
   Dialog,
+  Explain,
   Field,
+  ItemPhotograph,
   Money,
   Skeleton,
   StatusBadge,
@@ -124,24 +127,49 @@ function ReceiptsCard(): ReactElement {
       <div data-testid="my-receipts">
         <DataTable
           columns={[
+            /* The item leads, because this is the reader's own property and
+               the receipt id is only how our systems refer to it. The id is
+               still here, under the name, for anyone quoting it to staff. */
             {
-              key: 'id',
-              header: 'Receipt',
+              key: 'item',
+              header: 'Item',
               render: (receipt: ReceiptResponse) => (
-                <span data-testid={`receipt-${receipt.id}`} className="font-mono text-xs">
-                  {receipt.id}
+                <span className="flex items-center gap-3">
+                  <ItemPhotograph
+                    src={receipt.hasPhotograph ? `/api/v1/receipts/${receipt.id}/photo` : null}
+                    alt={receipt.itemDescription}
+                    testId={`photo-${receipt.id}`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-body text-sm font-semibold text-ink-primary">
+                      {receipt.itemDescription}
+                    </span>
+                    <span className="block font-body text-xs text-ink-secondary">
+                      {nameForCategory(receipt.itemCategory)}
+                    </span>
+                    <span
+                      data-testid={`receipt-${receipt.id}`}
+                      className="mt-0.5 block font-mono text-[11px] text-ink-secondary"
+                    >
+                      {receipt.id}
+                    </span>
+                  </span>
                 </span>
               ),
             },
             {
               key: 'value',
-              header: 'Appraised value',
-              render: (receipt: ReceiptResponse) => <Money value={receipt.appraisedValue} />,
-            },
-            {
-              key: 'category',
-              header: 'Category',
-              render: (receipt: ReceiptResponse) => receipt.itemCategory,
+              header: (
+                <span className="inline-flex items-center">
+                  Appraised value
+                  <Explain termId="appraisedValue" audience="borrower" />
+                </span>
+              ),
+              render: (receipt: ReceiptResponse) => (
+                <span className="font-mono tabular-nums">
+                  <Money value={receipt.appraisedValue} />
+                </span>
+              ),
             },
             {
               key: 'status',

@@ -1,5 +1,6 @@
 import type { LoanResponse } from '@depawn/contracts';
-import { Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
+import { Card, DataTable, Explain, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
+import type { GlossaryAudience } from '@depawn/ui';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReactElement } from 'react';
 import { loanBadgeFor } from './loan-status-tone';
@@ -13,12 +14,16 @@ function dayOf(iso: string): string {
 export function LoansTable({
   title,
   testId,
+  audience,
   emptyTitle,
   query,
   footnote,
 }: {
   readonly title: string;
   readonly testId: string;
+  /* Which side of the loan is reading, so the explanations say the right
+     thing: grace is protection to a borrower and a delay to a lender. */
+  readonly audience: GlossaryAudience;
   readonly emptyTitle: string;
   readonly query: UseQueryResult<{ readonly items: readonly LoanResponse[] }>;
   readonly footnote: string;
@@ -45,10 +50,25 @@ export function LoansTable({
       <div data-testid={testId}>
         <DataTable
           columns={[
+            /* The item first, because a loan the reader can identify is a
+               loan they can act on; a column of principals all reads alike. */
+            {
+              key: 'item',
+              header: 'Item',
+              render: (loan: LoanResponse) => (
+                <span className="block max-w-[16rem] truncate font-body text-sm text-ink-primary">
+                  {loan.itemDescription}
+                </span>
+              ),
+            },
             {
               key: 'principal',
               header: 'Principal',
-              render: (loan: LoanResponse) => <Money value={loan.principal} />,
+              render: (loan: LoanResponse) => (
+                <span className="font-mono font-semibold tabular-nums">
+                  <Money value={loan.principal} />
+                </span>
+              ),
             },
             {
               key: 'rate',
@@ -60,17 +80,33 @@ export function LoansTable({
             {
               key: 'started',
               header: 'Started',
-              render: (loan: LoanResponse) => dayOf(loan.startedAt),
+              render: (loan: LoanResponse) => (
+                <span className="font-mono tabular-nums">{dayOf(loan.startedAt)}</span>
+              ),
             },
             {
               key: 'matures',
-              header: 'Matures',
-              render: (loan: LoanResponse) => dayOf(loan.maturesAt),
+              header: (
+                <span className="inline-flex items-center">
+                  Matures
+                  <Explain termId="maturity" audience={audience} />
+                </span>
+              ),
+              render: (loan: LoanResponse) => (
+                <span className="font-mono tabular-nums">{dayOf(loan.maturesAt)}</span>
+              ),
             },
             {
               key: 'grace',
-              header: 'Grace ends',
-              render: (loan: LoanResponse) => dayOf(loan.graceEndsAt),
+              header: (
+                <span className="inline-flex items-center">
+                  Grace ends
+                  <Explain termId="gracePeriod" audience={audience} />
+                </span>
+              ),
+              render: (loan: LoanResponse) => (
+                <span className="font-mono tabular-nums">{dayOf(loan.graceEndsAt)}</span>
+              ),
             },
             {
               key: 'status',

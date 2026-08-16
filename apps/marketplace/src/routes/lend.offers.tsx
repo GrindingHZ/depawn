@@ -1,6 +1,6 @@
 import { fetchMyOffers, reclaimOffer } from '@depawn/contracts';
 import type { OfferResponse } from '@depawn/contracts';
-import { Button, Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
+import { Button, Card, DataTable, Explain, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -94,7 +94,12 @@ function MyOffersCard(): ReactElement {
             },
             {
               key: 'status',
-              header: 'Status',
+              header: (
+                <span className="inline-flex items-center">
+                  Status
+                  <Explain termId="heldFunds" audience="lender" />
+                </span>
+              ),
               render: (offer: OfferResponse) => (
                 <StatusBadge tone={offerStatusTone(offer.status)} label={offer.status} />
               ),

@@ -6,7 +6,7 @@ import {
   withdraw,
 } from '@depawn/contracts';
 import type { LedgerEntryResponse } from '@depawn/contracts';
-import { Button, Card, DataTable, Field, Money, Skeleton, toMinorUnits } from '@depawn/ui';
+import { Button, Card, DataTable, Explain, Field, Money, Skeleton, toMinorUnits } from '@depawn/ui';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -63,17 +63,29 @@ function BalanceCards(): ReactElement {
           The balance could not be loaded.
         </p>
       ) : (
-        <dl className="flex gap-8">
+        <dl className="flex gap-10">
           <div>
             <dt className="font-body text-sm text-ink-secondary">Available</dt>
-            <dd data-testid="available-balance" className="text-lg">
+            <dd
+              data-testid="available-balance"
+              className="font-mono text-lg font-semibold tabular-nums"
+            >
               <Money value={balanceQuery.data.available} />
+            </dd>
+            <dd className="mt-0.5 font-body text-xs text-ink-secondary">
+              Yours to offer or withdraw
             </dd>
           </div>
           <div>
-            <dt className="font-body text-sm text-ink-secondary">Held for offers</dt>
-            <dd data-testid="held-balance" className="text-lg">
+            <dt className="flex items-center font-body text-sm text-ink-secondary">
+              Held for offers
+              <Explain termId="heldFunds" audience="lender" />
+            </dt>
+            <dd data-testid="held-balance" className="font-mono text-lg tabular-nums">
               <Money value={balanceQuery.data.held} />
+            </dd>
+            <dd className="mt-0.5 font-body text-xs text-ink-secondary">
+              Still yours, committed to offers you have placed
             </dd>
           </div>
         </dl>

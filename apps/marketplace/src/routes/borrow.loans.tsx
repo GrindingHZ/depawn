@@ -45,6 +45,7 @@ function MyLoansCard(): ReactElement {
   return (
     <>
       <LoansTable
+        audience="borrower"
         title="My loans"
         testId="my-loans"
         emptyTitle="You have no loans yet"

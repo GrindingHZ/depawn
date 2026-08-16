@@ -1,6 +1,6 @@
 import { ApiError, cancelListing, fetchMyListings, messageForError } from '@depawn/contracts';
 import type { ListingResponse } from '@depawn/contracts';
-import { Button, Card, DataTable, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
+import { Button, Card, DataTable, Explain, Money, Rate, Skeleton, StatusBadge } from '@depawn/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -107,8 +107,13 @@ function MyListingsCard(): ReactElement {
               render: (listing: ListingResponse) => <Money value={listing.requestedPrincipal} />,
             },
             {
-              key: 'maxRate',
-              header: 'Maximum rate',
+              key: 'ceiling',
+              header: (
+                <span className="inline-flex items-center">
+                  Rate ceiling
+                  <Explain termId="lendingCeiling" audience="borrower" />
+                </span>
+              ),
               render: (listing: ListingResponse) => (
                 <Rate basisPoints={listing.maxAnnualPercentageRateBasisPoints} />
               ),

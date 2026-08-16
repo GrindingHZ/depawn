@@ -47,6 +47,7 @@ function FundedLoansCard(): ReactElement {
   return (
     <>
       <LoansTable
+        audience="lender"
         title="Funded loans"
         testId="funded-loans"
         emptyTitle="You have funded no loans yet"
