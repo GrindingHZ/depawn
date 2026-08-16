@@ -13,6 +13,7 @@ import type { SettlementRef } from '../shared/settlement-ref';
 import { calculateAccruedInterest } from './interest-calculator';
 import { GracePeriodActive } from './grace-period-active';
 import { LoanNotActive } from './loan-not-active';
+import { LoanNotDefaulted } from './loan-not-defaulted';
 import { RepaymentAmountInsufficient } from './repayment-amount-insufficient';
 
 export type LoanStatus = 'ACTIVE' | 'REPAID' | 'DEFAULTED' | 'LIQUIDATED';
@@ -214,6 +215,15 @@ export class Loan {
       return failure(new GracePeriodActive(this.fields.graceEndsAt));
     }
     return ok(new Loan({ ...this.fields, status: 'DEFAULTED', defaultedAt: now }));
+  }
+
+  /* A sale closes the loan whatever the proceeds covered: a lender left
+     short is a loss, not an open debt to keep chasing. */
+  markLiquidated(): Result<Loan, LoanNotDefaulted> {
+    if (!this.allows('liquidate')) {
+      return failure(new LoanNotDefaulted());
+    }
+    return ok(new Loan({ ...this.fields, status: 'LIQUIDATED' }));
   }
 
   allows(event: LoanEvent): boolean {
