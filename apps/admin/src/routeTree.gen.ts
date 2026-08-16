@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DepositsRouteImport } from './routes/deposits'
+import { Route as LiquidationsRouteImport } from './routes/liquidations'
 import { Route as LoginRouteImport } from './routes/login'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const DepositsRoute = DepositsRouteImport.update({
   path: '/deposits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LiquidationsRoute = LiquidationsRouteImport.update({
+  id: '/liquidations',
+  path: '/liquidations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -32,30 +38,34 @@ const LoginRoute = LoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/deposits': typeof DepositsRoute
+  '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/deposits': typeof DepositsRoute
+  '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/deposits': typeof DepositsRoute
+  '/liquidations': typeof LiquidationsRoute
   '/login': typeof LoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/deposits' | '/login'
+  fullPaths: '/' | '/deposits' | '/liquidations' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/deposits' | '/login'
-  id: '__root__' | '/' | '/deposits' | '/login'
+  to: '/' | '/deposits' | '/liquidations' | '/login'
+  id: '__root__' | '/' | '/deposits' | '/liquidations' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DepositsRoute: typeof DepositsRoute
+  LiquidationsRoute: typeof LiquidationsRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DepositsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/liquidations': {
+      id: '/liquidations'
+      path: '/liquidations'
+      fullPath: '/liquidations'
+      preLoaderRoute: typeof LiquidationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DepositsRoute: DepositsRoute,
+  LiquidationsRoute: LiquidationsRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
