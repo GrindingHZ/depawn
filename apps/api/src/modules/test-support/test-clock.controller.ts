@@ -25,13 +25,13 @@ export class TestClockController {
 
   @Public()
   @Post('advance')
-  advance(
+  async advance(
     @Body(new ZodValidationPipe(advanceClockRequestSchema)) body: AdvanceClockRequest,
-  ): AdvanceClockResponse {
+  ): Promise<AdvanceClockResponse> {
     if (!isAdvanceable(this.clock)) {
       throw new NotFoundException();
     }
-    this.clock.advanceBy(BigInt(body.milliseconds));
+    await this.clock.advanceBy(BigInt(body.milliseconds));
     return { now: new Date(Number(this.clock.now().epochMilliseconds)).toISOString() };
   }
 
@@ -39,11 +39,11 @@ export class TestClockController {
      it back or the next spec is born in the future. */
   @Public()
   @Post('reset')
-  reset(): AdvanceClockResponse {
+  async reset(): Promise<AdvanceClockResponse> {
     if (!isAdvanceable(this.clock)) {
       throw new NotFoundException();
     }
-    this.clock.reset();
+    await this.clock.reset();
     return { now: new Date(Number(this.clock.now().epochMilliseconds)).toISOString() };
   }
 }

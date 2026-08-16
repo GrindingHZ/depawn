@@ -71,13 +71,21 @@ export default defineConfig({
       dependencies: ['admin-liquidation'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
+    /* The runbook walks the clock, so it runs alone and puts it back. It goes
+       before the parameters spec, which is the only thing later than it. */
+    {
+      name: 'demo-runbook',
+      testMatch: /demo\.runbook\.spec\.ts/,
+      dependencies: ['admin-reconciliation'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
+    },
     /* Editing the parameters changes what every later origination pays, so
        it runs last of all and writes the demo defaults back when it is
        done. */
     {
       name: 'admin-parameters',
       testMatch: /admin\.parameters\.spec\.ts/,
-      dependencies: ['admin-reconciliation'],
+      dependencies: ['demo-runbook'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     {

@@ -15,5 +15,9 @@ export default function globalSetup(): void {
   run('docker compose up -d postgres');
   run('pnpm --filter @depawn/api db:deploy');
   run('pnpm --filter @depawn/api db:truncate');
-  run('pnpm --filter @depawn/api db:seed');
+  /* The accounts and the vault only. The full demo dataset is dated against
+     the persisted demo clock, which this suite does not run, so seeding it
+     here would put a loan book in front of specs measuring time themselves.
+     The full seed is proved by test/seed.integration.spec.ts instead. */
+  run('pnpm --filter @depawn/api db:seed:accounts');
 }

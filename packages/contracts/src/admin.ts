@@ -37,3 +37,23 @@ export const auditPageResponseSchema = z.object({
 });
 
 export type AuditPageResponse = z.infer<typeof auditPageResponseSchema>;
+
+export const healthResponseSchema = z.object({
+  status: z.literal('ok'),
+  demoMode: z.boolean(),
+});
+
+export type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+/* The clock route exists only in a process that has a clock it can move, so
+   the response says what time it now is rather than by how much it moved. */
+export const advanceClockRequestSchema = z.object({
+  milliseconds: z.number().int().positive(),
+});
+
+export const advanceClockResponseSchema = z.object({
+  now: z.string(),
+});
+
+export type AdvanceClockRequest = z.infer<typeof advanceClockRequestSchema>;
+export type AdvanceClockResponse = z.infer<typeof advanceClockResponseSchema>;

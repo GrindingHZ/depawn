@@ -1,4 +1,9 @@
-import { auditPageResponseSchema, systemStateResponseSchema } from '../admin';
+import {
+  advanceClockResponseSchema,
+  auditPageResponseSchema,
+  healthResponseSchema,
+  systemStateResponseSchema,
+} from '../admin';
 import {
   deadLettersResponseSchema,
   exposureByVaultResponseSchema,
@@ -14,7 +19,14 @@ import type {
   LatestReconciliationResponse,
   ReconciliationRunResponse,
 } from '../operations';
-import type { AuditPageResponse, PauseSystemRequest, SystemStateResponse } from '../admin';
+import type {
+  AdvanceClockRequest,
+  AdvanceClockResponse,
+  AuditPageResponse,
+  HealthResponse,
+  PauseSystemRequest,
+  SystemStateResponse,
+} from '../admin';
 import { protocolParametersResponseSchema } from '../parameters';
 import type { ProtocolParametersResponse, UpdateParametersRequest } from '../parameters';
 import { requestJson } from './http';
@@ -136,5 +148,24 @@ export function fetchDeadLetters(): Promise<DeadLettersResponse> {
     method: 'GET',
     path: `${basePath}/admin/dead-letters`,
     responseSchema: deadLettersResponseSchema,
+  });
+}
+
+export function fetchHealth(): Promise<HealthResponse> {
+  return requestJson({
+    method: 'GET',
+    path: `${basePath}/health`,
+    responseSchema: healthResponseSchema,
+  });
+}
+
+/* Present only in a demo or under test. A deployed process has no such route,
+   which is why the screen asks health before it offers the control. */
+export function advanceClock(body: AdvanceClockRequest): Promise<AdvanceClockResponse> {
+  return requestJson({
+    method: 'POST',
+    path: `${basePath}/test/clock/advance`,
+    body,
+    responseSchema: advanceClockResponseSchema,
   });
 }

@@ -578,3 +578,15 @@ model AuditLog {
   @@index([subjectId])
   @@map("audit_log")
 }
+
+/// The offset a demo process adds to the system clock. One row, written when
+/// the seed or an operator pushes time forward, read once at startup so a
+/// restart does not undo the demo.
+model DemoClock {
+  id        String   @id
+  offsetMs  BigInt   @map("offset_ms")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("demo_clock")
+}

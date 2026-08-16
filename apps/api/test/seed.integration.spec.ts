@@ -76,26 +76,34 @@ describe('the demo seed', () => {
     expect(await prisma.liquidationBid.count({ where: { liquidationId: sale.id } })).toBe(2);
   });
 
-  /* The seed moves the clock to spread the book across weeks. If it left the
-     offset behind, the api serving the demo would be born in the future and
-     every date on screen would be wrong. */
-  it('leaves every date in the past and no loan already matured by accident', async () => {
-    const loans = await prisma.loan.findMany();
-    for (const loan of loans) {
-      expect(loan.startedAt.getTime()).toBeLessThanOrEqual(Date.now());
+  /* The seed moves the clock to spread the book across weeks, and writes the
+     offset down so the process that serves the demo starts where the seed
+     finished. Read against that clock every date the seed wrote is in the
+     past, and the loans it left active have not matured. Read against the
+     wall clock they would all appear to start in the future, which is the
+     bug this asserts is absent. */
+  it('hands the serving process a clock its own dataset makes sense against', async () => {
+    const row = await prisma.demoClock.findUnique({ where: { id: 'DEMO' } });
+    const seededNow = Date.now() + Number(row?.offsetMs ?? 0n);
+    expect(seededNow).toBeGreaterThan(Date.now());
+
+    for (const loan of await prisma.loan.findMany()) {
+      expect(loan.startedAt.getTime()).toBeLessThanOrEqual(seededNow);
     }
-    const active = await prisma.loan.findMany({ where: { status: 'ACTIVE' } });
-    for (const loan of active) {
-      expect(loan.maturesAt.getTime()).toBeGreaterThan(Date.now());
+    for (const loan of await prisma.loan.findMany({ where: { status: 'ACTIVE' } })) {
+      expect(loan.maturesAt.getTime()).toBeGreaterThan(seededNow);
+    }
+    for (const listing of await prisma.listing.findMany({ where: { status: 'ACTIVE' } })) {
+      expect(listing.expiresAt.getTime()).toBeGreaterThan(seededNow);
     }
   });
 
   it('balances the ledger it wrote', async () => {
-    const rows = await prisma.$queryRaw<{ net: bigint | null }[]>`
+    const rows = await prisma.$queryRaw<{ net: bigint | number | null }[]>`
       SELECT SUM(CASE WHEN direction = 'DEBIT' THEN minor_units ELSE -minor_units END) AS net
       FROM ledger_entry
     `;
-    expect(rows[0]?.net ?? 0n).toBe(0n);
+    expect(BigInt(rows[0]?.net ?? 0)).toBe(0n);
   });
 
   it('can be run again without stacking a second story on the first', async () => {

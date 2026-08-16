@@ -1,5 +1,7 @@
 import {
+  advanceClock,
   fetchDeadLetters,
+  fetchHealth,
   fetchProtocolParameters,
   updateProtocolParameters,
 } from '@depawn/contracts';
@@ -18,6 +20,7 @@ export const Route = createFileRoute('/parameters')({
 const parameterKeys = {
   parameters: ['protocol-parameters'] as const,
   deadLetters: ['dead-letters'] as const,
+  health: ['health'] as const,
 };
 
 function ParametersPage(): ReactElement | null {
@@ -70,6 +73,7 @@ function ParametersPage(): ReactElement | null {
       }
     >
       <div className="flex max-w-5xl flex-col gap-6">
+        <ClockCard />
         <ParametersCard />
         <DeadLetterCard />
       </div>
@@ -79,6 +83,71 @@ function ParametersPage(): ReactElement | null {
 
 function toLocalInput(iso: string): string {
   return iso.slice(0, 16);
+}
+
+const oneDay = 24 * 60 * 60 * 1000;
+
+/* A demo has to be able to jump a loan to maturity while people are watching,
+   and the api will only move its clock in a process that was started for a
+   demo. The control is absent otherwise rather than present and broken. */
+function ClockCard(): ReactElement | null {
+  const queryClient = useQueryClient();
+  const [movedTo, setMovedTo] = useState<string | null>(null);
+  const healthQuery = useQuery({ queryKey: parameterKeys.health, queryFn: fetchHealth });
+
+  const advanceMutation = useMutation({
+    mutationFn: (days: number) => advanceClock({ milliseconds: days * oneDay }),
+    onSuccess: async (response) => {
+      setMovedTo(response.now);
+      // Everything on every screen is measured against this clock.
+      await queryClient.invalidateQueries();
+    },
+  });
+
+  if (healthQuery.isPending) {
+    return (
+      <Card title="Demo clock">
+        <Skeleton lineCount={2} />
+      </Card>
+    );
+  }
+  if (healthQuery.data?.demoMode !== true) {
+    return null;
+  }
+
+  return (
+    <Card title="Demo clock">
+      <div data-testid="demo-clock" className="flex flex-col gap-3">
+        <p className="font-body text-sm text-ink-secondary">
+          This process was started for a demo, so its clock can be pushed forward. Nothing moves it
+          back short of a restart.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {[1, 7, 31].map((days) => (
+            <Button
+              key={days}
+              data-testid={`advance-${days}`}
+              variant="secondary"
+              disabled={advanceMutation.isPending}
+              onClick={() => advanceMutation.mutate(days)}
+            >
+              Forward {days} {days === 1 ? 'day' : 'days'}
+            </Button>
+          ))}
+        </div>
+        {movedTo === null ? null : (
+          <p data-testid="clock-now" className="font-body text-sm text-ink-primary">
+            The clock now reads {toLocalInput(movedTo).replace('T', ' ')}.
+          </p>
+        )}
+        {advanceMutation.isError ? (
+          <p role="alert" className="font-body text-sm text-status-danger">
+            The clock could not be moved.
+          </p>
+        ) : null}
+      </div>
+    </Card>
+  );
 }
 
 function ParametersCard(): ReactElement {

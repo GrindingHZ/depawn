@@ -134,6 +134,13 @@ function money(minorUnits: string): { minorUnits: string; currency: 'AUD' } {
   return { minorUnits, currency: 'AUD' };
 }
 
+/* The end to end suite wants the fixed accounts and the vault and nothing
+   else: its specs build their own data, and a loan book dated against a clock
+   that suite does not run would only confuse it. A demo wants the whole
+   story. One script, two scopes, so there is only ever one place that knows
+   what a demo account is called. */
+const accountsOnly = process.argv.includes('--accounts-only');
+
 async function main(): Promise<void> {
   process.env.DEMO_MODE = 'true';
   const prisma = new PrismaClient({ datasourceUrl: loadConfiguration().databaseUrl });
@@ -163,6 +170,12 @@ async function main(): Promise<void> {
       currency: 'AUD',
     },
   });
+
+  if (accountsOnly) {
+    await prisma.$disconnect();
+    process.stdout.write('seeded the demo accounts and the Sydney vault\n');
+    return;
+  }
 
   // Imported here so the demo mode flag above is already set when the graph
   // decides which clock it runs.
@@ -220,34 +233,33 @@ async function buildDataset(origin: string): Promise<void> {
     await operations.call('POST', '/me/deposits', { email, amount: money('2000000') });
   }
 
-  /* One listing per act. The first four become loans at different distances
-     from maturity, which is why the clock moves between them; the last three
-     stay open so the marketplace has something live to show. */
   const staffAndOperations = [
     [staff, staffEmail],
     [operations, operationsEmail],
   ] as const;
-  const first = await originate(origin, receiptAt(0), '250000', 1800, 30);
-  await advance(clock, 5 * oneDay, staffAndOperations);
-  const second = await originate(origin, receiptAt(1), '400000', 2100, 30);
-  await advance(clock, 10 * oneDay, staffAndOperations);
-  const third = await originate(origin, receiptAt(2), '300000', 1500, 60);
-  const fourth = await originate(origin, receiptAt(3), '200000', 2400, 14);
+
+  /* Order matters more than it looks. Everything that needs time to pass goes
+     first, because the clock only runs forwards: a loan originated before the
+     jumps would be aged out by them. The loans meant to be still running are
+     therefore written last, after the clock has finished moving. */
 
   /* The completed cycle: borrowed, repaid, and the item walked back out of
      the vault, so the demo can show the whole arc without waiting. */
-  await repay(origin, first);
-  await redeem(origin, staff, first.borrower, receiptAt(0).id);
+  const repaid = await originate(origin, receiptAt(0), '250000', 1800, 30);
+  await advance(clock, 5 * oneDay, staffAndOperations);
+  await repay(origin, repaid);
+  await redeem(origin, staff, repaid.borrower, receiptAt(0).id);
 
   /* The defaulted loan, mid sale with two bids against it. Fourteen days to
      maturity plus seven of grace plus the statutory holding period is what
      stands between origination and a sale that is allowed to happen. */
-  await advance(clock, 60 * oneDay, staffAndOperations);
+  const defaulted = await originate(origin, receiptAt(1), '200000', 2400, 14);
+  await advance(clock, 22 * oneDay, staffAndOperations);
   const lender = new DemoClient(origin);
-  await lender.signIn(fourth.lender, demoPassword);
-  await lender.call('POST', `/loans/${fourth.loanId}/default`, {});
+  await lender.signIn(defaulted.lender, demoPassword);
+  await lender.call('POST', `/loans/${defaulted.loanId}/default`, {});
   await advance(clock, 31 * oneDay, staffAndOperations);
-  const scheduled = await operations.call('POST', `/loans/${fourth.loanId}/liquidations`, {
+  const scheduled = await operations.call('POST', `/loans/${defaulted.loanId}/liquidations`, {
     reservePrice: money('150000'),
   });
   const liquidationId = identifierOf(scheduled);
@@ -263,8 +275,17 @@ async function buildDataset(origin: string): Promise<void> {
     await client.call('POST', `/liquidations/${liquidationId}/bids`, { amount: money(amount) });
   }
 
+  /* Three running loans at three distances from maturity, so the loan book
+     has a near term, a mid term, and a long one rather than a single date. */
+  const active: SeededLoan[] = [];
+  for (const [index, durationDays] of [14, 45, 90].entries()) {
+    active.push(
+      await originate(origin, receiptAt(2 + index), '150000', 1500 + index * 300, durationDays),
+    );
+  }
+
   // Three listings taking offers, so the marketplace is not an empty table.
-  for (const [index, receipt] of receipts.slice(4).entries()) {
+  for (const [index, receipt] of receipts.slice(5).entries()) {
     const listingId = await publishListing(origin, receipt, '150000', 30);
     await placeOffer(
       origin,
@@ -280,16 +301,14 @@ async function buildDataset(origin: string): Promise<void> {
     );
   }
 
-  /* The offsets so far were the only way to spread a loan book across weeks,
-     since a clock that cannot run backwards cannot be asked for history. The
-     process that serves the demo starts fresh, so it must be handed a clock
-     at real time and a book whose dates already sit where they belong. */
-  await clock.call('POST', '/test/clock/reset', {});
-  clockOffsetMs = 0;
+  /* The offsets were the only way to spread a loan book across weeks, since a
+     clock that cannot run backwards cannot be asked for history. They are
+     deliberately not reset: in demo mode the offset is written down, so the
+     process that serves the demo is born at the same instant this one ends
+     at, and every date the seed wrote sits in its past. */
 
-  const loans = [second, third].map((loan) => loan.loanId);
   process.stdout.write(
-    `seeded ${receipts.length} receipts, ${loans.length} active loans, ` +
+    `seeded ${receipts.length} receipts, ${active.length} active loans, ` +
       `one repaid and redeemed, one in liquidation with two bids\n`,
   );
 }
