@@ -9,6 +9,7 @@ import { BeginIntakeUseCase } from './application/begin-intake.use-case';
 import { IntakeDetailQuery } from './application/intake-detail.query';
 import { IssueReceiptUseCase } from './application/issue-receipt.use-case';
 import { MemberReceiptsQuery } from './application/member-receipts.query';
+import { ReceiptPhotographQuery } from './application/receipt-photograph.query';
 import { RecordAppraisalUseCase } from './application/record-appraisal.use-case';
 import { RedemptionQueueQuery } from './application/redemption-queue.query';
 import { RequestRedemptionUseCase } from './application/request-redemption.use-case';
@@ -35,6 +36,7 @@ import { VaultController } from './http/vault.controller';
     VaultInventoryQuery,
     VaultExposureQuery,
     MemberReceiptsQuery,
+    ReceiptPhotographQuery,
     RequestRedemptionUseCase,
     VerifyRedemptionUseCase,
     ConfirmReleaseUseCase,

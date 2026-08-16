@@ -4,6 +4,10 @@
 const statusByCode: Record<string, number> = {
   NOT_FOUND: 404,
   FORBIDDEN: 403,
+  /* The request itself is malformed rather than refused on its merits, which
+     docs/04 maps to 400. The validation pipe already answers 400 for the same
+     code, and this map exists so two paths cannot disagree. */
+  VALIDATION_FAILED: 400,
   LISTING_NOT_ACTIVE: 409,
   LISTING_NOT_DRAFT: 409,
   LISTING_ALREADY_MATCHED: 409,
