@@ -25,6 +25,7 @@ export default defineConfig({
     {
       name: 'admin',
       testMatch: /admin\..*\.spec\.ts/,
+      testIgnore: /admin\.liquidation\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     /* Redeeming burns a receipt, which is the only thing in the suite that
@@ -53,6 +54,12 @@ export default defineConfig({
       testMatch: /marketplace\.default\.spec\.ts/,
       dependencies: ['marketplace-time-travel'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
+    },
+    {
+      name: 'admin-liquidation',
+      testMatch: /admin\.liquidation\.spec\.ts/,
+      dependencies: ['marketplace-default'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
   ],
   webServer: [
