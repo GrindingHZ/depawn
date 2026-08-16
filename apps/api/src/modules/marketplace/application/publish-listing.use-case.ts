@@ -94,6 +94,8 @@ export class PublishListingUseCase {
           subjectType: 'listing',
           subjectId: listing.id,
           action: 'publish_listing',
+          before: { status: listing.status },
+          after: { status: published.value.status },
         },
         context,
       );

@@ -73,6 +73,7 @@ export class WithdrawOfferUseCase {
           subjectType: 'offer',
           subjectId: command.offerId,
           action: 'withdraw_offer',
+          before: { status: 'PENDING' },
           after: { settlementRef: settlementRef.reference },
         },
         context,

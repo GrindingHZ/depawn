@@ -75,6 +75,7 @@ export class ClaimReceiptUseCase {
             subjectType: 'loan',
             subjectId: loan.id,
             action: 'claim_receipt',
+            before: { status: loan.status },
             after: { receiptId: loan.receiptId, claimantAccountId: command.requestedBy },
           },
           context,

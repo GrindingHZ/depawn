@@ -56,6 +56,7 @@ export class SealIntakeUseCase {
           subjectType: 'intake_record',
           subjectId: intake.id,
           action: 'seal_intake',
+          before: { status: intake.status },
           after: { sealedHash: sealed.value.sealedHash },
         },
         context,

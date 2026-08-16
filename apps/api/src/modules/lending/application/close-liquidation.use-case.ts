@@ -144,6 +144,7 @@ export class CloseLiquidationUseCase {
             subjectType: 'liquidation',
             subjectId: liquidation.id,
             action: 'close_liquidation',
+            before: { status: liquidation.status },
             after: {
               winningBidId: closed.value.winningBid.id,
               settlementRef: settlementRef.reference,

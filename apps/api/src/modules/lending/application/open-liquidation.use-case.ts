@@ -60,6 +60,7 @@ export class OpenLiquidationUseCase {
           subjectType: 'liquidation',
           subjectId: liquidation.id,
           action: 'open_liquidation',
+          before: { status: liquidation.status },
           after: { closesAt: opened.value.closesAt?.epochMilliseconds.toString() },
         },
         context,

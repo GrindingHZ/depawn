@@ -48,6 +48,7 @@ export class CancelListingUseCase {
           subjectType: 'listing',
           subjectId: listing.id,
           action: 'cancel_listing',
+          before: { status: listing.status },
           after: { supersededOfferIds: cancelled.value.supersededOfferIds },
         },
         context,

@@ -114,6 +114,7 @@ export class RepayLoanUseCase {
             subjectType: 'loan',
             subjectId: loan.id,
             action: 'repay_loan',
+            before: { status: loan.status },
             after: {
               paidTo: noteHolder,
               total: recorded.value.total.minorUnits.toString(),

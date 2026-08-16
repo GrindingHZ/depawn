@@ -174,6 +174,7 @@ export class AcceptOfferUseCase {
             subjectType: 'loan',
             subjectId: loan.id,
             action: 'accept_offer',
+            before: { listingStatus: listing.status },
             after: {
               listingId: listing.id,
               offerId: winningOffer.id,

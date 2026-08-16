@@ -91,6 +91,7 @@ export class RequestRedemptionUseCase {
             subjectType: 'redemption_request',
             subjectId: request.id,
             action: 'request_redemption',
+            before: { receiptStatus: receipt.status },
             after: { receiptId: receipt.id, vaultId: receipt.vaultId },
           },
           context,
