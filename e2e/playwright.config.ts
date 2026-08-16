@@ -25,7 +25,7 @@ export default defineConfig({
     {
       name: 'admin',
       testMatch: /admin\..*\.spec\.ts/,
-      testIgnore: /admin\.(liquidation|pause)\.spec\.ts/,
+      testIgnore: /admin\.(liquidation|pause|reconciliation)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     /* Redeeming burns a receipt, which is the only thing in the suite that
@@ -54,6 +54,14 @@ export default defineConfig({
       testMatch: /marketplace\.default\.spec\.ts/,
       dependencies: ['marketplace-time-travel'],
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5273' },
+    },
+    /* Reconciliation reads the whole vault and the whole ledger, so it runs
+       after the specs that are still moving both. */
+    {
+      name: 'admin-reconciliation',
+      testMatch: /admin\.reconciliation\.spec\.ts/,
+      dependencies: ['admin-pause'],
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5175' },
     },
     /* Pausing is process wide, so it runs alone after everything else and
        turns itself back off. */
