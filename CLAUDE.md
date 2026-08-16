@@ -43,6 +43,7 @@ Read in this order. Each is normative, not advisory.
 | `docs/12-writing-and-commits.md` | Commit format and prose rules, both machine checked |
 | `docs/13-design-system.md` | UI UX Pro Max, token freeze rule, visual regression |
 | `docs/DESIGN-BRIEF.md` | The chosen tokens and their intended use, written in P0.5 |
+| `docs/DEMO.md` | The runbook: what to run, who to sign in as, what to click, what to say |
 
 ## Stack
 
@@ -123,7 +124,7 @@ Full rules in `docs/09-conventions.md`. The short version:
 pnpm install
 pnpm db:up                 docker compose up postgres
 pnpm db:migrate            prisma migrate dev
-pnpm db:seed               seed demo fixtures
+pnpm db:seed               build the whole demo dataset, emptying the database first
 pnpm dev                   all apps in watch mode
 pnpm test                  unit + integration
 pnpm test:e2e              playwright
