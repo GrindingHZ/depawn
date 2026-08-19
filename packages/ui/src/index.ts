@@ -25,3 +25,5 @@ export * from './offer-book';
 export * from './rate-history';
 export * from './lifecycle-spine';
 export * from './collateral-row';
+export * from './index-strip';
+export * from './tape';
