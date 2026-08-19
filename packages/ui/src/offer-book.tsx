@@ -12,6 +12,11 @@ export interface OfferBookOffer extends DepthInput {
   readonly isMine?: boolean;
 }
 
+/* An escape rather than an HTML numeric entity. The token check scans for a
+   hash followed by hex digits, and a numeric entity for this glyph looks
+   exactly like one. */
+const bestMarker = '▸';
+
 export interface OfferBookProps {
   readonly offers: readonly OfferBookOffer[];
   readonly role: MarketRole;
@@ -96,7 +101,7 @@ export function OfferBook({
                   <span className="relative">
                     {row.isBest ? (
                       <span aria-hidden="true" className="mr-1 text-accent">
-                        &#9656;
+                        {bestMarker}
                       </span>
                     ) : null}
                     {formatRate(row.annualPercentageRateBasisPoints).replace(' p.a.', '')}
