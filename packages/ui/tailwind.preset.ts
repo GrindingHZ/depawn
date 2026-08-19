@@ -31,6 +31,8 @@ const preset: Omit<Config, 'content'> = {
         },
         edge: {
           DEFAULT: 'var(--color-border)',
+          /* WCAG 1.4.11: anything bounding a control, never a hairline. */
+          strong: 'var(--color-border-strong)',
         },
         accent: {
           DEFAULT: 'var(--color-accent-default)',
@@ -42,6 +44,12 @@ const preset: Omit<Config, 'content'> = {
           success: 'var(--color-status-success)',
           warning: 'var(--color-status-warning)',
           danger: 'var(--color-status-danger)',
+        },
+        /* Bound to the reader, not to the sign. See MarketDelta. */
+        market: {
+          favourable: 'var(--color-market-favourable)',
+          adverse: 'var(--color-market-adverse)',
+          flat: 'var(--color-market-flat)',
         },
       },
       fontFamily: {
@@ -56,9 +64,11 @@ const preset: Omit<Config, 'content'> = {
       },
       height: {
         row: 'var(--density-row-height)',
+        'row-floor': 'var(--density-row-floor)',
       },
       minHeight: {
         row: 'var(--density-row-height)',
+        'row-floor': 'var(--density-row-floor)',
       },
     },
   },

@@ -235,6 +235,40 @@ The conditions this amendment was made under, which any future one should meet t
 The palette and the typography remain frozen. Wanting a different visual world is still a P0.6
 sized project: regenerate, reconcile once, re-freeze.
 
+## Amendment, P0.6: the floor scope
+
+The marketplace became a dark workspace. That is the P0.6 the P8c amendment said this would take,
+and it is a larger change than P8c was: P8c could claim every screen rendered identically
+afterwards, and this one repaints an entire application. It is written down here rather than
+carried in a commit message because it changes a rule this file states.
+
+**What changed.** `[data-surface='terminal']` was documented as density overrides only, with the
+line "the palette never forks". The palette now forks once, into `[data-surface='floor']`, which
+the marketplace sets on its shell.
+
+**Why the name.** `terminal` was taken. The vault console has used it since P0.5 for a fixed
+terminal in a lit room, and reusing the word for a dark marketplace would have left two unrelated
+meanings on one selector.
+
+The conditions this amendment was made under, which any future one should meet too:
+
+- **The light scope is untouched.** No value under `:root` changed. The vault console and the
+  admin render exactly as they did, and `terminal` still overrides density only.
+- **A fork carries its own recorded contrast table.** Not a claim that it was checked: a table,
+  in `docs/DESIGN-BRIEF.md`, computed from the tokens by `packages/ui/src/contrast.spec.ts`. A
+  ratio written by hand into a document is a ratio that drifts the first time somebody nudges a
+  value.
+- **One fork, not a mechanism for forks.** A second named scope needs another amendment. The
+  difference between one exception and a pattern is whether the next one has to argue for itself.
+- **Structurally identical scopes.** Both define the same token names. A component reads
+  `--color-surface-raised` and never learns which scope answered.
+
+`--color-border-strong` was added to both scopes at the same time, and is the one part of this
+amendment that is a straight bug fix. A single `--color-border` had been serving both the hairline
+between two table rows, which should recede, and the outline of a control a person has to find,
+which WCAG 1.4.11 puts at 3:1. Those are different jobs. The dark scope is only where it became
+impossible to ignore.
+
 ## Using the skill inside UI slices
 
 Allowed:

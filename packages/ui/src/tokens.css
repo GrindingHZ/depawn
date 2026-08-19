@@ -58,6 +58,30 @@
      page, overlay is a thing sitting above everything. */
   --elevation-raised: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
   --elevation-overlay: 0 2px 6px rgb(15 23 42 / 0.08), 0 20px 40px -16px rgb(15 23 42 / 0.28);
+
+  /* Added in P0.6 under the amendment in docs/13-design-system.md.
+
+     One border token was doing two jobs at two different contrast
+     requirements: the hairline between two table rows, which should recede,
+     and the outline of a control a person has to find, which WCAG 1.4.11
+     puts at 3:1. Splitting them is additive; --color-border keeps its value
+     and every existing screen renders unchanged. */
+  --color-border-strong: #748498;
+
+  /* Direction is arithmetic, tone is not. A rate falling is the borrower
+     paying less and the lender being undercut, so these are bound to who is
+     reading rather than to the sign. They share their values with the status
+     tokens today and are still named apart, because a loan being repaid and
+     a rate moving your way are different ideas that would otherwise be
+     unable to change independently. */
+  --color-market-favourable: #15803d;
+  --color-market-adverse: #b91c1c;
+  --color-market-flat: #64748b;
+
+  /* The marketplace workspace packs a book, a rail and a tape onto one
+     screen, which the 2.5rem product row cannot do without scrolling
+     something that should be readable at a glance. */
+  --density-row-floor: 2.25rem;
 }
 
 /* Somebody who has asked their system not to animate things has asked for a
@@ -78,4 +102,49 @@
   --density-row-height: 3rem;
   --space-4: 0.75rem;
   --color-text-secondary: #334155;
+}
+
+/* The marketplace workspace. P0.6 amended the freeze to permit the palette to
+   fork into exactly one further named scope, which must carry its own
+   recorded contrast table; packages/ui/src/contrast.spec.ts computes that
+   table from these values so the document cannot drift from the stylesheet.
+
+   The scope is 'floor' and not 'terminal' because the vault console already
+   owns 'terminal', where the rule remains density overrides only.
+
+   Nothing above this block changed. The console and the admin render exactly
+   as they did. */
+[data-surface='floor'] {
+  --color-surface-base: #0b0f14;
+  --color-surface-raised: #131a22;
+  --color-surface-sunken: #080b0f;
+
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b9aab;
+  --color-text-inverse: #04140a;
+
+  /* Faint on purpose: at this weight a hairline separates two rows without
+     drawing a grid over a screen that is mostly figures. */
+  --color-border: #1e2a36;
+  --color-border-strong: #5a6d82;
+
+  --color-accent-default: #2ea043;
+  --color-accent-hover: #3fb950;
+
+  --color-status-neutral: #8b9aab;
+  --color-status-active: #2f81f7;
+  --color-status-success: #2ea043;
+  --color-status-warning: #d29922;
+  --color-status-danger: #f85149;
+
+  --color-market-favourable: #2ea043;
+  --color-market-adverse: #f85149;
+  --color-market-flat: #8b9aab;
+
+  --density-row-height: var(--density-row-floor);
+
+  /* A shadow tuned for light surfaces disappears on a dark one. Depth here
+     comes from a lifted surface plus a darker cast than the page ground. */
+  --elevation-raised: 0 1px 0 rgb(255 255 255 / 0.03), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --elevation-overlay: 0 1px 0 rgb(255 255 255 / 0.04), 0 20px 40px -16px rgb(0 0 0 / 0.85);
 }

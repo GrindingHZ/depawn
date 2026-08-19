@@ -82,6 +82,58 @@ Measured with the WCAG relative luminance formula. AA requires 4.5:1 for body te
 | status-warning text on surface-base | 4.80:1 |
 | status-danger text on surface-base | 6.18:1 |
 
+## The floor palette, P0.6
+
+The marketplace runs on `[data-surface='floor']`. The vault console and the admin keep everything
+above; only the marketplace shell sets the attribute. The amendment permitting this fork, and the
+conditions it was made under, are in `docs/13-design-system.md`.
+
+| Token | Value | Intended use |
+|---|---|---|
+| `--color-surface-base` | `#0b0f14` | Workspace ground |
+| `--color-surface-raised` | `#131a22` | Panes, rows, inputs |
+| `--color-surface-sunken` | `#080b0f` | Pane headers, the tape, wells |
+| `--color-text-primary` | `#e6edf3` | Figures, item names, headings |
+| `--color-text-secondary` | `#8b9aab` | Labels, units, secondary copy |
+| `--color-border` | `#1e2a36` | Hairlines between rows. Decorative only |
+| `--color-border-strong` | `#5a6d82` | Anything bounding a control |
+| `--color-accent-default` | `#2ea043` | Primary actions only |
+| `--color-market-favourable` | `#2ea043` | A figure that moved the reader's way |
+| `--color-market-adverse` | `#f85149` | A figure that moved against the reader |
+| `--color-market-flat` | `#8b9aab` | Unchanged |
+| `--density-row-floor` | 2.25rem | Book, tape and browse rows |
+
+Pure black is avoided deliberately. It smears on OLED and it leaves no room for a sunken surface
+underneath the page ground.
+
+### Contrast ratios, floor
+
+Computed from the tokens by `packages/ui/src/contrast.spec.ts`, which fails the build if any pair
+below drops under its threshold. Body text needs 4.5:1 and a control boundary needs 3:1 under
+WCAG 1.4.11. The hairline is the one value deliberately below both: it separates rows and carries
+no meaning, and a reader who cannot see it has lost nothing.
+
+| Pair | On base | On raised | On sunken |
+|---|---|---|---|
+| text-primary | 16.27:1 | 14.83:1 | 16.69:1 |
+| text-secondary | 6.69:1 | 6.10:1 | 6.86:1 |
+| accent-default | 5.70:1 | 5.19:1 | 5.85:1 |
+| accent-hover | 7.57:1 | 6.90:1 | 7.76:1 |
+| status-active | 5.13:1 | 4.68:1 | 5.26:1 |
+| status-warning | 7.61:1 | 6.94:1 | 7.81:1 |
+| status-danger | 5.73:1 | 5.23:1 | 5.88:1 |
+| status-neutral | 6.69:1 | 6.10:1 | 6.86:1 |
+| market-favourable | 5.70:1 | 5.19:1 | 5.85:1 |
+| market-adverse | 5.73:1 | 5.23:1 | 5.88:1 |
+| market-flat | 6.69:1 | 6.10:1 | 6.86:1 |
+| border-strong | 3.61:1 | 3.29:1 | 3.70:1 |
+| border (hairline, decorative) | 1.32:1 | 1.20:1 | 1.35:1 |
+
+`--color-market-favourable` and `--color-accent-default` hold the same value here, as do
+`--color-market-adverse` and `--color-status-danger`. They stay separate tokens because a repaid
+loan and a rate moving your way are different ideas, and one should be able to change without
+dragging the other with it.
+
 ## The five UX rules this product cares about most
 
 1. Focus states are visible on every interactive element; the console is keyboard first.
