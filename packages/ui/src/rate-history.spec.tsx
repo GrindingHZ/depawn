@@ -107,3 +107,42 @@ describe('RateHistory', () => {
     expect(pathOf(container)).not.toContain('NaN');
   });
 });
+
+describe('RateHistory geometry', () => {
+  /* A falling rate has to draw a falling line. Getting this backwards shows
+     the borrower a rising chart while their cost improves. */
+  it('descends as the rate falls', () => {
+    const { container } = render(<RateHistory points={points} role="borrower" />);
+    const path = pathOf(container);
+    const verticals = [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]));
+    expect(verticals.length).toBeGreaterThan(0);
+    expect(verticals).toEqual([...verticals].sort((left, right) => left - right));
+  });
+
+  /* Only the vertical extent can clip. A horizontal segment starting at x=0
+     is the left edge of the box and is meant to be there. */
+  it('keeps the line clear of the top and bottom edges', () => {
+    const { container } = render(<RateHistory points={points} role="borrower" />);
+    const path = pathOf(container);
+    const start = /^M [\d.]+ ([\d.]+)/.exec(path);
+    const heights = [
+      Number(start?.[1] ?? 0),
+      ...[...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1])),
+    ];
+    expect(Math.min(...heights)).toBeGreaterThan(0);
+    expect(Math.max(...heights)).toBeLessThan(60);
+  });
+});
+
+describe('RateHistory hold run', () => {
+  /* The most recent step is the one a reader most wants to see, and mapping
+     the last point to the right edge is what hides it. */
+  it('leaves the last step clear of the right edge', () => {
+    const { container } = render(<RateHistory points={points} role="borrower" />);
+    const path = pathOf(container);
+    const horizontals = [...path.matchAll(/H ([\d.]+)/g)].map((match) => Number(match[1]));
+    const beforeHold = horizontals[horizontals.length - 2];
+    expect(beforeHold).toBeLessThan(200);
+    expect(horizontals[horizontals.length - 1]).toBe(200);
+  });
+});

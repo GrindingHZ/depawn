@@ -14,6 +14,14 @@ export interface RateHistoryProps {
 
 const viewBoxWidth = 200;
 const viewBoxHeight = 60;
+/* Without this the cheapest and dearest points sit exactly on the top and
+   bottom edges, where half the stroke is clipped and the line reads as empty
+   space. */
+const verticalPadding = 6;
+/* The run held to the right edge after the last offer. Without it the final
+   point maps to the right edge, its step falls exactly on the boundary, and
+   the newest change in the price is the one nobody can see. */
+const holdWidth = 40;
 
 /* Stepped, never smoothed. Offers land at discrete moments and the rate holds
    flat between them, so a curve would draw a price that was never quoted.
@@ -50,11 +58,14 @@ export function RateHistory({ points, role, highlightAtEpochMs }: RateHistoryPro
   const rateSpan = highestRate - lowestRate || 1;
   const timeSpan = latest - earliest || 1;
 
-  const xOf = (atEpochMs: number): number => ((atEpochMs - earliest) / timeSpan) * viewBoxWidth;
-  /* The best rate falls over a listing's life, so the cheapest sits at the
-     bottom of the box and the line descends the way the price does. */
+  const plotWidth = viewBoxWidth - holdWidth;
+  const xOf = (atEpochMs: number): number => ((atEpochMs - earliest) / timeSpan) * plotWidth;
+  /* The best rate falls over a listing's life, so the dearest sits at the top
+     and the cheapest at the bottom, and the line descends the way the price
+     it is drawing does. */
+  const plotHeight = viewBoxHeight - verticalPadding * 2;
   const yOf = (basisPoints: number): number =>
-    viewBoxHeight - ((highestRate - basisPoints) / rateSpan) * viewBoxHeight;
+    verticalPadding + ((highestRate - basisPoints) / rateSpan) * plotHeight;
 
   const commands: string[] = [`M ${xOf(first.atEpochMs)} ${yOf(first.basisPoints)}`];
   for (let index = 1; index < points.length; index += 1) {
