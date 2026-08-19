@@ -15,7 +15,7 @@ export function Checkbox({ label, id, ...rest }: CheckboxProps): ReactElement {
         id={inputId}
         type="checkbox"
         {...rest}
-        className="size-4 cursor-pointer rounded-sm border-edge accent-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-status-active"
+        className="size-4 cursor-pointer rounded-sm border-edge-strong accent-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-status-active"
       />
       <label htmlFor={inputId} className="cursor-pointer font-body text-sm text-ink-primary">
         {label}

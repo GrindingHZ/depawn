@@ -23,7 +23,7 @@ export function Field({ label, errorMessage, id, ...rest }: FieldProps): ReactEl
         className={[
           'min-h-row rounded-md border bg-surface-raised px-3 font-body text-sm text-ink-primary',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-status-active',
-          hasError ? 'border-status-danger' : 'border-edge',
+          hasError ? 'border-status-danger' : 'border-edge-strong',
         ].join(' ')}
       />
       {hasError ? (
