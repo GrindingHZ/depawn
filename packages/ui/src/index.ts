@@ -27,3 +27,5 @@ export * from './lifecycle-spine';
 export * from './collateral-row';
 export * from './index-strip';
 export * from './tape';
+export * from './market-role';
+export * from './workspace';

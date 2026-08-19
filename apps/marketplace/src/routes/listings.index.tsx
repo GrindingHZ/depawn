@@ -1,29 +1,45 @@
-import { browseListings, itemCategories, nameForCategory } from '@depawn/contracts';
+import {
+  browseListings,
+  fetchListing,
+  fetchMarketIndex,
+  fetchMarketTape,
+  fetchMyOffers,
+  nameForCategory,
+} from '@depawn/contracts';
 import type { ListingSummary } from '@depawn/contracts';
 import {
-  Card,
-  EmptyState,
-  Explain,
-  ItemPhotograph,
-  LoanToValue,
-  Money,
-  Rate,
-  Select,
+  IndexStrip,
+  LifecycleSpine,
   Skeleton,
+  Tape,
+  Workspace,
+  positionOf,
+  spineFor,
 } from '@depawn/ui';
+import type { CollateralRelationship, MarketRole } from '@depawn/ui';
 import { useQuery } from '@tanstack/react-query';
-import { Link, Navigate, createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { ReactElement } from 'react';
 import { MarketShell } from '../market-shell';
 import { marketKeys } from '../market-keys';
 import { useCurrentAccount } from '../current-account';
+import { BrowsePane } from '../workspace/browse-pane';
+import type { BrowseDensity, BrowseSort } from '../workspace/browse-pane';
+import { DetailPane } from '../workspace/detail-pane';
+import { defaultDensity, defaultSort, parseWorkspaceSearch } from '../workspace-selection';
+import type { WorkspaceSearch } from '../workspace-selection';
 
 export const Route = createFileRoute('/listings/')({
-  component: BrowsePage,
+  validateSearch: parseWorkspaceSearch,
+  component: WorkspacePage,
 });
 
-function BrowsePage(): ReactElement | null {
+/* The strip and the tape refresh on a timer. Polling rather than a stream:
+   the outbox is at least once (Q-023) and a push transport is a new failure
+   mode this screen does not need to earn its keep. */
+const tapePollMs = 15_000;
+
+function WorkspacePage(): ReactElement | null {
   const currentAccount = useCurrentAccount();
   if (currentAccount.isPending) {
     return (
@@ -35,23 +51,25 @@ function BrowsePage(): ReactElement | null {
   if (currentAccount.data === null || currentAccount.data === undefined) {
     return <Navigate to="/login" />;
   }
-
-  return (
-    <MarketShell>
-      <div className="max-w-4xl">
-        <BrowseCard />
-      </div>
-    </MarketShell>
-  );
+  return <VaultFloor viewerAccountId={currentAccount.data.id} />;
 }
 
-/* The filters go to the api rather than being applied to a page already
-   fetched. Filtering what happens to have loaded would hide rows from the
-   reader while telling them they have seen everything. */
-function BrowseCard(): ReactElement {
-  const [category, setCategory] = useState('');
-  const [maxLoanToValue, setMaxLoanToValue] = useState('');
-  const [sort, setSort] = useState<'newest' | 'rate' | 'closing'>('newest');
+function VaultFloor({ viewerAccountId }: { readonly viewerAccountId: string }): ReactElement {
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  /* Every pane reads the selection from here. Nothing is mirrored into React
+     state, so the back button, a refresh and a pasted link all land on the
+     same view without any pane knowing the others exist. */
+  function update(next: Partial<WorkspaceSearch>): void {
+    void navigate({ search: (previous) => ({ ...previous, ...next }), replace: false });
+  }
+
+  const category = search.category ?? '';
+  const maxLoanToValue = search.maxLoanToValue === undefined ? '' : String(search.maxLoanToValue);
+  const sort = search.sort ?? defaultSort;
+  const density = search.density ?? defaultDensity;
+  const selectedListingId = search.listing ?? null;
 
   const browseQuery = useQuery({
     queryKey: marketKeys.browseWith(category, maxLoanToValue, sort),
@@ -63,156 +81,140 @@ function BrowseCard(): ReactElement {
       }),
   });
 
-  if (browseQuery.isPending) {
-    return (
-      <Card title="Live listings">
-        <Skeleton lineCount={4} />
-      </Card>
-    );
-  }
-  if (browseQuery.isError || browseQuery.data === undefined) {
-    return (
-      <Card title="Live listings">
-        <p role="alert" className="font-body text-sm text-status-danger">
-          The listings could not be loaded.
-        </p>
-      </Card>
-    );
+  const myOffersQuery = useQuery({ queryKey: marketKeys.myOffers, queryFn: fetchMyOffers });
+
+  const indexQuery = useQuery({
+    queryKey: marketKeys.marketIndex,
+    queryFn: () => fetchMarketIndex(),
+    refetchInterval: tapePollMs,
+  });
+
+  const tapeQuery = useQuery({
+    queryKey: marketKeys.marketTape,
+    queryFn: () => fetchMarketTape(),
+    refetchInterval: tapePollMs,
+  });
+
+  /* Shares a key with the detail pane, so React Query serves both from one
+     request. The route needs it because the spine belongs to the workspace
+     rather than to either pane. */
+  const selectedQuery = useQuery({
+    queryKey: marketKeys.detail(selectedListingId ?? ''),
+    queryFn: () => fetchListing(selectedListingId ?? ''),
+    enabled: selectedListingId !== null,
+    retry: false,
+  });
+
+  const myOffers = myOffersQuery.data?.items ?? [];
+  const livePendingListingIds = new Set(
+    myOffers.filter((offer) => offer.status === 'PENDING').map((offer) => offer.listingId),
+  );
+
+  function relationshipFor(listing: ListingSummary): CollateralRelationship {
+    return positionOf({
+      borrowerAccountId: listing.borrowerAccountId,
+      viewerAccountId,
+      hasLiveOffer: livePendingListingIds.has(listing.id),
+      hasFundedLoan: false,
+    }).relationship;
   }
 
+  /* The best rate on a browse row comes from the offers already fetched for
+     that listing, so a rail of twenty rows does not become twenty requests.
+     A listing nobody has opened yet reports no rate rather than a wrong one. */
+  function bestRateFor(listing: ListingSummary): number | null {
+    if (selectedQuery.data?.id !== listing.id) {
+      return null;
+    }
+    const pending = selectedQuery.data.offerBook.filter((offer) => offer.status === 'PENDING');
+    if (pending.length === 0) {
+      return null;
+    }
+    return Math.min(...pending.map((offer) => offer.annualPercentageRateBasisPoints));
+  }
+
+  const selectedDetail = selectedQuery.data;
+  const role: MarketRole =
+    selectedDetail === undefined
+      ? 'lender'
+      : positionOf({
+          borrowerAccountId: selectedDetail.borrowerAccountId,
+          viewerAccountId,
+          hasLiveOffer: livePendingListingIds.has(selectedDetail.id),
+          hasFundedLoan: false,
+        }).role;
+
+  const indexEntries = (indexQuery.data?.categories ?? []).map((entry) => ({
+    category: entry.category,
+    categoryName: nameForCategory(entry.category),
+    liveListings: entry.liveListings,
+    averageRateBasisPoints: entry.averageRateBasisPoints,
+    previousAverageRateBasisPoints: entry.previousAverageRateBasisPoints,
+  }));
+
   return (
-    <Card title="Live listings">
-      <BrowseControls
-        category={category}
-        onCategory={setCategory}
-        maxLoanToValue={maxLoanToValue}
-        onMaxLoanToValue={setMaxLoanToValue}
-        sort={sort}
-        onSort={setSort}
-      />
-      <div data-testid="browse-table" className="mt-4 flex flex-col gap-3">
-        {browseQuery.data.items.length === 0 ? (
-          <EmptyState
-            title="No live listings right now"
-            description="Borrowers list items after the vault has taken custody of them."
+    <MarketShell fills>
+      <Workspace
+        indexStrip={
+          <IndexStrip
+            entries={indexEntries}
+            role={role}
+            selectedCategory={category === '' ? null : category}
+            onSelectCategory={(next) =>
+              update({ category: next ?? undefined, listing: undefined, offer: undefined })
+            }
           />
-        ) : (
-          browseQuery.data.items.map((listing) => <ListingRow key={listing.id} listing={listing} />)
-        )}
-      </div>
-    </Card>
-  );
-}
-
-/* A row is a lending opportunity, not a database record. The item leads,
-   because it is what the money is secured against; the ask is the one figure
-   set larger, because it is what the lender is deciding about; and the loan
-   to value sits beside it, because otherwise every reader does that division
-   in their head. The listing id is still here and still linkable, just no
-   longer the loudest thing on the screen. */
-function ListingRow({ listing }: { readonly listing: ListingSummary }): ReactElement {
-  return (
-    <div
-      className={[
-        'flex items-center gap-4 rounded-lg border border-edge bg-surface-raised p-4',
-        'transition-colors duration-control ease-enter',
-        'focus-within:border-ink-secondary hover:border-ink-secondary hover:shadow-raised',
-      ].join(' ')}
-    >
-      <ItemPhotograph
-        src={listing.hasPhotograph ? `/api/v1/receipts/${listing.receiptId}/photo` : null}
-        alt={listing.itemDescription}
-        testId={`photo-${listing.id}`}
+        }
+        browse={
+          <BrowsePane
+            listings={browseQuery.data?.items ?? []}
+            isPending={browseQuery.isPending}
+            isError={browseQuery.isError}
+            selectedListingId={selectedListingId}
+            onSelect={(listingId) => update({ listing: listingId, offer: undefined })}
+            relationshipFor={relationshipFor}
+            bestRateFor={bestRateFor}
+            nowEpochMs={Date.now()}
+            category={category}
+            onCategory={(value) =>
+              update({ category: value === '' ? undefined : value, listing: undefined })
+            }
+            maxLoanToValue={maxLoanToValue}
+            onMaxLoanToValue={(value) =>
+              update({ maxLoanToValue: value === '' ? undefined : Number(value) })
+            }
+            sort={sort as BrowseSort}
+            onSort={(value) => update({ sort: value })}
+            density={density as BrowseDensity}
+            onDensity={(value) => update({ density: value })}
+          />
+        }
+        detail={
+          <DetailPane
+            listingId={selectedListingId}
+            viewerAccountId={viewerAccountId}
+            selectedOfferId={search.offer ?? null}
+            onSelectOffer={(offerId) => update({ offer: offerId })}
+            role={role}
+          />
+        }
+        spine={
+          selectedDetail === undefined ? null : (
+            <LifecycleSpine
+              role={role}
+              stages={spineFor(role, selectedDetail.status)}
+              onSelectStage={(stage) => update({ stage })}
+            />
+          )
+        }
+        tape={
+          <Tape
+            items={tapeQuery.data?.events ?? []}
+            selectedListingId={selectedListingId}
+            onSelectListing={(listingId) => update({ listing: listingId, offer: undefined })}
+          />
+        }
       />
-
-      <div className="min-w-0 flex-1">
-        {/* The link is the item name rather than the whole row, because the
-            row carries its own controls, and interactive content cannot nest
-            inside a link without breaking both the keyboard and the markup. */}
-        <Link
-          to="/listings/$listingId"
-          params={{ listingId: listing.id }}
-          data-testid={`listing-${listing.id}`}
-          className={[
-            'block truncate font-body text-sm font-semibold text-ink-primary',
-            'hover:text-accent focus-visible:outline focus-visible:outline-2',
-            'focus-visible:outline-offset-2 focus-visible:outline-status-active',
-          ].join(' ')}
-        >
-          {listing.itemDescription}
-        </Link>
-        <p className="mt-0.5 font-body text-xs text-ink-secondary">
-          {nameForCategory(listing.itemCategory)} &middot; appraised at{' '}
-          <Money value={listing.appraisedValue} /> &middot; up to{' '}
-          <Rate basisPoints={listing.maxAnnualPercentageRateBasisPoints} />
-        </p>
-      </div>
-
-      <div className="shrink-0 text-right">
-        <p className="font-mono text-base font-semibold tabular-nums text-ink-primary">
-          <Money value={listing.requestedPrincipal} />
-        </p>
-        <span className="mt-1 inline-flex items-center">
-          <LoanToValue basisPoints={listing.loanToValueBasisPoints} testId={`ltv-${listing.id}`} />
-          <Explain termId="loanToValue" audience="lender" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-interface BrowseControlsProps {
-  readonly category: string;
-  readonly onCategory: (value: string) => void;
-  readonly maxLoanToValue: string;
-  readonly onMaxLoanToValue: (value: string) => void;
-  readonly sort: 'newest' | 'rate' | 'closing';
-  readonly onSort: (value: 'newest' | 'rate' | 'closing') => void;
-}
-
-function BrowseControls({
-  category,
-  onCategory,
-  maxLoanToValue,
-  onMaxLoanToValue,
-  sort,
-  onSort,
-}: BrowseControlsProps): ReactElement {
-  return (
-    <div data-testid="browse-controls" className="flex flex-wrap items-end gap-4">
-      <Select
-        label="Category"
-        data-testid="filter-category"
-        value={category}
-        onChange={(event) => onCategory(event.target.value)}
-      >
-        <option value="">Anything</option>
-        {itemCategories.map((value) => (
-          <option key={value} value={value}>
-            {nameForCategory(value)}
-          </option>
-        ))}
-      </Select>
-      <Select
-        label="Loan to value at most"
-        data-testid="filter-ltv"
-        value={maxLoanToValue}
-        onChange={(event) => onMaxLoanToValue(event.target.value)}
-      >
-        <option value="">Any</option>
-        <option value="3000">30% or less</option>
-        <option value="5000">50% or less</option>
-      </Select>
-      <Select
-        label="Sort by"
-        data-testid="sort-listings"
-        value={sort}
-        onChange={(event) => onSort(event.target.value as 'newest' | 'rate' | 'closing')}
-      >
-        <option value="newest">Newest first</option>
-        <option value="rate">Lowest rate ceiling</option>
-        <option value="closing">Closing soonest</option>
-      </Select>
-    </div>
+    </MarketShell>
   );
 }

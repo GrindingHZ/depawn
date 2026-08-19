@@ -7,8 +7,20 @@ import { currentAccountKeys } from './current-account';
 import { ReclaimBanner } from './reclaim-banner';
 
 /* The one authenticated shell for every marketplace screen, so navigation
-   stays consistent while routes multiply. */
-export function MarketShell({ children }: { readonly children: ReactNode }): ReactElement {
+   stays consistent while routes multiply.
+
+   The whole marketplace runs on the floor scope. The vault console and the
+   admin do not: only this application sets the attribute, which is what keeps
+   the P0.6 fork to one surface (docs/13-design-system.md). */
+export function MarketShell({
+  children,
+  fills = false,
+}: {
+  readonly children: ReactNode;
+  /* The workspace scrolls its own panes and needs the viewport. Every other
+     screen is an ordinary padded document. */
+  readonly fills?: boolean;
+}): ReactElement {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const logoutMutation = useMutation({
@@ -21,6 +33,8 @@ export function MarketShell({ children }: { readonly children: ReactNode }): Rea
 
   return (
     <AppShell
+      surface="floor"
+      fills={fills}
       productName="depawn marketplace"
       navigation={
         <>
