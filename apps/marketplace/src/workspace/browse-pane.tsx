@@ -14,7 +14,6 @@ export interface BrowsePaneProps {
   readonly selectedListingId: string | null;
   readonly onSelect: (listingId: string) => void;
   readonly relationshipFor: (listing: ListingSummary) => CollateralRelationship;
-  readonly bestRateFor: (listing: ListingSummary) => number | null;
   readonly nowEpochMs: number;
   readonly category: string;
   readonly onCategory: (value: string) => void;
@@ -100,7 +99,7 @@ export function BrowsePane(props: BrowsePaneProps): ReactElement {
             const item = itemFrom(
               listing,
               props.relationshipFor(listing),
-              props.bestRateFor(listing),
+              listing.bestOfferRateBasisPoints,
               props.nowEpochMs,
             );
             const isSelected = props.selectedListingId === listing.id;

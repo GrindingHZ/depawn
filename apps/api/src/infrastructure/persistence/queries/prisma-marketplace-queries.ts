@@ -30,6 +30,7 @@ interface BrowseRow {
   readonly item_category: ItemCategory;
   readonly item_description: string;
   readonly has_photograph: boolean;
+  readonly best_offer_rate_basis_points: number | null;
 }
 
 @Injectable()
@@ -59,7 +60,15 @@ export class PrismaMarketplaceQueries implements MarketplaceQueries {
                SELECT 1 FROM intake_record i
                WHERE i.sealed_hash = r.intake_record_hash
                  AND jsonb_path_exists(i.evidence, '$[*].contentType')
-             ) AS has_photograph
+             ) AS has_photograph,
+             -- What a borrower would pay if they took the best offer standing
+             -- right now. Computed here so a rail of twenty rows stays one
+             -- query rather than becoming twenty.
+             (
+               SELECT MIN(o.annual_percentage_rate_basis_points)
+               FROM offer o
+               WHERE o.listing_id = l.id AND o.status = 'PENDING'
+             ) AS best_offer_rate_basis_points
       FROM listing l
       JOIN custody_receipt r ON r.id = l.receipt_id
       WHERE l.status = 'ACTIVE'
@@ -132,6 +141,7 @@ function toSummary(row: BrowseRow): ListingSummaryReadModel {
     itemCategory: row.item_category,
     itemDescription: row.item_description,
     hasPhotograph: row.has_photograph,
+    bestOfferRateBasisPoints: row.best_offer_rate_basis_points,
   };
 }
 

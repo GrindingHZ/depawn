@@ -63,6 +63,7 @@ export function toListingSummary(summary: ListingSummaryReadModel): ListingSumma
     itemCategory: summary.itemCategory,
     itemDescription: summary.itemDescription,
     hasPhotograph: summary.hasPhotograph,
+    bestOfferRateBasisPoints: summary.bestOfferRateBasisPoints,
     loanToValueBasisPoints: loanToValueBasisPointsOf(
       summary.requestedPrincipal,
       summary.appraisedValue,

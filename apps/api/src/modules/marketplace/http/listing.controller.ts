@@ -20,6 +20,7 @@ import type {
   SettlementResponse,
 } from '@depawn/contracts';
 import type { Account } from '../../../domain/accounts/account';
+import type { RankedOffer } from '../../../domain/marketplace/rank-offers';
 import { MARKETPLACE_QUERIES } from '../../../domain/ports/marketplace-queries.port';
 import type { MarketplaceQueries } from '../../../domain/ports/marketplace-queries.port';
 import { CLOCK_PORT } from '../../../domain/ports/clock.port';
@@ -48,6 +49,19 @@ import {
   toRankedOfferResponse,
   loanToValueBasisPointsOf,
 } from './marketplace-response.mapper';
+
+/* Null when nobody has offered. Never zero, which would read as a listing
+   funding itself for free.
+
+   The book is already only pending offers, and it is ordered by total cost
+   rather than by rate, so the cheapest rate is not simply the first row: a
+   larger principal at the same rate costs the borrower more. */
+function bestPendingRateOf(offers: readonly RankedOffer[]): number | null {
+  if (offers.length === 0) {
+    return null;
+  }
+  return Math.min(...offers.map((ranked) => ranked.offer.annualPercentageRateBasisPoints));
+}
 
 function instantOfIso(value: string): Instant {
   return Instant.fromEpochMilliseconds(BigInt(new Date(value).getTime()));
@@ -155,6 +169,9 @@ export class ListingController {
         detail.receipt.appraisedValue,
       ),
       maxPrincipal: toMoneyDto(detail.maxPrincipal),
+      /* The same figure the browse rail carries, computed from the book this
+         response already holds rather than asked for a second time. */
+      bestOfferRateBasisPoints: bestPendingRateOf(detail.offerBook),
       offerBook: detail.offerBook.map(toRankedOfferResponse),
     };
   }

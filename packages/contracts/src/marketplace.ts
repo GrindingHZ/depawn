@@ -72,6 +72,11 @@ export const listingSummarySchema = listingResponseSchema.extend({
      basis points. Computed here because it is the first thing a lender wants
      and the last thing they should have to work out. */
   loanToValueBasisPoints: z.number().int().nonnegative(),
+  /* The cheapest offer standing right now, which is what the borrower would
+     pay if they accepted. Null means nobody has offered yet. It is nullable
+     rather than absent so a rail can tell the difference between no offers
+     and no answer, and never report the first when it means the second. */
+  bestOfferRateBasisPoints: z.number().int().nullable(),
 });
 
 export type ListingSummary = z.infer<typeof listingSummarySchema>;

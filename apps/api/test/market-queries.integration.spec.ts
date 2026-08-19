@@ -244,4 +244,24 @@ describe('the market index and tape', () => {
 
     expect((await tape()).events).toHaveLength(0);
   });
+
+  /* A browse row reports the cheapest standing offer, and reports null when
+     there is genuinely none. Without this the rail has to guess, and a row
+     saying no offers because nothing was fetched tells the reader something
+     untrue about a listing they might act on. */
+  it('carries the best standing offer on a browse row', async () => {
+    const listing = await listingFrom({ category: 'WATCH' });
+    await offerOn(listing, 1400);
+    await offerOn(listing, 1120);
+    await offerOn(listing, 1800);
+
+    const response = await server().get('/api/v1/listings').set('Cookie', cookies).expect(200);
+    expect(response.body.items[0].bestOfferRateBasisPoints).toBe(1120);
+  });
+
+  it('reports no standing offer as null rather than as a rate', async () => {
+    await listingFrom({ category: 'WATCH' });
+    const response = await server().get('/api/v1/listings').set('Cookie', cookies).expect(200);
+    expect(response.body.items[0].bestOfferRateBasisPoints).toBeNull();
+  });
 });

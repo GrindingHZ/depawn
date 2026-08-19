@@ -21,6 +21,11 @@ export interface ListingSummaryReadModel {
   readonly itemCategory: ItemCategory;
   readonly itemDescription: string;
   readonly hasPhotograph: boolean;
+  /* The cheapest pending offer, which is what the borrower would pay if they
+     accepted now. Null means nobody has offered, which the rail has to be
+     able to say without guessing: a row that reports no offers because
+     nothing was fetched is telling the reader something untrue. */
+  readonly bestOfferRateBasisPoints: number | null;
 }
 
 export interface ListingsPage {

@@ -119,20 +119,6 @@ function VaultFloor({ viewerAccountId }: { readonly viewerAccountId: string }): 
     }).relationship;
   }
 
-  /* The best rate on a browse row comes from the offers already fetched for
-     that listing, so a rail of twenty rows does not become twenty requests.
-     A listing nobody has opened yet reports no rate rather than a wrong one. */
-  function bestRateFor(listing: ListingSummary): number | null {
-    if (selectedQuery.data?.id !== listing.id) {
-      return null;
-    }
-    const pending = selectedQuery.data.offerBook.filter((offer) => offer.status === 'PENDING');
-    if (pending.length === 0) {
-      return null;
-    }
-    return Math.min(...pending.map((offer) => offer.annualPercentageRateBasisPoints));
-  }
-
   const selectedDetail = selectedQuery.data;
   const role: MarketRole =
     selectedDetail === undefined
@@ -173,7 +159,6 @@ function VaultFloor({ viewerAccountId }: { readonly viewerAccountId: string }): 
             selectedListingId={selectedListingId}
             onSelect={(listingId) => update({ listing: listingId, offer: undefined })}
             relationshipFor={relationshipFor}
-            bestRateFor={bestRateFor}
             nowEpochMs={Date.now()}
             category={category}
             onCategory={(value) =>
