@@ -23,3 +23,4 @@ export * from './offer-depth';
 export * from './rate-series';
 export * from './offer-book';
 export * from './rate-history';
+export * from './lifecycle-spine';
