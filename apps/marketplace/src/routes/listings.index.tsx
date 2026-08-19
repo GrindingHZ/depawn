@@ -187,7 +187,9 @@ function VaultFloor({ viewerAccountId }: { readonly viewerAccountId: string }): 
           selectedDetail === undefined ? null : (
             <LifecycleSpine
               role={role}
-              stages={spineFor(role, selectedDetail.status)}
+              stages={spineFor(role, selectedDetail.status, {
+                hasLiveOffer: livePendingListingIds.has(selectedDetail.id),
+              })}
               onSelectStage={(stage) => update({ stage })}
             />
           )

@@ -14,7 +14,7 @@ export interface SpineStage {
    comes back. Neither sequence is the other one renamed, which is why there
    are two lists rather than one list with a translation table. */
 const borrowerStages = ['receipt', 'listed', 'funded', 'maturing', 'redeemed'] as const;
-const lenderStages = ['offered', 'competing', 'funded', 'risk', 'settled'] as const;
+const lenderStages = ['open', 'competing', 'funded', 'risk', 'settled'] as const;
 
 const labels: Record<string, string> = {
   receipt: 'Receipt',
@@ -22,8 +22,8 @@ const labels: Record<string, string> = {
   funded: 'Funded',
   maturing: 'Maturing',
   redeemed: 'Redeemed',
-  offered: 'Offered',
-  competing: 'Competing',
+  open: 'Open',
+  competing: 'Your offer',
   risk: 'Default risk',
   settled: 'Settled',
 };
@@ -46,9 +46,8 @@ const positions: Record<MarketRole, Record<string, string>> = {
     EXPIRED: 'receipt',
   },
   lender: {
-    DRAFT: 'offered',
-    ACTIVE: 'offered',
-    OFFERED: 'competing',
+    DRAFT: 'open',
+    ACTIVE: 'open',
     MATCHED: 'funded',
     LOAN_ACTIVE: 'funded',
     LOAN_MATURING: 'funded',
@@ -56,18 +55,29 @@ const positions: Record<MarketRole, Record<string, string>> = {
     RELEASED: 'settled',
     DEFAULTED: 'risk',
     LIQUIDATED: 'settled',
-    CANCELLED: 'offered',
-    EXPIRED: 'offered',
+    CANCELLED: 'open',
+    EXPIRED: 'open',
   },
 };
+
+export interface SpineOptions {
+  readonly isAtRisk?: boolean;
+  /* A lender with a live offer is competing; one without is looking at a
+     listing that is merely open. Marking the first stage current for both
+     would tell somebody they had offered when they had not. */
+  readonly hasLiveOffer?: boolean;
+}
 
 export function spineFor(
   role: MarketRole,
   status: string,
-  isAtRisk = false,
+  options: SpineOptions = {},
 ): readonly SpineStage[] {
+  const { isAtRisk = false, hasLiveOffer = false } = options;
   const keys = role === 'borrower' ? borrowerStages : lenderStages;
-  const currentKey = positions[role][status] ?? keys[0];
+  const resolved = positions[role][status] ?? keys[0];
+  const currentKey =
+    role === 'lender' && resolved === 'open' && hasLiveOffer ? 'competing' : resolved;
   const currentIndex = Math.max(
     keys.findIndex((key) => key === currentKey),
     0,

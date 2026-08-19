@@ -18,6 +18,10 @@ export interface MarketDeltaProps {
   readonly previousBasisPoints: number | null;
   readonly role: MarketRole;
   readonly label?: string;
+  /* One line rather than three, for a strip or a table cell. The reading is
+     still there, it is just spoken rather than printed: a row of figures has
+     no room for a sentence under each one. */
+  readonly compact?: boolean;
 }
 
 export function directionOf(current: number, previous: number | null): MarketDirection {
@@ -69,9 +73,25 @@ export function MarketDelta({
   previousBasisPoints,
   role,
   label,
+  compact = false,
 }: MarketDeltaProps): ReactElement {
   const direction = directionOf(currentBasisPoints, previousBasisPoints);
   const tone = toneFor(direction, role);
+  const reading = readings[role][direction];
+
+  if (compact) {
+    return (
+      <span
+        data-tone={tone}
+        data-direction={direction}
+        className={`inline-flex items-baseline gap-1 font-mono tabular-nums ${toneClasses[tone]}`}
+      >
+        <span aria-hidden="true">{arrows[direction]}</span>
+        <span>{formatPercentage(currentBasisPoints)}</span>
+        <span className="sr-only">, {reading}</span>
+      </span>
+    );
+  }
 
   return (
     <span className="inline-flex flex-col gap-1">
@@ -86,7 +106,7 @@ export function MarketDelta({
         <span aria-hidden="true">{arrows[direction]}</span>
         <span>{formatPercentage(currentBasisPoints)}</span>
       </span>
-      <span className="font-body text-xs text-ink-secondary">{readings[role][direction]}</span>
+      <span className="font-body text-xs text-ink-secondary">{reading}</span>
     </span>
   );
 }

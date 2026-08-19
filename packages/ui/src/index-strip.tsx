@@ -57,6 +57,7 @@ export function IndexStrip({
               <span className="font-mono text-xs text-ink-secondary">no offers</span>
             ) : (
               <MarketDelta
+                compact
                 currentBasisPoints={entry.averageRateBasisPoints}
                 previousBasisPoints={entry.previousAverageRateBasisPoints}
                 role={role}

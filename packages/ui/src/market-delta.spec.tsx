@@ -104,3 +104,24 @@ describe('MarketDelta', () => {
     expect(screen.getByText('best rate offered')).toBeTruthy();
   });
 });
+
+describe('MarketDelta, compact', () => {
+  it('prints one line and speaks the rest', () => {
+    const { container } = render(
+      <MarketDelta compact currentBasisPoints={1120} previousBasisPoints={1200} role="lender" />,
+    );
+    expect(container.querySelector('[data-tone="adverse"]')).toBeTruthy();
+    expect(screen.getByText('11.20%')).toBeTruthy();
+    /* Still announced, just not printed: a strip has no room for a sentence
+       under every figure, and dropping it entirely would leave colour as the
+       only signal. */
+    expect(screen.getByText(/undercut/i)).toBeTruthy();
+  });
+
+  it('keeps the tone rule in compact form', () => {
+    const { container } = render(
+      <MarketDelta compact currentBasisPoints={1120} previousBasisPoints={1200} role="borrower" />,
+    );
+    expect(container.querySelector('[data-tone="favourable"]')).toBeTruthy();
+  });
+});

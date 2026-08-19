@@ -15,14 +15,30 @@ describe('spineFor', () => {
     ]);
   });
 
-  it('walks the lender from offer to settlement', () => {
+  it('walks the lender from an open listing to settlement', () => {
     expect(spineFor('lender', 'ACTIVE').map((stage) => stage.label)).toEqual([
-      'Offered',
-      'Competing',
+      'Open',
+      'Your offer',
       'Funded',
       'Default risk',
       'Settled',
     ]);
+  });
+
+  /* Telling somebody they have offered when they have not is the same class
+     of quiet lie as painting a falling rate green for both sides. */
+  it('leaves a lender who has not offered at open, not at their own offer', () => {
+    expect(spineFor('lender', 'ACTIVE').find((stage) => stage.state === 'current')?.label).toBe(
+      'Open',
+    );
+  });
+
+  it('moves a lender onto their own offer once they have one', () => {
+    expect(
+      spineFor('lender', 'ACTIVE', { hasLiveOffer: true }).find(
+        (stage) => stage.state === 'current',
+      )?.label,
+    ).toBe('Your offer');
   });
 
   it('marks exactly one stage as the one happening now', () => {
@@ -51,7 +67,7 @@ describe('spineFor', () => {
   });
 
   it('flags a stage at risk when asked, wherever the reader is', () => {
-    const stages = spineFor('borrower', 'LOAN_MATURING', true);
+    const stages = spineFor('borrower', 'LOAN_MATURING', { isAtRisk: true });
     expect(stages.find((stage) => stage.label === 'Maturing')?.state).toBe('risk');
   });
 
