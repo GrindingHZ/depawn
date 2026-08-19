@@ -83,8 +83,8 @@ Two primitives, used everywhere, never bypassed.
 
 ```
 /                              landing, live listings
-/listings                      browse with filters
-/listings/:listingId           detail, offer book, place offer
+/listings                      the workspace: browse, detail, offer book, spine, tape
+/listings/:listingId           redirects into /listings?listing=:listingId
 /borrow
   /borrow/receipts             my receipts, list one
   /borrow/listings             my listings and their offers
@@ -110,6 +110,32 @@ than silently retrying; the amount changed and the user must see it.
 
 **Reclaim funds.** A persistent banner when the account has superseded or expired holds. This is
 money the user cannot spend and does not know about. It should be impossible to miss.
+
+## The marketplace workspace
+
+`/listings` is one screen rather than several. The panes are separate components and the selection
+that binds them is a router search param, never React state:
+
+```
+/listings?listing=&category=&maxLoanToValue=&sort=&density=&stage=&offer=
+```
+
+Every pane reads the router. None of them is handed the selection by a parent and none of them
+tells another pane anything. That is what makes each one renderable on its own in a test, and it is
+also what gives the screen a working back button, a reload that restores the view, and a link
+somebody can send.
+
+The old per listing route still exists and redirects, so every link written before the workspace,
+every bookmark, and the demo runbook all still resolve.
+
+Two rules the panes share:
+
+- **Tone is bound to the reader, not to the arithmetic.** A falling rate is favourable to a borrower
+  and adverse to a lender. `MarketDelta` takes a role and the direction arrow is computed
+  separately from the colour. See flow 17 in `docs/10-flows.md`.
+- **Which role the reader is in is derived, never chosen.** `positionOf` reads their relationship to
+  the listing. There is no toggle, because a toggle is a piece of state a person can leave in the
+  position that tells them the opposite of the truth.
 
 ## Vault console routes
 

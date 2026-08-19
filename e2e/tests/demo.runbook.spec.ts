@@ -129,15 +129,18 @@ test('the demo runbook walks end to end exactly as docs/DEMO.md describes', asyn
     await lenderPage.goto(`${marketplaceBase}/listings/${listingId}`);
     await lenderPage.getByTestId('offer-rate').fill(rate);
     await lenderPage.getByTestId('offer-submit').click();
-    await expect(lenderPage.getByTestId('offer-book')).toContainText(`${rate}% p.a.`);
+    await expect(lenderPage.getByTestId('offer-book')).toContainText(`${rate}%`);
     await lenderPage.context().close();
   }
 
   await borrowerPage.goto(`${marketplaceBase}/listings/${listingId}`);
   // The book ranks by rate, so the cheapest money is the one on top.
   const topRow = borrowerPage.getByTestId('offer-book').getByRole('row').nth(1);
-  await expect(topRow).toContainText('18.00% p.a.');
-  await topRow.getByRole('button', { name: 'Accept' }).click();
+  await expect(topRow).toContainText('18.00%');
+  // Two steps on purpose: choosing an offer shows the total repayable, and
+  // only then can it be accepted.
+  await topRow.getByRole('button').first().click();
+  await borrowerPage.getByRole('button', { name: 'Accept this offer' }).click();
   await borrowerPage.getByRole('link', { name: 'My loans' }).click();
   await expect(borrowerPage.getByTestId('my-loans')).toContainText('Running');
 

@@ -107,3 +107,26 @@ for (const entry of apps) {
     }
   });
 }
+
+/* The workspace with nothing selected is only half of it. The offer book,
+   the rate chart and the spine only exist once a listing is chosen, and they
+   are the densest markup in the product, so they are scanned separately
+   rather than left to a route list that can never reach them. */
+test('the selected listing panes are free of serious accessibility faults', async ({ page }) => {
+  await page.goto(`${marketplaceBase}/login`);
+  await signIn(page, 'member@demo.test');
+  await page.goto(`${marketplaceBase}/listings`);
+  await expect(page.getByTestId('browse-table')).toBeVisible();
+
+  await page.getByTestId('browse-table').getByRole('button').first().click();
+  // The selection lands in the URL, which is what every pane reads.
+  await expect(page).toHaveURL(/listing=/);
+  await expect(page.getByTestId('offer-book')).toBeVisible();
+  await expectNoSeriousViolations(page, 'marketplace /listings with a selection');
+
+  // The gallery is different markup over the same data, so it gets its own
+  // scan rather than being assumed equivalent to the rows.
+  await page.getByTestId('browse-density').selectOption('gallery');
+  await expect(page.getByTestId('browse-table')).toBeVisible();
+  await expectNoSeriousViolations(page, 'marketplace /listings as a gallery');
+});

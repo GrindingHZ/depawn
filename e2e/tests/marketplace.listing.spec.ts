@@ -125,7 +125,7 @@ test('a receipt becomes a listing and takes a funded offer', async ({ page, brow
   await expect(lenderPage.getByTestId('max-principal')).toHaveText('AUD 3,000.00');
   await lenderPage.getByTestId('offer-rate').fill('18.00');
   await lenderPage.getByTestId('offer-submit').click();
-  await expect(lenderPage.getByTestId('offer-book')).toContainText('18.00% p.a.');
+  await expect(lenderPage.getByTestId('offer-book')).toContainText('18.00%');
 
   await lenderPage.getByRole('link', { name: 'Wallet' }).click();
   await expect(lenderPage.getByTestId('held-balance')).toHaveText('AUD 2,500.00');

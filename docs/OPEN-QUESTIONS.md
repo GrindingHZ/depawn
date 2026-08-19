@@ -259,10 +259,15 @@ be visibly distinct on screen, not merged into one gallery.
 
 ## Q-027: whether the operations consoles should read like the marketplace
 **Blocks:** nothing today
-**Currently implemented:** the vault console and the admin lead with identifiers and monospace, and
-carry no explain layer; only their state names were put into words
+**Currently implemented:** revisited in P0.6 and answered narrowly. The vault console and the admin
+still lead with identifiers and monospace and still carry no explain layer. What they did adopt is
+the shared component layer and the stronger control boundary, because those are not a voice.
 **Needs:** whoever owns docs/05
-**Notes:** Staff quote receipt ids to each other and read them off labels, so a table that leads
-with the id is the right tool for that job rather than a shortcoming. Applying a lender's treatment
-to an operations console would be copying a pattern instead of using it. This is written down so
-the asymmetry reads as a decision rather than as unfinished work.
+**Notes:** The original entry recorded the split as a decision rather than as unfinished work, and
+that half still holds: staff quote receipt ids to each other and read them off labels, so a table
+that leads with the id is the right tool rather than a shortcoming. What the original entry did not
+separate is voice from machinery. Applying a lender's explain layer to an operations console would
+be copying a pattern; giving every application the same button, the same field and a control
+boundary that meets WCAG 1.4.11 is fixing a defect that happened to be visible in three places at
+once. The marketplace going dark did not spread to them, which is the part the P0.6 amendment in
+docs/13-design-system.md holds to one scope.

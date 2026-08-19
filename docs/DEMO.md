@@ -106,16 +106,25 @@ Sign in as `ada@demo.test` in the marketplace window.
 
 Sign in as `gita@demo.test` in a second marketplace window.
 
-3. Open the listing from Browse. Each row leads with the item and its photograph, and carries a
-   loan to value chip: the same money against a gold bar and against a painting are different
-   propositions, and the chip says which. Offer the full amount at 18.00 percent for thirty days.
-4. Offer again from a third account, or point at one of the seeded listings, which already has two
-   offers on it. The offer table ranks by rate, and the lowest rate is on top.
+3. Click the listing in the rail on the left. Nothing navigates: the item, its appraisal, the rate
+   history and the offer book all fill the right hand side, and the rail stays where it was. Each
+   row leads with the item and its photograph and carries a loan to value chip, because the same
+   money against a gold bar and against a painting are different propositions. Offer the full
+   amount at 18.00 percent for thirty days.
+4. Offer again from a third account, or click one of the seeded listings, which already has two
+   offers on it. The book ranks cheapest first and the bar behind each row is the depth standing
+   behind that rate.
+
+   Worth pausing on: the strip along the top and the figure under the item name are painted for
+   whoever is reading. To this lender a falling rate is red, because they are being undercut.
 
 Back as `ada@demo.test`:
 
-5. Accept the top offer. The screen shows the loan: principal, rate, maturity, and the fee taken.
-   The item is now **ENCUMBERED** and the balance shows the principal less the origination fee.
+5. Click the same listing. The identical falling rate is now green, and the spine along the bottom
+   has changed from a lender's vocabulary to a borrower's. Choose the top offer to see the interest
+   and the total repayable, then accept it. The screen shows the loan: principal, rate, maturity,
+   and the fee taken. The item is now **ENCUMBERED** and the balance shows the principal less the
+   origination fee.
 
 Say: one acceptance, one transaction. The hold on the lender's money, the movement to the borrower,
 the fee, the loan, and both notes all commit together or not at all. That is why this maps to a

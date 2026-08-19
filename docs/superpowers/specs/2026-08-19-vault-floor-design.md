@@ -187,7 +187,7 @@ Derived client side from data the API already returns, with no new endpoint:
 | Component | Source | Note |
 |---|---|---|
 | `OfferBook` | new | Depth ladder. Nothing off the shelf models this. |
-| `RateHistory` | shadcn chart (Recharts) | Stepped line. |
+| `RateHistory` | new, hand rolled SVG | Stepped line. Recharts was specified here and dropped during implementation: the series is under twenty points, and a charting dependency arrives with its own theming layer to reconcile against the tokens and reopens the Tailwind v4 question for no gain. |
 | `LifecycleSpine` | new | Role aware stage rail. |
 | `MarketDelta` | new | Binds direction and colour to role. |
 | `Tape` | new | Cross listing activity strip. |

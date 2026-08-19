@@ -136,12 +136,18 @@ test('a borrower accepts an offer and both sides see the loan', async ({
 
   await page.goto(`/listings/${listingId}`);
   // The book is ranked by total borrower cost, so the cheapest offer leads.
-  await expect(page.getByTestId('offer-book')).toContainText('18.00% p.a.');
+  // The rate column says "p.a." once in its header rather than on every row.
+  await expect(page.getByTestId('offer-book')).toContainText('18.00%');
   await expect(page.getByTestId('offer-submit')).toHaveCount(0);
   // A lender never sees the control, so the offer book cannot be used to
   // accept on someone else's behalf.
-  await expect(winnerPage.getByRole('button', { name: 'Accept' })).toHaveCount(0);
-  await page.getByTestId('offer-book').getByRole('button', { name: 'Accept' }).first().click();
+  await expect(winnerPage.getByRole('button', { name: /Accept/ })).toHaveCount(0);
+  // Choosing an offer shows what it costs before it can be accepted:
+  // originating a loan is a commitment and the total repayable is the figure
+  // the borrower is actually agreeing to.
+  await page.getByTestId('offer-book').getByRole('button').first().click();
+  await expect(page.getByTestId('offer-book')).toContainText('Total repayable');
+  await page.getByRole('button', { name: 'Accept this offer' }).click();
 
   await expect(page.getByTestId('my-loans')).toContainText('Running');
   await expect(page.getByTestId('my-loans')).toContainText('AUD 2,500.00');
